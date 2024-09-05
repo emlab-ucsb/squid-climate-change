@@ -1,0 +1,72 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery",
+    "section": "",
+    "text": "Introduction",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#background-and-motivation",
+    "href": "index.html#background-and-motivation",
+    "title": "Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery",
+    "section": "Background and Motivation",
+    "text": "Background and Motivation\nThe Humboldt squid (Dosidicus gigas) is one of the most important deep-water fisheries (DWF) globally, playing a crucial role in both the economy and food security. These extraordinarily large squid are particularly sensitive to environmental changes, including fluctuations in sea surface temperature (SST), driven by the El Niño-Southern Oscillation (“ENSO”), that climate change increasingly intensifies. SST plays a pivotal role in determining where squid populations thrive, influencing their migration patterns and spawning grounds (@yu2018ocean). As these temperatures shift, so do the squid, leading to changes in fishing grounds and market demand (Powell, Levine, and Ordonez-Gauger (2022)). Understanding these dynamics is essential for sustainable fisheries management in an era of rapid climate change.\nThe urgency of this issue is highlighted by recent trends. From 2017 to 2020, the global squid fleet’s fishing effort increased by 68%, with most activity concentrated beyond a nation’s Exclusive Economic Zone (EEZ) particularly from international vessels (Seto et al. (2023)). This has led to significant geopolitical and environmental concerns, particularly around South America where the Humboldt squid is abundant (Montecalvo et al. (2023)). Although some regional fisheries management organizations, such as the South Pacific Regional Fisheries Management Organization (SPRFMO), have attempted to introduce regulations to moderate squid fishing, most squid stocks on the high seas remain largely unregulated. This lack of regulation, coupled with the sensitivity of squid populations to environmental changes, underscores the need for comprehensive research and effective management strategies.\nTo address these challenges and seize opportunities for sustainable management, it is crucial to understand how sea surface temperature (SST) changes will affect the Humboldt squid. While some research has begun to explore the impact of sea surface temperature (SST) on the Humboldt squid, few studies have connected these findings to policy implications (Yu and Chen (2018)). We propose to investigate the sensitivity of this fishery to climate change, with a particular focus on the implications for policy interventions. Our goal is to provide policymakers with the necessary data and insights to make informed, sustainable management decisions. Specifically, we will address the following research questions:\n\nHow do fluctuations in sea surface temperature influence the distribution and abundance of Humboldt squid?\nWhat are the subsequent shifts in fishing demand and potential conflicts among fisheries?\nWhat specific challenges and opportunities for management enhancement exist n light of changing SST?\nWhat policy recommendations and fisheries management strategies can be developed to manage Humboldt squid fisheries sustainably in the context of climate change?\nHow the relevant RFMO and DWF fleets or adjacent countries can collectively contribute to the sustainable management of jumbo flying squid in the context of climate change?",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#approach",
+    "href": "index.html#approach",
+    "title": "Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery",
+    "section": "Approach",
+    "text": "Approach\nThe project will be conducted in three phases:\nPhase One: Literature review\nWe will begin with a review of scientific literature and existing studies on biological and ecological characteristics of Humboldt squid, including their life cycles, breeding patterns, and feeding behaviors. We will also compile information on how changes in SST have historically affected squid populations and identify key indicators of climate resilience. In addition, we will review socioeconomic studies that highlight the economic importance of Humboldt squid fisheries, their role in local economies, and the impact of environmental changes on these aspects.\nPhase Two: Structural model development\nIn the second phase, we will develop a data-driven fishery model to simulate future SST scenarios and predict Humboldt squid responses. This model will integrate historical and current data from Global Fishing Watch and SPRFMO, as well as bioeconomic parameters in the existing study of this fishery. We will use this model to analyze the migration patterns of these squid in response to changing SST to predict shifts in fishing demand and the potential for conflict among fisheries.\nPhase Three: Policy review and recommendations\nFinally, we will assess various fisheries management strategies specific to individual country and regionsY, such as voluntary seasonal closures and enforced fishing moratoriums, to identify their effectiveness in addressing the challenges posed by climate change and overfishing. This will help us develop evidence-based policy recommendations aimed at ensuring the future profitability, resiliency, and sustainability of the Humboldt squid fishery.",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "index.html#deliverables",
+    "href": "index.html#deliverables",
+    "title": "Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery",
+    "section": "Deliverables",
+    "text": "Deliverables\n\nKickoff meeting: Initial meeting with EDF to align on project priorities.\nLiterature review: In-depth review of existing knowledge on Humboldt squid ecology, distribution, and response to SST fluctuations.\nModel development: A model predicting Humboldt squid responses to various climate change scenarios, integrating empirical data on fishing effort and catch.\nDraft white paper: A report on the impact of climate change on Humboldt squid fisheries, including policy recommendations supporting the sustainable management of the sector.\n\n\n\n\n\nMontecalvo, Isabella, Philippe Le Billon, Chris Arsenault, and Milko Schvartzman. 2023. “Ocean Predators: Squids, Chinese Fleets and the Geopolitics of High Seas Fishing.” Marine Policy 152: 105584.\n\n\nPowell, Farrah, Arielle Levine, and Lucia Ordonez-Gauger. 2022. “Climate Adaptation in the Market Squid Fishery: Fishermen Responses to Past Variability Associated with El Niño Southern Oscillation Cycles Inform Our Understanding of Adaptive Capacity in the Face of Future Climate Change.” Climatic Change 173 (1): 1.\n\n\nSeto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich, Masanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki Oozeki, and Osvaldo Urrutia S. 2023. “Fishing Through the Cracks: The Unregulated Nature of Global Squid Fisheries.” Science Advances 9 (10): eadd8125.\n\n\nYu, Wei, and Xinjun Chen. 2018. “Ocean Warming-Induced Range-Shifting of Potential Habitat for Jumbo Flying Squid Dosidicus Gigas in the Southeast Pacific Ocean Off Peru.” Fisheries Research 204: 137–46.",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "methods.html",
+    "href": "methods.html",
+    "title": "1  Methods",
+    "section": "",
+    "text": "1.1 Data sources",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "methods.html#data-sources",
+    "href": "methods.html#data-sources",
+    "title": "1  Methods",
+    "section": "",
+    "text": "1.1.1 Fishing effort\nWe use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (Kroodsma et al. (2018)). We use the V3 pipeline table pipe_ais_v3_published.messages.\n\n\n1.1.2 Vessel info\nVessel characteristics data processed are by Global Fishing Watch (Park et al. (2023)). We use the V3 pipeline table pipe_ais_v3_published.vi_ssvid_v20240601.\n\n\n\n\nKroodsma, David A, Juan Mayorga, Timothy Hochberg, Nathan A Miller, Kristina Boerder, Francesco Ferretti, Alex Wilson, et al. 2018. “Tracking the Global Footprint of Fisheries.” Science 359 (6378): 904–8.\n\n\nPark, Jaeyoon, Jennifer Van Osdel, Joanna Turner, Courtney M Farthing, Nathan A Miller, Hannah L Linder, Guillermo Ortuño Crespo, Gabrielle Carmine, and David A Kroodsma. 2023. “Tracking Elusive and Shifting Identities of the Global Fishing Fleet.” Science Advances 9 (3): eabp8200.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "references.html",
+    "href": "references.html",
+    "title": "References",
+    "section": "",
+    "text": "Kroodsma, David A, Juan Mayorga, Timothy Hochberg, Nathan A Miller,\nKristina Boerder, Francesco Ferretti, Alex Wilson, et al. 2018.\n“Tracking the Global Footprint of Fisheries.”\nScience 359 (6378): 904–8.\n\n\nMontecalvo, Isabella, Philippe Le Billon, Chris Arsenault, and Milko\nSchvartzman. 2023. “Ocean Predators: Squids, Chinese Fleets and\nthe Geopolitics of High Seas Fishing.” Marine Policy\n152: 105584.\n\n\nPark, Jaeyoon, Jennifer Van Osdel, Joanna Turner, Courtney M Farthing,\nNathan A Miller, Hannah L Linder, Guillermo Ortuño Crespo, Gabrielle\nCarmine, and David A Kroodsma. 2023. “Tracking Elusive and\nShifting Identities of the Global Fishing Fleet.” Science\nAdvances 9 (3): eabp8200.\n\n\nPowell, Farrah, Arielle Levine, and Lucia Ordonez-Gauger. 2022.\n“Climate Adaptation in the Market Squid Fishery: Fishermen\nResponses to Past Variability Associated with El Niño\nSouthern Oscillation Cycles Inform Our Understanding of Adaptive\nCapacity in the Face of Future Climate Change.” Climatic\nChange 173 (1): 1.\n\n\nSeto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich,\nMasanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki\nOozeki, and Osvaldo Urrutia S. 2023. “Fishing Through the Cracks:\nThe Unregulated Nature of Global Squid Fisheries.” Science\nAdvances 9 (10): eadd8125.\n\n\nYu, Wei, and Xinjun Chen. 2018. “Ocean Warming-Induced\nRange-Shifting of Potential Habitat for Jumbo Flying Squid Dosidicus\nGigas in the Southeast Pacific Ocean Off Peru.” Fisheries\nResearch 204: 137–46.",
+    "crumbs": [
+      "References"
+    ]
+  }
+]

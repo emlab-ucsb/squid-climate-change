@@ -35,11 +35,6 @@ billing_project <- "emlab-gcp"
 # Do this to help with BigQuery downloading
 options(scipen = 20)
 
-# Set target options:
-tar_option_set(
-  packages = c() # Packages that your targets need for their tasks.
-)
-
 # Run the R scripts in the R/ folder with your custom functions:
 tar_source("r/functions")
 
