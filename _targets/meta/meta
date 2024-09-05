@@ -1,8 +1,0 @@
-name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
-project_directory|object|ba70f4ee28f8df26
-bq_project|object|d3faa2e000d283dd
-billing_project|object|d3faa2e000d283dd
-.Random.seed|object|e99462b23856425d
-bq_dataset|object|19efec03a2e8e8c8
-data_directory_base|object|482943d82b32255c
-quarto_book|stem|d7212d156944d8a5|93aa9af6650e9a48|2c530c1562a7fbd1|-1014629814|docs*qmd/index.qmd*qmd/methods.qmd*qmd/references.qmd*qmd/results.qmd*qmd/_quarto.yml*qmd/references.bib|t19971.867963352s|051e4efaffd85b9f|1250005|file|local|vector|||11.667||
