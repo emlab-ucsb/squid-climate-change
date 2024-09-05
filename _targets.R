@@ -45,13 +45,10 @@ tar_source("r/functions")
 
 # Replace the target list below with your own:
 list(
-  tar_target(
-    name = data,
-    command = tibble(x = rnorm(100), y = rnorm(100))
-    # format = "qs" # Efficient storage for general data objects.
-  ),
-  tar_target(
-    name = model,
-    command = coefficients(lm(y ~ x, data = data))
+  # Make quarto notebook -----
+  tar_quarto(
+    name = quarto_book,
+    path = "qmd",
+    quiet = FALSE
   )
 )

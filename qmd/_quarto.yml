@@ -1,0 +1,30 @@
+project:
+  type: book
+  # Use docs if published to github pages
+  output-dir: ../docs
+  
+book:
+  title: "Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery"
+  author: emLab, UCSB
+  date: last-modified
+  date-format: "[Last Updated on] MMMM DD, YYYY"
+  chapters:
+    - index.qmd
+    - methods.qmd
+    - results.qmd
+    - references.qmd
+  downloads: [pdf]
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    output-file: "squid_climate_change"
+    output-ext:  "pdf"
+    latex_engine: xelatex
+    documentclass: scrreprt
+    fig-pos: H
+editor: visual
+

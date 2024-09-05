@@ -1,0 +1,22 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Methods {#sec-methods}
+
+```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
+#| label: set-chunk-options
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
+```
+
+## Data sources
+
+### Fishing effort
+
+We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (@kroodsma2018tracking). We use the V3 pipeline table `pipe_ais_v3_published.messages`.
+
+### Vessel info
+
+Vessel characteristics data processed are by Global Fishing Watch (@park2023tracking). We use the V3 pipeline table `pipe_ais_v3_published.vi_ssvid_v20240601`.
