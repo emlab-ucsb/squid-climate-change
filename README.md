@@ -2,7 +2,7 @@
 
 The live quarto notebook detailing the analysis can be found [here](https://emlab-ucsb.github.io/squid-climate-change).
 
-In this analysis, we look at the relationship between sea surface temperature (SST) and fishing for humboldt squid.
+This analysis is for the analysis: "Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery", a project for Environmental Defense Fund
 
 # Reproducibility  
 
