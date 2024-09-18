@@ -40,6 +40,83 @@ tar_source("r/functions")
 
 # Replace the target list below with your own:
 list(
+  # Set the date to start pulling AIS data
+  tar_target(
+    name = ais_date_start,
+    "'2024-06-30'"
+  ),
+  # Set the date to end pulling AIS data
+  tar_target(
+    name = ais_date_end,
+    "'2024-06-30'"
+  ),
+  # Set spatial pixel size resolution in degrees lat/lon
+  tar_target(
+    name = spatial_resolution,
+    1
+  ),
+  # Set temporal resolution - can be DAY, MONTH, or YEAR
+  tar_target(
+    name = temporal_resolution,
+    'DAY'
+  ),
+  # Get list of squid vessels
+  tar_file_read(
+    name = squid_vessel_list_bq,
+    "sql/squid_vessel_list.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x),
+                                 bq_table_name = "squid_vessel_list",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE')
+  ),
+  # Pull squid vessel list locally
+  tar_target(
+    name = squid_vessel_list,
+    pull_gfw_data_locally_arbitrary(sql = "SELECT * FROM `emlab-gcp.squid_climate_change.squid_vessel_list`",
+                                    billing_project = billing_project,
+                                    # Re-run this target if squid_vessel_list_bq changes
+                                    squid_vessel_list_bq)
+  ),
+  # Get daily spatially gridded effort data, by vessel, for all vessels on squid vessel list
+  tar_file_read(
+    name = gridded_daily_effort_by_vessel_bq,
+    "sql/gridded_daily_effort_by_vessel.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
+                                   stringr::str_glue(ais_date_start = ais_date_start,
+                                            ais_date_end = ais_date_end,
+                                            spatial_resolution = spatial_resolution),
+                                 bq_table_name = "gridded_daily_effort_by_vessel",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE',
+                                 # Re-run this target if squid_vessel_list_bq changes
+                                 squid_vessel_list_bq)
+  ),
+  # Get spatially gridded effort data, at appropriate temporal resolution, by flag
+  tar_file_read(
+    name = gridded_time_effort_by_flag_bq,
+    "sql/gridded_time_effort_by_flag.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
+                                   stringr::str_glue(temporal_resolution = temporal_resolution),
+                                 bq_table_name = "gridded_time_effort_by_flag",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE',
+                                 # Re-run this target if gridded_daily_effort_by_vessel_bq changes
+                                 gridded_daily_effort_by_vessel_bq)
+  ),
+  # Pull gridded_time_effort_by_flag data locally
+  tar_target(
+    name = gridded_time_effort_by_flag,
+    pull_gfw_data_locally_arbitrary(sql = "SELECT * FROM `emlab-gcp.squid_climate_change.gridded_time_effort_by_flag`",
+                                    billing_project = billing_project,
+                                    # Re-run this target if gridded_time_effort_by_flag_bq changes
+                                    gridded_time_effort_by_flag_bq)
+  ),
   # Make quarto notebook -----
   tar_quarto(
     name = quarto_book,

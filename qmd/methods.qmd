@@ -9,14 +9,60 @@ editor_options:
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
+
+targets::tar_load(c("ais_date_start",
+                    "ais_date_end",
+                    "spatial_resolution",
+                    "temporal_resolution",
+                    "squid_vessel_list"))
 ```
 
 ## Data sources
 
 ### Fishing effort
 
-We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (@kroodsma2018tracking). We use the V3 pipeline table `pipe_ais_v3_published.messages`.
+We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (@kroodsma2018tracking). We use the V3 pipeline table `pipe_ais_v3_published.messages`. Variables of interest within this table include the following
+(descriptions are taken directly from the schema for
+`pipe_ais_v3_published.messages`):
+
+-   `ssvid`: source specific vessel id; MMSI for AIS
+-   `hours`: time since the previous position in the segment
+-   `timestamp`: timestamp for position
+-   `lon`: longitude
+-   `lat`: latitude
+-   `night_loitering`: 1 if the seg_id of every message of a squid_jigger that is at night and not moving, 0 if not.
+
+In order to minimize noisy data, we only include AIS messages that have
+a `clean_segs` boolean (i.e., all messages must have `good_seg` boolean
+and must not have an `overlapping_and_short` boolean). We filter to just those messages where `night_loitering = 1`. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any `hours` where `night_loitering = 1` can be classified as `fishing_hours`
+
+We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially (by `r spatial_resolution`x`r spatial_resolution` degree pixels, which are roughly `r spatial_resolution*111`km x `r spatial_resolution*111`km at the equator), temporally by `r stringr::str_to_lower(temporal_resolution)`, and by flag. We currently process data from `r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`.
 
 ### Vessel info
 
-Vessel characteristics data processed are by Global Fishing Watch (@park2023tracking). We use the V3 pipeline table `pipe_ais_v3_published.vi_ssvid_v20240601`.
+Vessel characteristics data processed are by Global Fishing Watch (@park2023tracking). We use the V3 pipeline table `pipe_ais_v3_published.vi_ssvid_v20240601`. Variables of interest within this table include the following
+(descriptions are taken directly from the schema for
+`pipe_ais_v3_published.vi_ssvid_v20240301`):
+
+-   `ssvid`: source specific vessel id; MMSI for AIS
+-   `best.flag`: best flag state (ISO3) for the vessel\
+-   `best.best_vessel_class`: best vessel class for the vessel (using
+    official registry information where available, or the GFW
+    vessel characteristics algorithm where not available)
+-   `best.best_engine_power_kw `: best engine power (kilowatts) for
+    the vessel (using official registry information where available, or
+    the GFW characteristics algorithm where not
+    available)
+-   `activity.active_hours`: hours the vessel was broadcasting AIS and moving more than 0.1 knots
+-   `activity.offsetting`: true if this vessel has been seen with an offset postition at some point between 2012 and 2019
+-   `activity.overlap_hours_multinames`: the total numbers of hours of overlap
+    between two segments where, over the time period of the two segments
+    that overlap (including the non-overlapping time of the segments),
+    the vessel broadcast two or more normalized name, where each
+    normalized name was bradcast at least 10 or more times. That is a
+    bit complicated, but the goal is to identify overlapping segments
+    where there were likely more than one identity. (this should be 0;
+    if it is \> 0, it can be used as a filter to remove potentially
+    erroneous/noisy vessels)
+    
+We filter to just those vessels where `best.best_vessel_class = squid_jigger`. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activitiy.active_hours < 24`) or are noisy/spoofing/offsetting vessels (i.e.,  `NOT activity.offsetting OR activity.overlap_hours_multinames > 0.`) They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels for our analysis.

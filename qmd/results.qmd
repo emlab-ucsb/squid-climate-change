@@ -9,4 +9,102 @@ editor_options:
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
+
+library(ggplot2)
+
+targets::tar_load(c("ais_date_start",
+                    "ais_date_end",
+                    "squid_vessel_list",
+                    "gridded_time_effort_by_flag"))
+
+source("r/functions.R")
 ```
+
+## Fishery summary
+
+```{r}
+vessel_summary <- squid_vessel_list |>
+  dplyr::group_by(flag) |>
+  dplyr::summarize(`Total engine power (kW)` = sum(engine_power_kw,na.rm = TRUE),
+                   `Number unique vessels` = dplyr::n_distinct(ssvid)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(country = countrycode::countrycode(flag,
+                                                   origin = "iso3c",
+                                                   destination = "country.name")) |>
+  dplyr::mutate(country = ifelse(is.na(country), "Unknown",country)) |>
+  dplyr::select(-flag) 
+```
+
+
+Our analysis includes `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels spread across `r length(unique(vessel_summary$country))` flags. For each flag, we can look at the total number of unique vessels and total engine power (kW) (@fig-vessel-summary-by-flag). China dominates the fleet.
+
+```{r}
+#| label: fig-vessel-summary-by-flag
+#| fig-cap: Squid jigger vessel summary by flag, showing the total number of unique vessels and total engine power (kW)
+#| fig-height: 10
+
+# Arrange plot by the number of unique vessels from each flag
+plot_order <- vessel_summary |>
+  dplyr::arrange(`Number unique vessels`) |>
+  dplyr::pull(country)
+
+vessel_summary |>
+  tidyr::pivot_longer(cols = -country,
+                      names_to = "metric",
+                      values_to = "value") |>
+  ggplot(aes(x = value,
+             y = forcats::fct_relevel(country,plot_order))) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~metric,
+             scales = "free_x",
+             ncol = 2) +
+  labs(x = "",
+       y = "") +
+  theme_plot() +
+  scale_x_continuous(labels = scales::comma)
+
+```
+
+Next we can look at at a map of squid fishing effort (@fig-effort-map), aggregating effort across effort and time for each pixel across the entire processed time series (`r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`). EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).
+
+```{r}
+#| label: fig-effort-map
+#| fig-cap: Map of squid fishing effort, aggregating effort across effort and time for each pixel. EEZ boundaries from Marine Regions v12 are shown in orange.
+#| fig-height: 10
+land <- rnaturalearth::ne_countries(returnclass = "sf")
+
+# Load Marine Regions v12 EEZ
+eez <- sf::st_read("/home/emlab/data/marine-regions-eez-v12/World_EEZ_v12_20231025_LR/eez_v12_lowres.shp",quiet = TRUE)
+
+ggplot() +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_tile(data = gridded_time_effort_by_flag |>
+              dplyr::group_by(lat_bin,
+                       lon_bin) |>
+              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```
+

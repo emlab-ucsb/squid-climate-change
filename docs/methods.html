@@ -187,11 +187,32 @@ div.csl-indent {
 <h2 data-number="1.1" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">1.1</span> Data sources</h2>
 <section id="fishing-effort" class="level3" data-number="1.1.1">
 <h3 data-number="1.1.1" class="anchored" data-anchor-id="fishing-effort"><span class="header-section-number">1.1.1</span> Fishing effort</h3>
-<p>We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (<span class="citation" data-cites="kroodsma2018tracking">Kroodsma et al. (<a href="references.html#ref-kroodsma2018tracking" role="doc-biblioref">2018</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.messages</code>.</p>
+<p>We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (<span class="citation" data-cites="kroodsma2018tracking">Kroodsma et al. (<a href="references.html#ref-kroodsma2018tracking" role="doc-biblioref">2018</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.messages</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_ais_v3_published.messages</code>):</p>
+<ul>
+<li><code>ssvid</code>: source specific vessel id; MMSI for AIS</li>
+<li><code>hours</code>: time since the previous position in the segment</li>
+<li><code>timestamp</code>: timestamp for position</li>
+<li><code>lon</code>: longitude</li>
+<li><code>lat</code>: latitude</li>
+<li><code>night_loitering</code>: 1 if the seg_id of every message of a squid_jigger that is at night and not moving, 0 if not.</li>
+</ul>
+<p>In order to minimize noisy data, we only include AIS messages that have a <code>clean_segs</code> boolean (i.e., all messages must have <code>good_seg</code> boolean and must not have an <code>overlapping_and_short</code> boolean). We filter to just those messages where <code>night_loitering = 1</code>. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any <code>hours</code> where <code>night_loitering = 1</code> can be classified as <code>fishing_hours</code></p>
+<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 1x1 degree pixels, which are roughly 111km x 111km at the equator), temporally by day, and by flag. We currently process data from 2024-06-30 through 2024-06-30.</p>
 </section>
 <section id="vessel-info" class="level3" data-number="1.1.2">
 <h3 data-number="1.1.2" class="anchored" data-anchor-id="vessel-info"><span class="header-section-number">1.1.2</span> Vessel info</h3>
-<p>Vessel characteristics data processed are by Global Fishing Watch (<span class="citation" data-cites="park2023tracking">Park et al. (<a href="references.html#ref-park2023tracking" role="doc-biblioref">2023</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.vi_ssvid_v20240601</code>.</p>
+<p>Vessel characteristics data processed are by Global Fishing Watch (<span class="citation" data-cites="park2023tracking">Park et al. (<a href="references.html#ref-park2023tracking" role="doc-biblioref">2023</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.vi_ssvid_v20240601</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_ais_v3_published.vi_ssvid_v20240301</code>):</p>
+<ul>
+<li><code>ssvid</code>: source specific vessel id; MMSI for AIS</li>
+<li><code>best.flag</code>: best flag state (ISO3) for the vessel<br>
+</li>
+<li><code>best.best_vessel_class</code>: best vessel class for the vessel (using official registry information where available, or the GFW vessel characteristics algorithm where not available)</li>
+<li><code>best.best_engine_power_kw</code>: best engine power (kilowatts) for the vessel (using official registry information where available, or the GFW characteristics algorithm where not available)</li>
+<li><code>activity.active_hours</code>: hours the vessel was broadcasting AIS and moving more than 0.1 knots</li>
+<li><code>activity.offsetting</code>: true if this vessel has been seen with an offset postition at some point between 2012 and 2019</li>
+<li><code>activity.overlap_hours_multinames</code>: the total numbers of hours of overlap between two segments where, over the time period of the two segments that overlap (including the non-overlapping time of the segments), the vessel broadcast two or more normalized name, where each normalized name was bradcast at least 10 or more times. That is a bit complicated, but the goal is to identify overlapping segments where there were likely more than one identity. (this should be 0; if it is &gt; 0, it can be used as a filter to remove potentially erroneous/noisy vessels)</li>
+</ul>
+<p>We filter to just those vessels where <code>best.best_vessel_class = squid_jigger</code>. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., <code>activitiy.active_hours &lt; 24</code>) or are noisy/spoofing/offsetting vessels (i.e., <code>NOT activity.offsetting OR activity.overlap_hours_multinames &gt; 0.</code>) They are simply not reliable and will not provide good effort estimates. This leaves us with 1,561 squid vessels for our analysis.</p>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
