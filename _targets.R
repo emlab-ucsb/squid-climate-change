@@ -117,6 +117,16 @@ list(
                                     # Re-run this target if gridded_time_effort_by_flag_bq changes
                                     gridded_time_effort_by_flag_bq)
   ),
+  # Download SST data from NOAA - Daily, 0.25x0.25 degree resolution from OI V2.1
+  # And save to emLab shared data directory
+  tar_target(
+    name = sst_data_download,
+    download_erddap_wrapper(dataset_name = "ncdcOisst21Agg_LonPM180",
+                            fields = "sst",
+                            date_start = "2016-01-01",
+                            date_end = "2024-07-31",
+                            download_path_base = "/home/emlab/data/sst-noaa-daily-optimum-interpolation-v2-1/")
+  ),
   # Make quarto notebook -----
   tar_quarto(
     name = quarto_book,

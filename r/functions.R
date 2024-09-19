@@ -76,3 +76,58 @@ theme_plot <- function(){
                                       face = "bold"),
           strip.text.y = element_text(angle = 0,
                                       face = "bold"))} 
+
+# Wrapper for downloading and saving ERDDAP data from NOAA
+download_erddap_wrapper <- function(dataset_name,
+                                    fields,
+                                    date_start,
+                                    date_end,
+                                    download_path_base){
+  
+  date_range <- seq(as.Date(date_start),as.Date(date_end), "days") |>
+    as.character()
+  
+  purrr::map_df(date_range,function(data_date){
+    # Keep trying til it works: https://stackoverflow.com/a/63341321
+    ntry <- 0
+    max_tries <- 10
+    repeat{
+      fl <- tryCatch(
+        downloaded_data <- rerddap::griddap(dataset_name, 
+                                            time = c(data_date, data_date), 
+                                            fields = fields),
+        error = function(e) e
+      )
+      not.yet <- inherits(fl, "error")
+      if(not.yet){
+        print(glue::glue("{data_date} download re-trying"))
+        Sys.sleep(5)}
+      else break
+      ntry <- ntry + 1
+      if(ntry > max_tries) {
+        print(glue::glue("{data_date} download failed after {max_tries} tries"))
+        return(tibble::tibble(data_date = data_date,
+                              download_path = "download_failed",
+                              download_timestamp =NA,
+                              error = fl$message))
+      }
+    }
+    
+    data_tibble <- downloaded_data$data |>
+      dplyr::select(-zlev) |>
+      tibble::as_tibble()
+    
+    download_path <- glue::glue("{download_path_base}/{dataset_name}_{stringr::str_replace_all(data_date,'-','_')}.csv")
+    
+    data.table::fwrite(data_tibble,
+                       download_path)
+    
+    print(glue::glue("{data_date} download complete"))
+    
+    return(tibble::tibble(data_date = data_date,
+                          download_path = download_path,
+                          download_timestamp =Sys.time(),
+                          error = NA))
+    
+  })
+}
