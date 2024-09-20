@@ -79,7 +79,6 @@ theme_plot <- function(){
 
 # Wrapper for downloading and saving ERDDAP data from NOAA
 download_erddap_wrapper <- function(dataset_name,
-                                    fields,
                                     date_start,
                                     date_end,
                                     download_path_base){
@@ -88,14 +87,24 @@ download_erddap_wrapper <- function(dataset_name,
     as.character()
   
   purrr::map_df(date_range,function(data_date){
+    # If file has already been downloaded, can skip download
+    download_path <- glue::glue("{download_path_base}/{dataset_name}_{stringr::str_replace_all(data_date,'-','_')}.csv")
+    
+    if(file.exists(download_path)){
+      print(glue::glue("{data_date} already exists, skipping download"))
+      return(tibble::tibble(data_date = data_date,
+                            download_path = download_path,
+                            download_timestamp =Sys.time(),
+                            error = NA))
+    }
+    
     # Keep trying til it works: https://stackoverflow.com/a/63341321
     ntry <- 0
     max_tries <- 10
     repeat{
       fl <- tryCatch(
         downloaded_data <- rerddap::griddap(dataset_name, 
-                                            time = c(data_date, data_date), 
-                                            fields = fields),
+                                            time = c(data_date, data_date)),
         error = function(e) e
       )
       not.yet <- inherits(fl, "error")
@@ -117,8 +126,6 @@ download_erddap_wrapper <- function(dataset_name,
       dplyr::select(-zlev) |>
       tibble::as_tibble()
     
-    download_path <- glue::glue("{download_path_base}/{dataset_name}_{stringr::str_replace_all(data_date,'-','_')}.csv")
-    
     data.table::fwrite(data_tibble,
                        download_path)
     
@@ -130,4 +137,28 @@ download_erddap_wrapper <- function(dataset_name,
                           error = NA))
     
   })
+}
+
+spatio_temporal_aggregate <- function(file_list,
+                                      variable_vector,
+                                      summary_variable_vector,
+                                      spatial_resolution,
+                                      temporal_resolution){
+  
+  temporal_resolution_lower <- stringr::str_to_lower(temporal_resolution)
+  
+  file_list |>
+    purrr::map(function(data_file){
+      data_file |>
+        data.table::fread(select = variable_vector)  |>
+        collapse::fmutate(time = lubridate::floor_date(time, temporal_resolution_lower),
+                          lon_bin = floor(longitude / spatial_resolution) * spatial_resolution,
+                          lat_bin = floor(latitude / spatial_resolution) * spatial_resolution) |>
+        collapse::collap(FUN = list(mean = collapse::fmean, 
+                                     sd = collapse::fsd, 
+                                     min = collapse::fmin, 
+                                     max = collapse::fmax),
+                          by = ~ time + lon_bin + lat_bin,
+                          cols = summary_variable_vector)}) |>
+    data.table::rbindlist()
 }

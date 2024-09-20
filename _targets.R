@@ -35,8 +35,6 @@ billing_project <- "emlab-gcp"
 # Do this to help with BigQuery downloading
 options(scipen = 20)
 
-# Run the R scripts in the R/ folder with your custom functions:
-tar_source("r/functions")
 
 # Replace the target list below with your own:
 list(
@@ -53,12 +51,12 @@ list(
   # Set spatial pixel size resolution in degrees lat/lon
   tar_target(
     name = spatial_resolution,
-    1
+    0.5
   ),
   # Set temporal resolution - can be DAY, MONTH, or YEAR
   tar_target(
     name = temporal_resolution,
-    'DAY'
+    'MONTH'
   ),
   # Get list of squid vessels
   tar_file_read(
@@ -122,10 +120,20 @@ list(
   tar_target(
     name = sst_data_download,
     download_erddap_wrapper(dataset_name = "ncdcOisst21Agg_LonPM180",
-                            fields = "sst",
                             date_start = "2016-01-01",
-                            date_end = "2024-07-31",
-                            download_path_base = "/home/emlab/data/sst-noaa-daily-optimum-interpolation-v2-1/")
+                            date_end = "2024-08-31",
+                            download_path_base = glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"))
+  ),
+  # Now aggregate SST data to our spatiotemporal resolution
+  tar_target(
+    name = sst_data_aggregated,
+    spatio_temporal_aggregate(file_list = list.files(glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"),
+                                                     full.names = TRUE),
+                              variable_vector = c("time","longitude","latitude","sst"),
+                              summary_variable_vector = "sst",
+                              spatial_resolution = spatial_resolution,
+                              temporal_resolution = temporal_resolution) |>
+      collapse::fsubset(!is.na(mean.sst))
   ),
   # Make quarto notebook -----
   tar_quarto(
