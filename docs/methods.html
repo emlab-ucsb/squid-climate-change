@@ -159,6 +159,7 @@ div.csl-indent {
   <ul class="collapse">
   <li><a href="#fishing-effort" id="toc-fishing-effort" class="nav-link" data-scroll-target="#fishing-effort"><span class="header-section-number">1.1.1</span> Fishing effort</a></li>
   <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.2</span> Vessel info</a></li>
+  <li><a href="#sea-surface-temperature-sst" id="toc-sea-surface-temperature-sst" class="nav-link" data-scroll-target="#sea-surface-temperature-sst"><span class="header-section-number">1.1.3</span> Sea surface temperature (SST)</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -197,7 +198,242 @@ div.csl-indent {
 <li><code>night_loitering</code>: 1 if the seg_id of every message of a squid_jigger that is at night and not moving, 0 if not.</li>
 </ul>
 <p>In order to minimize noisy data, we only include AIS messages that have a <code>clean_segs</code> boolean (i.e., all messages must have <code>good_seg</code> boolean and must not have an <code>overlapping_and_short</code> boolean). We filter to just those messages where <code>night_loitering = 1</code>. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any <code>hours</code> where <code>night_loitering = 1</code> can be classified as <code>fishing_hours</code></p>
-<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 1x1 degree pixels, which are roughly 111km x 111km at the equator), temporally by day, and by flag. We currently process data from 2024-06-30 through 2024-06-30.</p>
+<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 0.5x0.5 degree pixels, which are roughly 55.5km x 55.5km at the equator), temporally by month, and by flag. We currently process data from 2024-06-30 through 2024-06-30.</p>
+<p>Here we summarize these data (<a href="#tbl-sst-summary-stats">Table&nbsp;<span>1.2</span></a>):</p>
+<div id="tbl-gfw-summary-stats" class="cell tbl-parent quarto-layout-panel anchored">
+<div class="panel-caption table-caption">
+<p>Table&nbsp;1.1: Summary statistics for the Global Fishing Watch squid jigger effort dataset.</p>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-gfw-summary-stats-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-gfw-summary-stats" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(a) Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">gridded_time_effort_by_fl…</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">57</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: character</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 13%">
+<col style="width: 19%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">flag</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.82</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: numeric</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 9%">
+<col style="width: 12%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 8%">
+<col style="width: 9%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">lon_bin</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">40.88</td>
+<td style="text-align: right;">126.15</td>
+<td style="text-align: right;">-172.00</td>
+<td style="text-align: right;">-85.50</td>
+<td style="text-align: right;">110.50</td>
+<td style="text-align: right;">133.50</td>
+<td style="text-align: right;">166.50</td>
+<td style="text-align: left;">▃▂▁▁▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lat_bin</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">16.93</td>
+<td style="text-align: right;">23.78</td>
+<td style="text-align: right;">-19.50</td>
+<td style="text-align: right;">-5.50</td>
+<td style="text-align: right;">15.00</td>
+<td style="text-align: right;">42.50</td>
+<td style="text-align: right;">47.50</td>
+<td style="text-align: left;">▅▆▃▅▇</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">fishing_hours</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">35.78</td>
+<td style="text-align: right;">74.90</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">5.06</td>
+<td style="text-align: right;">11.64</td>
+<td style="text-align: right;">24.68</td>
+<td style="text-align: right;">366.01</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">fishing_kw_hours</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">43824.26</td>
+<td style="text-align: right;">87225.35</td>
+<td style="text-align: right;">157.74</td>
+<td style="text-align: right;">4662.58</td>
+<td style="text-align: right;">9789.62</td>
+<td style="text-align: right;">37702.92</td>
+<td style="text-align: right;">412724.69</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: POSIXct</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">month</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2024-06-01</td>
+<td style="text-align: left;">2024-06-01</td>
+<td style="text-align: left;">2024-06-01</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 </section>
 <section id="vessel-info" class="level3" data-number="1.1.2">
 <h3 data-number="1.1.2" class="anchored" data-anchor-id="vessel-info"><span class="header-section-number">1.1.2</span> Vessel info</h3>
@@ -213,9 +449,239 @@ div.csl-indent {
 <li><code>activity.overlap_hours_multinames</code>: the total numbers of hours of overlap between two segments where, over the time period of the two segments that overlap (including the non-overlapping time of the segments), the vessel broadcast two or more normalized name, where each normalized name was bradcast at least 10 or more times. That is a bit complicated, but the goal is to identify overlapping segments where there were likely more than one identity. (this should be 0; if it is &gt; 0, it can be used as a filter to remove potentially erroneous/noisy vessels)</li>
 </ul>
 <p>We filter to just those vessels where <code>best.best_vessel_class = squid_jigger</code>. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., <code>activitiy.active_hours &lt; 24</code>) or are noisy/spoofing/offsetting vessels (i.e., <code>NOT activity.offsetting OR activity.overlap_hours_multinames &gt; 0.</code>) They are simply not reliable and will not provide good effort estimates. This leaves us with 1,561 squid vessels for our analysis.</p>
+</section>
+<section id="sea-surface-temperature-sst" class="level3" data-number="1.1.3">
+<h3 data-number="1.1.3" class="anchored" data-anchor-id="sea-surface-temperature-sst"><span class="header-section-number">1.1.3</span> Sea surface temperature (SST)</h3>
+<p>Sea surface temperature (SST) data come from <a href="https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html">NOAA’s Optimum Interpolation Sea Surface Temperature (OISST) version 2.1</a> (<span class="citation" data-cites="huang2021improvements">Huang et al. (<a href="references.html#ref-huang2021improvements" role="doc-biblioref">2021</a>)</span>), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We aggregate the data to 0.5x0.5 degree monthly resolution by calculating the mean, standard deviation, minimum, and maximum SST for each 0.5x0.5 degree pixel and month.</p>
+<p>Here we summarize these data (<a href="#tbl-sst-summary-stats">Table&nbsp;<span>1.2</span></a>):</p>
+<div id="tbl-sst-summary-stats" class="cell tbl-parent quarto-layout-panel anchored">
+<div class="panel-caption table-caption">
+<p>Table&nbsp;1.2: Summary statistics for the sea surface temperature dataset.</p>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-sst-summary-stats-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-sst-summary-stats" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(a) Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">sst_data_aggregated</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">556490986</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: numeric</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 10%">
+<col style="width: 15%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 8%">
+<col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">mean_sst</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">13.90</td>
+<td style="text-align: right;">11.75</td>
+<td style="text-align: right;">-1.8</td>
+<td style="text-align: right;">1.13</td>
+<td style="text-align: right;">14.86</td>
+<td style="text-align: right;">25.76</td>
+<td style="text-align: right;">38.16</td>
+<td style="text-align: left;">▇▃▃▇▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sd_sst</td>
+<td style="text-align: right;">4875640</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">5.27</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">min_sst</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">13.80</td>
+<td style="text-align: right;">11.75</td>
+<td style="text-align: right;">-1.8</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">14.66</td>
+<td style="text-align: right;">25.66</td>
+<td style="text-align: right;">37.76</td>
+<td style="text-align: left;">▇▃▃▇▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">max_sst</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">14.01</td>
+<td style="text-align: right;">11.76</td>
+<td style="text-align: right;">-1.8</td>
+<td style="text-align: right;">1.27</td>
+<td style="text-align: right;">15.05</td>
+<td style="text-align: right;">25.86</td>
+<td style="text-align: right;">38.58</td>
+<td style="text-align: left;">▇▃▃▇▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">lon_bin</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">-8.71</td>
+<td style="text-align: right;">109.24</td>
+<td style="text-align: right;">-180.0</td>
+<td style="text-align: right;">-107.00</td>
+<td style="text-align: right;">-18.50</td>
+<td style="text-align: right;">87.00</td>
+<td style="text-align: right;">179.50</td>
+<td style="text-align: left;">▇▆▆▆▆</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lat_bin</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">48.49</td>
+<td style="text-align: right;">-78.5</td>
+<td style="text-align: right;">-42.00</td>
+<td style="text-align: right;">-4.50</td>
+<td style="text-align: right;">38.50</td>
+<td style="text-align: right;">89.50</td>
+<td style="text-align: left;">▇▇▇▅▆</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: POSIXct</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">time</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2016-01-01</td>
+<td style="text-align: left;">2024-08-01</td>
+<td style="text-align: left;">2020-05-01</td>
+<td style="text-align: right;">104</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>We can also look at a map of SST, using August 2024 as an example (<a href="#fig-sst-map">Figure&nbsp;<span>1.1</span></a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-sst-map" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="methods_files/figure-html/fig-sst-map-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;1.1: Map of mean sea surface temperature in August 2024, using 0.5x0.5 degree pixels.</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-huang2021improvements" class="csl-entry" role="listitem">
+Huang, Boyin, Chunying Liu, Viva Banzon, Eric Freeman, Garrett Graham, Bill Hankins, Tom Smith, and Huai-Min Zhang. 2021. <span>“Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version 2.1.”</span> <em>Journal of Climate</em> 34 (8): 2923–39.
+</div>
 <div id="ref-kroodsma2018tracking" class="csl-entry" role="listitem">
 Kroodsma, David A, Juan Mayorga, Timothy Hochberg, Nathan A Miller, Kristina Boerder, Francesco Ferretti, Alex Wilson, et al. 2018. <span>“Tracking the Global Footprint of Fisheries.”</span> <em>Science</em> 359 (6378): 904–8.
 </div>

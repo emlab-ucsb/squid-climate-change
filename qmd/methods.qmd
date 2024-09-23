@@ -9,12 +9,19 @@ editor_options:
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
 knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
+library(skimr)
+library(ggplot2)
 
 targets::tar_load(c("ais_date_start",
                     "ais_date_end",
                     "spatial_resolution",
                     "temporal_resolution",
-                    "squid_vessel_list"))
+                    "squid_vessel_list",
+                    "gridded_time_effort_by_flag_summary",
+                    "sst_data_aggregated_summary",
+                    "sst_data_aggregated_one_month_subset"))
+
+source("r/functions.R")
 ```
 
 ## Data sources
@@ -37,6 +44,15 @@ a `clean_segs` boolean (i.e., all messages must have `good_seg` boolean
 and must not have an `overlapping_and_short` boolean). We filter to just those messages where `night_loitering = 1`. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any `hours` where `night_loitering = 1` can be classified as `fishing_hours`
 
 We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially (by `r spatial_resolution`x`r spatial_resolution` degree pixels, which are roughly `r spatial_resolution*111`km x `r spatial_resolution*111`km at the equator), temporally by `r stringr::str_to_lower(temporal_resolution)`, and by flag. We currently process data from `r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`.
+
+Here we summarize these data (@tbl-sst-summary-stats):
+
+```{r}
+#| label: tbl-gfw-summary-stats
+#| tbl-cap: Summary statistics for the Global Fishing Watch squid jigger effort dataset.
+
+gridded_time_effort_by_flag_summary
+```
 
 ### Vessel info
 
@@ -66,3 +82,48 @@ Vessel characteristics data processed are by Global Fishing Watch (@park2023trac
     erroneous/noisy vessels)
     
 We filter to just those vessels where `best.best_vessel_class = squid_jigger`. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activitiy.active_hours < 24`) or are noisy/spoofing/offsetting vessels (i.e.,  `NOT activity.offsetting OR activity.overlap_hours_multinames > 0.`) They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels for our analysis.
+
+### Sea surface temperature (SST)
+
+Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We aggregate the data to `r spatial_resolution`x`r spatial_resolution` degree monthly resolution by calculating the mean, standard deviation, minimum, and maximum SST for each `r spatial_resolution`x`r spatial_resolution` degree pixel and month.
+
+Here we summarize these data (@tbl-sst-summary-stats):
+
+```{r}
+#| label: tbl-sst-summary-stats
+#| tbl-cap: Summary statistics for the sea surface temperature dataset.
+
+sst_data_aggregated_summary
+```
+
+We can also look at a map of SST, using August 2024 as an example (@fig-sst-map).
+
+```{r}
+#| label: fig-sst-map
+#| fig-cap: Map of mean sea surface temperature in August 2024, using 0.5x0.5 degree pixels.
+
+land <- rnaturalearth::ne_countries(returnclass = "sf")
+
+ggplot() +
+  geom_tile(data = sst_data_aggregated_one_month_subset,
+            aes(fill = mean_sst,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Mean sea surface temperature (degrees C)",
+                       option = "inferno",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```

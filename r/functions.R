@@ -140,25 +140,28 @@ download_erddap_wrapper <- function(dataset_name,
 }
 
 spatio_temporal_aggregate <- function(file_list,
-                                      variable_vector,
-                                      summary_variable_vector,
                                       spatial_resolution,
-                                      temporal_resolution){
+                                      temporal_resolution,
+                                      n_cores){
   
   temporal_resolution_lower <- stringr::str_to_lower(temporal_resolution)
   
   file_list |>
     purrr::map(function(data_file){
       data_file |>
-        data.table::fread(select = variable_vector)  |>
+        data.table::fread(select = c("time","longitude","latitude","sst"))  |>
+        collapse::fsubset(!is.na(sst)) |>
         collapse::fmutate(time = lubridate::floor_date(time, temporal_resolution_lower),
                           lon_bin = floor(longitude / spatial_resolution) * spatial_resolution,
                           lat_bin = floor(latitude / spatial_resolution) * spatial_resolution) |>
-        collapse::collap(FUN = list(mean = collapse::fmean, 
-                                     sd = collapse::fsd, 
-                                     min = collapse::fmin, 
-                                     max = collapse::fmax),
+        collapse::collap(FUN = list(mean_sst = collapse::fmean, 
+                                     sd_sst = collapse::fsd, 
+                                     min_sst = collapse::fmin, 
+                                     max_sst = collapse::fmax),
                           by = ~ time + lon_bin + lat_bin,
-                          cols = summary_variable_vector)}) |>
+                          cols = "sst",
+                         give.names = FALSE,
+                         parallel = TRUE,
+                         mc.cores = n_cores)}) |>
     data.table::rbindlist()
 }

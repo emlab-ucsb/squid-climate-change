@@ -19,6 +19,10 @@ data_directory_base <-  ifelse(Sys.info()["nodename"] == "quebracho" | Sys.info(
                                              # If using Linux, will need to manually modify the following directory path based on their user name
                                              # Replace your_username with your local machine user name
                                              "/home/your_username/Nextcloud")))
+# Automatically set cores, based on emLab best practices
+n_cores <-  ifelse(Sys.info()["nodename"] == "quebracho" | Sys.info()["nodename"] == "sequoia",
+                   20,
+                   parellely::availableCores()-1)
 
 project_directory <- glue::glue("{data_directory_base}/projects/current-projects/squid-climate-change")
 
@@ -115,6 +119,11 @@ list(
                                     # Re-run this target if gridded_time_effort_by_flag_bq changes
                                     gridded_time_effort_by_flag_bq)
   ),
+  # Summarize data for quarto notebook
+  tar_target(
+    name = gridded_time_effort_by_flag_summary,
+    skimr::skim(gridded_time_effort_by_flag)
+  ),
   # Download SST data from NOAA - Daily, 0.25x0.25 degree resolution from OI V2.1
   # And save to emLab shared data directory
   tar_target(
@@ -129,11 +138,22 @@ list(
     name = sst_data_aggregated,
     spatio_temporal_aggregate(file_list = list.files(glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"),
                                                      full.names = TRUE),
-                              variable_vector = c("time","longitude","latitude","sst"),
-                              summary_variable_vector = "sst",
                               spatial_resolution = spatial_resolution,
-                              temporal_resolution = temporal_resolution) |>
-      collapse::fsubset(!is.na(mean.sst))
+                              temporal_resolution = temporal_resolution,
+                              n_cores = n_cores)|>
+      tibble::as_tibble()
+  ),
+  # Summarize data for quarto notebook
+  tar_target(
+    name = sst_data_aggregated_summary,
+    skimr::skim(sst_data_aggregated)
+  ),
+  # Subset to one month of SST data for making an exploratory data analysis map
+  tar_target(
+    name = sst_data_aggregated_one_month_subset,
+    sst_data_aggregated |>
+      collapse::fsubset(time == as.POSIXct("2024-08-01",tz="UTC")) |>
+      collapse::fselect(lon_bin, lat_bin, mean_sst)
   ),
   # Make quarto notebook -----
   tar_quarto(
