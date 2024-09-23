@@ -19,7 +19,8 @@ targets::tar_load(c("ais_date_start",
                     "squid_vessel_list",
                     "gridded_time_effort_by_flag_summary",
                     "sst_data_aggregated_summary",
-                    "sst_data_aggregated_one_month_subset"))
+                    "sst_data_aggregated_one_month_subset",
+                    "sst_data_aggregated_time_series"))
 
 source("r/functions.R")
 ```
@@ -126,4 +127,18 @@ ggplot() +
                                barheight = unit(1, "cm"))) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0))
+```
+
+Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (@fig-sst-time-series). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.
+
+```{r}
+#| label: fig-sst-time-series
+#| fig-cap: Time series of global mean sea surface temperature.
+
+sst_data_aggregated_time_series |>
+  ggplot(aes(x = time, y = mean_sst)) +
+  geom_line() +
+  theme_plot() +
+  labs(x = "",
+       y = "Mean global sea surface temperature\n(degrees C)")
 ```
