@@ -45,12 +45,12 @@ list(
   # Set the date to start pulling AIS data
   tar_target(
     name = ais_date_start,
-    "'2024-06-30'"
+    "'2016-01-01'"
   ),
   # Set the date to end pulling AIS data
   tar_target(
     name = ais_date_end,
-    "'2024-06-30'"
+    "'2024-08-31'"
   ),
   # Set spatial pixel size resolution in degrees lat/lon
   tar_target(
@@ -142,6 +142,17 @@ list(
                               temporal_resolution = temporal_resolution,
                               n_cores = n_cores)|>
       tibble::as_tibble()
+  ),
+  # Now aggregate SST data by time, to make time series
+  tar_target(
+    name = sst_data_aggregated_time_series,
+    sst_data_aggregated |>
+      collapse::collap(FUN = list(mean_sst = collapse::fmean),
+                       by = ~ time,
+                       cols = "mean_sst",
+                       give.names = FALSE,
+                       parallel = TRUE,
+                       mc.cores = n_cores)
   ),
   # Summarize data for quarto notebook
   tar_target(

@@ -198,7 +198,7 @@ div.csl-indent {
 <li><code>night_loitering</code>: 1 if the seg_id of every message of a squid_jigger that is at night and not moving, 0 if not.</li>
 </ul>
 <p>In order to minimize noisy data, we only include AIS messages that have a <code>clean_segs</code> boolean (i.e., all messages must have <code>good_seg</code> boolean and must not have an <code>overlapping_and_short</code> boolean). We filter to just those messages where <code>night_loitering = 1</code>. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any <code>hours</code> where <code>night_loitering = 1</code> can be classified as <code>fishing_hours</code></p>
-<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 0.5x0.5 degree pixels, which are roughly 55.5km x 55.5km at the equator), temporally by month, and by flag. We currently process data from 2024-06-30 through 2024-06-30.</p>
+<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 0.5x0.5 degree pixels, which are roughly 55.5km x 55.5km at the equator), temporally by month, and by flag. We currently process data from 2016-01-01 through 2024-08-31.</p>
 <p>Here we summarize these data (<a href="#tbl-sst-summary-stats">Table&nbsp;<span>1.2</span></a>):</p>
 <div id="tbl-gfw-summary-stats" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
@@ -215,7 +215,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">57</td>
+<td style="text-align: left;">53111</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
@@ -286,12 +286,12 @@ div.csl-indent {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">flag</td>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">0.82</td>
+<td style="text-align: right;">5968</td>
+<td style="text-align: right;">0.89</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">9</td>
+<td style="text-align: right;">45</td>
 <td style="text-align: right;">0</td>
 </tr>
 </tbody>
@@ -310,11 +310,11 @@ div.csl-indent {
 <col style="width: 15%">
 <col style="width: 9%">
 <col style="width: 12%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 6%">
+<col style="width: 7%">
 <col style="width: 8%">
-<col style="width: 8%">
-<col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 7%">
 <col style="width: 8%">
 <col style="width: 9%">
 <col style="width: 5%">
@@ -339,52 +339,52 @@ div.csl-indent {
 <td style="text-align: left;">lon_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">40.88</td>
-<td style="text-align: right;">126.15</td>
-<td style="text-align: right;">-172.00</td>
-<td style="text-align: right;">-85.50</td>
-<td style="text-align: right;">110.50</td>
-<td style="text-align: right;">133.50</td>
-<td style="text-align: right;">166.50</td>
-<td style="text-align: left;">▃▂▁▁▇</td>
+<td style="text-align: right;">17.06</td>
+<td style="text-align: right;">110.75</td>
+<td style="text-align: right;">-180.0</td>
+<td style="text-align: right;">-82.00</td>
+<td style="text-align: right;">14.00</td>
+<td style="text-align: right;">132.50</td>
+<td style="text-align: right;">179.5</td>
+<td style="text-align: left;">▂▇▁▃▇</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">lat_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">16.93</td>
-<td style="text-align: right;">23.78</td>
-<td style="text-align: right;">-19.50</td>
-<td style="text-align: right;">-5.50</td>
-<td style="text-align: right;">15.00</td>
-<td style="text-align: right;">42.50</td>
-<td style="text-align: right;">47.50</td>
-<td style="text-align: left;">▅▆▃▅▇</td>
+<td style="text-align: right;">4.20</td>
+<td style="text-align: right;">30.56</td>
+<td style="text-align: right;">-54.5</td>
+<td style="text-align: right;">-16.50</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">36.00</td>
+<td style="text-align: right;">80.5</td>
+<td style="text-align: left;">▅▇▅▇▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">fishing_hours</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">35.78</td>
-<td style="text-align: right;">74.90</td>
-<td style="text-align: right;">0.08</td>
-<td style="text-align: right;">5.06</td>
-<td style="text-align: right;">11.64</td>
-<td style="text-align: right;">24.68</td>
-<td style="text-align: right;">366.01</td>
+<td style="text-align: right;">133.98</td>
+<td style="text-align: right;">456.28</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">7.93</td>
+<td style="text-align: right;">20.75</td>
+<td style="text-align: right;">76.90</td>
+<td style="text-align: right;">21005.8</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">fishing_kw_hours</td>
-<td style="text-align: right;">0</td>
+<td style="text-align: right;">2</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">43824.26</td>
-<td style="text-align: right;">87225.35</td>
-<td style="text-align: right;">157.74</td>
-<td style="text-align: right;">4662.58</td>
-<td style="text-align: right;">9789.62</td>
-<td style="text-align: right;">37702.92</td>
-<td style="text-align: right;">412724.69</td>
+<td style="text-align: right;">163785.98</td>
+<td style="text-align: right;">637068.03</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">8247.17</td>
+<td style="text-align: right;">23521.94</td>
+<td style="text-align: right;">89926.65</td>
+<td style="text-align: right;">31939325.0</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 </tbody>
@@ -424,10 +424,10 @@ div.csl-indent {
 <td style="text-align: left;">month</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: left;">2024-06-01</td>
-<td style="text-align: left;">2024-06-01</td>
-<td style="text-align: left;">2024-06-01</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: left;">2016-01-01</td>
+<td style="text-align: left;">2024-08-01</td>
+<td style="text-align: left;">2021-02-01</td>
+<td style="text-align: right;">104</td>
 </tr>
 </tbody>
 </table>
@@ -676,7 +676,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (fig-sst-time-series). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.</p>
+<p>Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (<a href="#fig-sst-time-series">Figure&nbsp;<span>1.2</span></a>). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-time-series" class="quarto-figure quarto-figure-center anchored">
