@@ -26,6 +26,7 @@ gridded_time_effort_by_flag <- gridded_time_effort_by_flag |>
   dplyr::mutate(country = countrycode::countrycode(flag,
                                                    origin = "iso3c",
                                                    destination = "country.name")) |>
+  # If country name is missing, call it Unknown
   dplyr::mutate(country = ifelse(is.na(country), "Unknown",country))
 
 # Get top fishing flags across all time
@@ -35,15 +36,25 @@ top_flags_all_time <- gridded_time_effort_by_flag |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm = TRUE)) |>
   dplyr::ungroup()  |>
   dplyr::slice_max(order_by = fishing_kw_hours, n = n_flags) |>
-  dplyr::select(country) |>
   dplyr::mutate(top = TRUE)
 
 gridded_time_effort_by_flag <- gridded_time_effort_by_flag  |>
-  dplyr::left_join(top_flags_all_time, by = "country") |>
+  dplyr::left_join(top_flags_all_time |>
+                     dplyr::select(country,top), by = "country") |>
   dplyr::mutate(country_plotting = ifelse(is.na(top), "Other",country) |>
                   forcats::fct_relevel(top_flags_all_time$country))
-```
 
+other_effort_all_time <- gridded_time_effort_by_flag |>
+  dplyr::filter(country_plotting == "Other") |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm=TRUE)) |>
+  dplyr::mutate(country = "Other",
+                top = TRUE)
+
+# Include other in our top flags, for plotting
+top_flags_all_time <- top_flags_all_time |>
+  dplyr::bind_rows(other_effort_all_time) |>
+  dplyr::arrange(-fishing_kw_hours)
+```
 
 ## Fishery summary
 
@@ -60,23 +71,23 @@ vessel_summary <- squid_vessel_list |>
   dplyr::select(-flag) 
 ```
 
-
-Our analysis includes `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels spread across `r length(unique(vessel_summary$country))` flags. For each flag, we can look at the total number of unique vessels and total engine power (kW) (@fig-vessel-summary-by-flag). China dominates the fleet.
+Our analysis includes `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels spread across `r length(unique(vessel_summary$country))` flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and  (@fig-vessel-summary-by-flag). China dominates the fleet, with Taiwan a fairly distant second.
 
 ```{r}
 #| label: fig-vessel-summary-by-flag
-#| fig-cap: Squid jigger vessel summary by flag, showing the total number of unique vessels and total engine power (kW)
-#| fig-height: 10
+#| fig-cap: Squid jigger vessel summary by flag, showing the total engine power (kW) and total number of unique vessels.
+#| fig-height: 7
 
 # Arrange plot by the number of unique vessels from each flag
 plot_order <- vessel_summary |>
-  dplyr::arrange(`Number unique vessels`) |>
+  dplyr::arrange(`Total engine power (kW)`) |>
   dplyr::pull(country)
 
 vessel_summary |>
   tidyr::pivot_longer(cols = -country,
                       names_to = "metric",
                       values_to = "value") |>
+  dplyr::mutate(metric = forcats::fct_relevel(metric,"Total engine power (kW)")) |>
   ggplot(aes(x = value,
              y = forcats::fct_relevel(country,plot_order))) +
   geom_bar(stat = "identity") +
@@ -90,11 +101,53 @@ vessel_summary |>
 
 ```
 
-Next we can look at at a map of squid fishing effort (@fig-effort-map), aggregating effort across effort and time for each pixel across the entire processed time series (`r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`). EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).
+Next we look at total global fishing effort from 2016 through August 2024, by flag (@fig-effort-bar-plot). The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other". Again, China dominates the fishing effort, with Taiwan a fairly distant second.
+
+```{r}
+#| label: fig-effort-bar-plot
+#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024. The top 10 flags are shown, with all other flags aggregated into "Other".
+
+gridded_time_effort_by_flag|>
+  dplyr::group_by(country_plotting) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm = TRUE)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(x = fishing_kw_hours, y= reorder(country_plotting,fishing_kw_hours))) +
+  geom_bar(stat = "identity")+
+  labs(x = "Total fishing effort from 2016 through August 2024 (kW-hours)",
+       y = "")+
+  scale_x_continuous(labels = scales::unit_format(unit = "B", scale = 1e-9)) +
+  theme_plot()
+```
+
+We can also look at a time series of total monthly global effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+
+```{r}
+#| label: fig-effort-time-series
+#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024. The top 10 flags are shown individually, with all other flags aggregated into "Other".
+#| fig-height: 7
+
+gridded_time_effort_by_flag|>
+  dplyr::group_by(month,
+                  country_plotting) |>
+  dplyr::mutate(country_plotting = forcats::fct_relevel(country_plotting,
+                                                        top_flags_all_time$country)) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(x = month, y= fishing_kw_hours, fill = country_plotting)) +
+ geom_line() +
+  labs(x = "",
+       y = "Monthly fishing effort by flag (kW-hours)")+
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
+  theme_plot() +
+  facet_grid(country_plotting~.,
+             scales = "free_y")
+```
+
+Next we can look at at a map of squid fishing effort (@fig-effort-map), aggregating effort across effort and flags and time for each pixel across the entire processed time series (`r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`). EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).
 
 ```{r}
 #| label: fig-effort-map
-#| fig-cap: Map of squid fishing effort from 2016 through 2024, aggregating effort across effort and time for each pixel. EEZ boundaries from Marine Regions v12 are shown in orange.
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
 
 land <- rnaturalearth::ne_countries(returnclass = "sf")
 
@@ -133,14 +186,14 @@ ggplot()  +
   scale_y_continuous(expand = c(0, 0))
 ```
 
-We can also look at these maps, broken apart by flag and focusing on the top `r n_flags` flags (in terms of total effort over the entire time series).
+We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
 
 ```{r}
 purrr::map(top_flags_all_time$country,
            function(country_tmp){
              ggplot()  +
   geom_tile(data = gridded_time_effort_by_flag |>
-              dplyr::filter(country == country_tmp) |>
+              dplyr::filter(country_plotting == country_tmp) |>
               dplyr::group_by(lat_bin,
                               lon_bin) |>
               dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
@@ -160,7 +213,7 @@ purrr::map(top_flags_all_time$country,
                        na.value = "black") +
   labs(x = '',
        y= '',
-       title = country_tmp) +
+       title = glue::glue("{country_tmp}\n")) +
   theme_map() +
   guides(fill = guide_colorbar(title.position = "top",
                                title.hjust = 0.5,
@@ -171,27 +224,5 @@ purrr::map(top_flags_all_time$country,
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0))
            })
-```
-
-We can also look at a time series of total monthly global effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags flags are shown, with all other flags aggregated into "Other".
-
-```{r}
-#| label: fig-effort-time-series
-#| fig-cap: Total monthly global effort by fishing flag over time. The top 10 flags are shown by color, with all other flags aggregated into "Other".
-#| fig-height: 10
-
-gridded_time_effort_by_flag|>
-  dplyr::group_by(month,
-                  country_plotting) |>
-  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
-  dplyr::ungroup() |>
-  ggplot(aes(x = month, y= fishing_kw_hours, fill = country_plotting)) +
- geom_line() +
-  labs(x = "",
-       y = "Global fishing effort by flag (kW-hours)")+
-  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
-  theme_plot() +
-  facet_grid(country_plotting~.,
-             scales = "free_y")
 ```
 

@@ -181,109 +181,127 @@ div.csl-indent {
 
 <section id="fishery-summary" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="fishery-summary"><span class="header-section-number">2.1</span> Fishery summary</h2>
-<p>Our analysis includes 1,561 squid vessels spread across 52 flags. For each flag, we can look at the total number of unique vessels and total engine power (kW) (<a href="#fig-vessel-summary-by-flag">Figure&nbsp;<span>2.1</span></a>). China dominates the fleet.</p>
+<p>Our analysis includes 1,561 squid vessels spread across 52 flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and (<a href="#fig-vessel-summary-by-flag">Figure&nbsp;<span>2.1</span></a>). China dominates the fleet, with Taiwan a fairly distant second.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-vessel-summary-by-flag" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="results_files/figure-html/fig-vessel-summary-by-flag-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.1: Squid jigger vessel summary by flag, showing the total number of unique vessels and total engine power (kW)</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.1: Squid jigger vessel summary by flag, showing the total engine power (kW) and total number of unique vessels.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Next we can look at at a map of squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.2</span></a>), aggregating effort across effort and time for each pixel across the entire processed time series (2016-01-01 through 2024-08-31). EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
+<p>Next we look at total global fishing effort from 2016 through August 2024, by flag (<a href="#fig-effort-bar-plot">Figure&nbsp;<span>2.2</span></a>). The top 10 flags are shown individually, with all other flags aggregated into “Other”. Again, China dominates the fishing effort, with Taiwan a fairly distant second.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-bar-plot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-effort-bar-plot-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.2: Total fishing effort, by flag, from 2016 through August 2024. The top 10 flags are shown, with all other flags aggregated into “Other”.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>We can also look at a time series of total monthly global effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.3</span></a>). The top top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-time-series" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-effort-time-series-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.3: Monthly fishing effort by flag from 2016 through August 2024. The top 10 flags are shown individually, with all other flags aggregated into “Other”.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Next we can look at at a map of squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.4</span></a>), aggregating effort across effort and flags and time for each pixel across the entire processed time series (2016-01-01 through 2024-08-31). EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="results_files/figure-html/fig-effort-map-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.2: Map of squid fishing effort from 2016 through 2024, aggregating effort across effort and time for each pixel. EEZ boundaries from Marine Regions v12 are shown in orange.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.4: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>We can also look at these maps, broken apart by flag and focusing on the top 10 flags (in terms of total effort over the entire time series).</p>
+<p>We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>[[1]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[2]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[3]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-3.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-3.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[4]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-4.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-4.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[5]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-5.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-5.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[6]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-6.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-6.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[7]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-7.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-7.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[8]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-8.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-8.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[9]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-9.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-9.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[10]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="results_files/figure-html/unnamed-chunk-6-10.png" class="img-fluid" width="672"></p>
+<p><img src="results_files/figure-html/unnamed-chunk-8-10.png" class="img-fluid" width="672"></p>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+[[11]]</code></pre>
 </div>
-<p>We can also look at a time series of total monthly global effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.3</span></a>). The top top 10 flags flags are shown, with all other flags aggregated into “Other”.</p>
-<div class="cell">
 <div class="cell-output-display">
-<div id="fig-effort-time-series" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="results_files/figure-html/fig-effort-time-series-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.3: Total monthly global effort by fishing flag over time. The top 10 flags are shown by color, with all other flags aggregated into “Other”.</figcaption>
-</figure>
-</div>
+<p><img src="results_files/figure-html/unnamed-chunk-8-11.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 
