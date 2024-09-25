@@ -17,10 +17,11 @@ targets::tar_load(c("ais_date_start",
                     "spatial_resolution",
                     "temporal_resolution",
                     "squid_vessel_list",
-                    "gridded_time_effort_by_flag_summary",
-                    "sst_data_aggregated_summary",
+                    #"gridded_time_effort_by_flag_summary",
+                    #"sst_data_aggregated_summary",
                     "sst_data_aggregated_one_month_subset",
-                    "sst_data_aggregated_time_series"))
+                    "sst_data_aggregated_time_series",
+                    "joined_dataset_summary"))
 
 source("r/functions.R")
 ```
@@ -45,15 +46,6 @@ a `clean_segs` boolean (i.e., all messages must have `good_seg` boolean
 and must not have an `overlapping_and_short` boolean). We filter to just those messages where `night_loitering = 1`. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any `hours` where `night_loitering = 1` can be classified as `fishing_hours`
 
 We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially (by `r spatial_resolution`x`r spatial_resolution` degree pixels, which are roughly `r spatial_resolution*111`km x `r spatial_resolution*111`km at the equator), temporally by `r stringr::str_to_lower(temporal_resolution)`, and by flag. We currently process data from `r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`.
-
-Here we summarize these data (@tbl-sst-summary-stats):
-
-```{r}
-#| label: tbl-gfw-summary-stats
-#| tbl-cap: Summary statistics for the Global Fishing Watch squid jigger effort dataset.
-
-gridded_time_effort_by_flag_summary
-```
 
 ### Vessel info
 
@@ -88,16 +80,7 @@ We filter to just those vessels where `best.best_vessel_class = squid_jigger`. A
 
 Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We aggregate the data to `r spatial_resolution`x`r spatial_resolution` degree monthly resolution by calculating the mean, standard deviation, minimum, and maximum SST for each `r spatial_resolution`x`r spatial_resolution` degree pixel and month.
 
-Here we summarize these data (@tbl-sst-summary-stats):
-
-```{r}
-#| label: tbl-sst-summary-stats
-#| tbl-cap: Summary statistics for the sea surface temperature dataset.
-
-sst_data_aggregated_summary
-```
-
-We can also look at a map of SST, using August 2024 as an example (@fig-sst-map).
+We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
 
 ```{r}
 #| label: fig-sst-map
@@ -141,4 +124,30 @@ sst_data_aggregated_time_series |>
   theme_plot() +
   labs(x = "",
        y = "Mean global sea surface temperature\n(degrees C)")
+```
+
+
+### Joined dataset
+
+The final dataset we use for our analysis is a combination of the gridded fishing effort data and the gridded SST data. We inner join these datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month. Note that the joined dataset does not contain flag-pixel-months with zero fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.  
+
+The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset)`. The dataset has the following colums:
+
+* **month**: Month (first day of month) (date)  
+* **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
+* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  * **flag**:  Fishing flag (character)  
+* **mean_sst**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sd_sst**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **min_sst**: Minimum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric) 
+* **max_sst**: Maximum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric) 
+* **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
+* **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
+
+Here we summarize these data (@tbl-summary-stats):
+
+```{r}
+#| label: tbl-summary-stats
+#| tbl-cap: Summary statistics for joined dataset that includes both gridded SST and fishing effort
+
+joined_dataset_summary
 ```

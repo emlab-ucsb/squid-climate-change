@@ -22,7 +22,7 @@ data_directory_base <-  ifelse(Sys.info()["nodename"] == "quebracho" | Sys.info(
 # Automatically set cores, based on emLab best practices
 n_cores <-  ifelse(Sys.info()["nodename"] == "quebracho" | Sys.info()["nodename"] == "sequoia",
                    20,
-                   parellely::availableCores()-1)
+                   parallelly::availableCores()-1)
 
 project_directory <- glue::glue("{data_directory_base}/projects/current-projects/squid-climate-change")
 
@@ -165,6 +165,21 @@ list(
     sst_data_aggregated |>
       collapse::fsubset(time == as.POSIXct("2024-08-01",tz="UTC")) |>
       collapse::fselect(lon_bin, lat_bin, mean_sst)
+  ),
+  # Join together SST and effort datasets
+  tar_target(
+    name = joined_dataset,
+    sst_data_aggregated |>
+      collapse::frename(month = time) |>
+      collapse::fmutate(month = lubridate::ymd(month)) |>
+      dplyr::inner_join(gridded_time_effort_by_flag |>
+                          dplyr::mutate(month = lubridate::ymd(month)),
+                        by = c("month","lat_bin","lon_bin"))
+  ),
+  # Summarize data for quarto notebook
+  tar_target(
+    name = joined_dataset_summary,
+    skimr::skim(joined_dataset)
   ),
   # Make quarto notebook -----
   tar_quarto(
