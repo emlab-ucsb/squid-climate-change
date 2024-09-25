@@ -157,10 +157,11 @@ div.csl-indent {
   <ul>
   <li><a href="#data-sources" id="toc-data-sources" class="nav-link active" data-scroll-target="#data-sources"><span class="header-section-number">1.1</span> Data sources</a>
   <ul class="collapse">
-  <li><a href="#fishing-effort" id="toc-fishing-effort" class="nav-link" data-scroll-target="#fishing-effort"><span class="header-section-number">1.1.1</span> Fishing effort</a></li>
+  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">1.1.1</span> AIS-based Fishing effort</a></li>
   <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.2</span> Vessel info</a></li>
   <li><a href="#sea-surface-temperature-sst" id="toc-sea-surface-temperature-sst" class="nav-link" data-scroll-target="#sea-surface-temperature-sst"><span class="header-section-number">1.1.3</span> Sea surface temperature (SST)</a></li>
-  <li><a href="#joined-dataset" id="toc-joined-dataset" class="nav-link" data-scroll-target="#joined-dataset"><span class="header-section-number">1.1.4</span> Joined dataset</a></li>
+  <li><a href="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" id="toc-night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="nav-link" data-scroll-target="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.4</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</a></li>
+  <li><a href="#joined-dataset" id="toc-joined-dataset" class="nav-link" data-scroll-target="#joined-dataset"><span class="header-section-number">1.1.5</span> Joined dataset</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -187,8 +188,8 @@ div.csl-indent {
 
 <section id="data-sources" class="level2" data-number="1.1">
 <h2 data-number="1.1" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">1.1</span> Data sources</h2>
-<section id="fishing-effort" class="level3" data-number="1.1.1">
-<h3 data-number="1.1.1" class="anchored" data-anchor-id="fishing-effort"><span class="header-section-number">1.1.1</span> Fishing effort</h3>
+<section id="ais-based-fishing-effort" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">1.1.1</span> AIS-based Fishing effort</h3>
 <p>We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (<span class="citation" data-cites="kroodsma2018tracking">Kroodsma et al. (<a href="references.html#ref-kroodsma2018tracking" role="doc-biblioref">2018</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.messages</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_ais_v3_published.messages</code>):</p>
 <ul>
 <li><code>ssvid</code>: source specific vessel id; MMSI for AIS</li>
@@ -242,9 +243,31 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="joined-dataset" class="level3" data-number="1.1.4">
-<h3 data-number="1.1.4" class="anchored" data-anchor-id="joined-dataset"><span class="header-section-number">1.1.4</span> Joined dataset</h3>
-<p>The final dataset we use for our analysis is a combination of the gridded fishing effort data and the gridded SST data. We inner join these datasets by 0.5x0.5 degree pixel and month. Note that the joined dataset does not contain flag-pixel-months with zero fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
+<section id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="level3" data-number="1.1.4">
+<h3 data-number="1.1.4" class="anchored" data-anchor-id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.4</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</h3>
+<p>We use the NOAA VIIRS (Visible Infrared Imaging Radiometer Suite) data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.</p>
+<p>We leverage the VIIRS boat detection dataset developed by <span class="citation" data-cites="elvidge2015automatic">Elvidge et al. (<a href="references.html#ref-elvidge2015automatic" role="doc-biblioref">2015</a>)</span>. We then apply similar processing as <span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span>, which includes the following steps:</p>
+<ul>
+<li>Reduce false detections near South America caused by the the South Atlantic Anomaly (an abundance of high-energy particles in the atmosphere).</li>
+<li>Use a same radiance threshold of 10 nW cm−2 sr−1 used by <span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span> (and established by <span class="citation" data-cites="park2020illuminating">Park et al. (<a href="references.html#ref-park2020illuminating" role="doc-biblioref">2020</a>)</span>) in order to filter detections to those likely engaged in in pelagic light-luring activity.</li>
+<li>To eliminate double-counting when there may be multiple satellite overpasses on a single night, only count detections from the overpass with the smallest satellite zenith angle (smaller zenith angles are more accurate)</li>
+</ul>
+<p>We then finally aggregate the total detections for each 0.5x0.5 degree pixel and month.</p>
+<p>We can compare AIS-based fishing effort with VIIRS detections by aggregating AIS effort across flags for each month and pixel, and then matching this with VIIRS detections by month and pixel. There appears to be a generally strong relationship between the two, although there are many outliers that appear to have very low AIS-based fishing effort but actually have a very high number of VIIRS detections.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-ais-viirs-comparison" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="methods_files/figure-html/fig-ais-viirs-comparison-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;1.3: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each pixel and month.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="joined-dataset" class="level3" data-number="1.1.5">
+<h3 data-number="1.1.5" class="anchored" data-anchor-id="joined-dataset"><span class="header-section-number">1.1.5</span> Joined dataset</h3>
+<p>The final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data, the gridded SST data, and the gridded VIIRS detections. We inner join the AIS-based effort and SST datasets by 0.5x0.5 degree pixel and month, since both datasets cover the entire time series. We then left join the VIIRS detection dataset by pixel and month, since this dataset only covers January 2017 through December 2021. Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset)</code>. The dataset has the following colums:</p>
 <ul>
 <li><strong>month</strong>: Month (first day of month) (date)<br>
@@ -259,12 +282,14 @@ div.csl-indent {
 <li><strong>max_sst</strong>: Maximum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric)</li>
 <li><strong>fishing_hours</strong>: Total fishing effort across vessels (hours) (numeric)<br>
 </li>
-<li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)</li>
+<li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)<br>
+</li>
+<li><strong>viirs_detections</strong>: Night light detections from the VIIRS dataset (numeric)</li>
 </ul>
 <p>Here we summarize these data (<a href="#tbl-summary-stats">Table&nbsp;<span>1.1</span></a>):</p>
 <div id="tbl-summary-stats" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;1.1: Summary statistics for joined dataset that includes both gridded SST and fishing effort</p>
+<p>Table&nbsp;1.1: Summary statistics for joined dataset that includes, gridded SST, AIS-based fishing effort, and VIIRS detections</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div id="tbl-summary-stats-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-summary-stats" style="flex-basis: 100.0%;justify-content: center;">
@@ -281,7 +306,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">10</td>
+<td style="text-align: left;">11</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -301,7 +326,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">8</td>
+<td style="text-align: left;">9</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">________________________</td>
@@ -442,7 +467,7 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">mean_sst</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">20.04</td>
 <td style="text-align: right;">6.81</td>
 <td style="text-align: right;">-1.65</td>
@@ -455,7 +480,7 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">sd_sst</td>
 <td style="text-align: right;">302</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">0.17</td>
 <td style="text-align: right;">0.19</td>
 <td style="text-align: right;">0.00</td>
@@ -468,7 +493,7 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">min_sst</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">19.85</td>
 <td style="text-align: right;">6.90</td>
 <td style="text-align: right;">-1.68</td>
@@ -481,7 +506,7 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">max_sst</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">20.23</td>
 <td style="text-align: right;">6.73</td>
 <td style="text-align: right;">-1.63</td>
@@ -494,7 +519,7 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">lon_bin</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">16.89</td>
 <td style="text-align: right;">110.83</td>
 <td style="text-align: right;">-180.00</td>
@@ -507,7 +532,7 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">lat_bin</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">4.22</td>
 <td style="text-align: right;">30.56</td>
 <td style="text-align: right;">-54.50</td>
@@ -520,7 +545,7 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">fishing_hours</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">134.28</td>
 <td style="text-align: right;">456.21</td>
 <td style="text-align: right;">0.00</td>
@@ -533,7 +558,7 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">fishing_kw_hours</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">164088.16</td>
 <td style="text-align: right;">636584.24</td>
 <td style="text-align: right;">4.73</td>
@@ -541,6 +566,19 @@ div.csl-indent {
 <td style="text-align: right;">23717.34</td>
 <td style="text-align: right;">90379.80</td>
 <td style="text-align: right;">31939325.02</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">viirs_detections</td>
+<td style="text-align: right;">944058</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">79.22</td>
+<td style="text-align: right;">209.98</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4.00</td>
+<td style="text-align: right;">18.00</td>
+<td style="text-align: right;">69.00</td>
+<td style="text-align: right;">4608.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 </tbody>
@@ -551,14 +589,23 @@ div.csl-indent {
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-elvidge2015automatic" class="csl-entry" role="listitem">
+Elvidge, CD, M Zhizhin, K Baugh, and FC Hsu. 2015. <span>“Automatic Boat Identification System for VIIRS Low Light Imaging Data, Remote Sens., 7, 3020–3036.”</span>
+</div>
 <div id="ref-huang2021improvements" class="csl-entry" role="listitem">
 Huang, Boyin, Chunying Liu, Viva Banzon, Eric Freeman, Garrett Graham, Bill Hankins, Tom Smith, and Huai-Min Zhang. 2021. <span>“Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version 2.1.”</span> <em>Journal of Climate</em> 34 (8): 2923–39.
 </div>
 <div id="ref-kroodsma2018tracking" class="csl-entry" role="listitem">
 Kroodsma, David A, Juan Mayorga, Timothy Hochberg, Nathan A Miller, Kristina Boerder, Francesco Ferretti, Alex Wilson, et al. 2018. <span>“Tracking the Global Footprint of Fisheries.”</span> <em>Science</em> 359 (6378): 904–8.
 </div>
+<div id="ref-park2020illuminating" class="csl-entry" role="listitem">
+Park, Jaeyoon, Jungsam Lee, Katherine Seto, Timothy Hochberg, Brian A Wong, Nathan A Miller, Kenji Takasaki, et al. 2020. <span>“Illuminating Dark Fishing Fleets in North Korea.”</span> <em>Science Advances</em> 6 (30): eabb1197.
+</div>
 <div id="ref-park2023tracking" class="csl-entry" role="listitem">
 Park, Jaeyoon, Jennifer Van Osdel, Joanna Turner, Courtney M Farthing, Nathan A Miller, Hannah L Linder, Guillermo Ortuño Crespo, Gabrielle Carmine, and David A Kroodsma. 2023. <span>“Tracking Elusive and Shifting Identities of the Global Fishing Fleet.”</span> <em>Science Advances</em> 9 (3): eabp8200.
+</div>
+<div id="ref-seto2023fishing" class="csl-entry" role="listitem">
+Seto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich, Masanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki Oozeki, and Osvaldo Urrutia S. 2023. <span>“Fishing Through the Cracks: The Unregulated Nature of Global Squid Fisheries.”</span> <em>Science Advances</em> 9 (10): eadd8125.
 </div>
 </div>
 </section>

@@ -15,7 +15,8 @@ library(ggplot2)
 targets::tar_load(c("ais_date_start",
                     "ais_date_end",
                     "squid_vessel_list",
-                    "gridded_time_effort_by_flag"))
+                    "gridded_time_effort_by_flag",
+                    "gridded_viirs_detections"))
 
 source("r/functions.R")
 ```
@@ -57,6 +58,8 @@ top_flags_all_time <- top_flags_all_time |>
 ```
 
 ## Fishery summary
+
+### Fleet description
 
 ```{r}
 vessel_summary <- squid_vessel_list |>
@@ -119,7 +122,9 @@ gridded_time_effort_by_flag|>
   theme_plot()
 ```
 
-We can also look at a time series of total monthly global effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+## Fishing effort
+
+Next we look at a time series of total monthly global effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
 
 ```{r}
 #| label: fig-effort-time-series
@@ -226,3 +231,60 @@ purrr::map(top_flags_all_time$country,
            })
 ```
 
+### VIIRS detections
+
+First we look at a time series of monthly VIIRS detections globally (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
+
+```{r}
+#| label: fig-viirs-time-series
+#| fig-cap: Monthly VIIRS detections.
+
+gridded_viirs_detections|>
+  dplyr::group_by(month) |>
+  dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(x = month, y= viirs_detections)) +
+ geom_line() +
+  labs(x = "",
+       y = "Monthly VIIRS detections")+
+  theme_plot() +
+  scale_y_continuous(labels = scales::comma)
+```
+
+Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (@fig-effort-map).
+
+```{r}
+#| label: fig-viirs-map
+#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+
+ggplot()  +
+  geom_tile(data = gridded_viirs_detections |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
+              dplyr::ungroup(),
+            aes(fill = viirs_detections,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("VIIRS detections",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```

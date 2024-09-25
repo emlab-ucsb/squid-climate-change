@@ -124,6 +124,56 @@ list(
     name = gridded_time_effort_by_flag_summary,
     skimr::skim(gridded_time_effort_by_flag)
   ),
+  # Get VIIRS data
+  # Recreate this query: https://github.com/GlobalFishingWatch/paper-global-squid/blob/main/queries/VIIRS/get_viirs_without_noise.sql
+  # Which comes from this paper: https://www.science.org/doi/10.1126/sciadv.add8125
+  tar_file_read(
+    name = filtered_viirs_bq,
+    "sql/get_viirs_without_noise.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x),
+                                 bq_table_name = "filtered_viirs",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE')
+  ),
+  # From Seto et al: "To eliminate double counting, in areas with multiple satellite overpasses on a given night, 
+  # we included only observations from the overpass with the smaller satellite zenith angle."
+  # Adapted from this query: https://github.com/GlobalFishingWatch/paper-global-squid/blob/main/queries/VIIRS/02_create_viirs_matching_squid_area_no_overlap_local_night_2017_2021.sql
+  tar_file_read(
+    name = viirs_smallest_zenith_bq,
+    "sql/viirs_smallest_zenith.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
+                                   stringr::str_glue(spatial_resolution = spatial_resolution),
+                                 bq_table_name = "viirs_smallest_zenith",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE',
+                                 # Re-run this target if filtered_viirs_bq changes
+                                 filtered_viirs_bq)
+  ),
+  # Now grid this up to our spatial and temporal resolution
+  tar_file_read(
+    name = gridded_viirs_detections_bq,
+    "sql/gridded_viirs_detections.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x)|>
+                                   stringr::str_glue(temporal_resolution = temporal_resolution),
+                                 bq_table_name = "gridded_viirs_detections",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE')
+  ),
+  # Pull gridded_viirs_detections data locally
+  tar_target(
+    name = gridded_viirs_detections,
+    pull_gfw_data_locally_arbitrary(sql = "SELECT * FROM `emlab-gcp.squid_climate_change.gridded_viirs_detections`",
+                                    billing_project = billing_project,
+                                    # Re-run this target if gridded_viirs_detections_bq changes
+                                    gridded_viirs_detections_bq) |>
+      dplyr::filter(lubridate::year(month) < 2022)
+  ),
   # Download SST data from NOAA - Daily, 0.25x0.25 degree resolution from OI V2.1
   # And save to emLab shared data directory
   tar_target(
@@ -166,7 +216,8 @@ list(
       collapse::fsubset(time == as.POSIXct("2024-08-01",tz="UTC")) |>
       collapse::fselect(lon_bin, lat_bin, mean_sst)
   ),
-  # Join together SST and effort datasets
+  # Inner join together SST and effort datasets
+  # Then left join VIIRS dataset, since it only covers part of the time series
   tar_target(
     name = joined_dataset,
     sst_data_aggregated |>
@@ -174,7 +225,10 @@ list(
       collapse::fmutate(month = lubridate::ymd(month)) |>
       dplyr::inner_join(gridded_time_effort_by_flag |>
                           dplyr::mutate(month = lubridate::ymd(month)),
-                        by = c("month","lat_bin","lon_bin"))
+                        by = c("month","lat_bin","lon_bin")) |>
+      dplyr::left_join(gridded_viirs_detections |>
+                          dplyr::mutate(month = lubridate::ymd(month)),
+                        by = c("month","lat_bin","lon_bin")) 
   ),
   # Summarize data for quarto notebook
   tar_target(

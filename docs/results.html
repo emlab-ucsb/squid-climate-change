@@ -155,7 +155,14 @@ div.csl-indent {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#fishery-summary" id="toc-fishery-summary" class="nav-link active" data-scroll-target="#fishery-summary"><span class="header-section-number">2.1</span> Fishery summary</a></li>
+  <li><a href="#fishery-summary" id="toc-fishery-summary" class="nav-link active" data-scroll-target="#fishery-summary"><span class="header-section-number">2.1</span> Fishery summary</a>
+  <ul class="collapse">
+  <li><a href="#fleet-description" id="toc-fleet-description" class="nav-link" data-scroll-target="#fleet-description"><span class="header-section-number">2.1.1</span> Fleet description</a></li>
+  </ul></li>
+  <li><a href="#fishing-effort" id="toc-fishing-effort" class="nav-link" data-scroll-target="#fishing-effort"><span class="header-section-number">2.2</span> Fishing effort</a>
+  <ul class="collapse">
+  <li><a href="#viirs-detections" id="toc-viirs-detections" class="nav-link" data-scroll-target="#viirs-detections"><span class="header-section-number">2.2.1</span> VIIRS detections</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -181,6 +188,8 @@ div.csl-indent {
 
 <section id="fishery-summary" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="fishery-summary"><span class="header-section-number">2.1</span> Fishery summary</h2>
+<section id="fleet-description" class="level3" data-number="2.1.1">
+<h3 data-number="2.1.1" class="anchored" data-anchor-id="fleet-description"><span class="header-section-number">2.1.1</span> Fleet description</h3>
 <p>Our analysis includes 1,561 squid vessels spread across 52 flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and (<a href="#fig-vessel-summary-by-flag">Figure&nbsp;<span>2.1</span></a>). China dominates the fleet, with Taiwan a fairly distant second.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -203,7 +212,11 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>We can also look at a time series of total monthly global effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.3</span></a>). The top top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
+</section>
+</section>
+<section id="fishing-effort" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="fishing-effort"><span class="header-section-number">2.2</span> Fishing effort</h2>
+<p>Next we look at a time series of total monthly global effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.3</span></a>). The top top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-time-series" class="quarto-figure quarto-figure-center anchored">
@@ -304,6 +317,30 @@ div.csl-indent {
 <p><img src="results_files/figure-html/unnamed-chunk-8-11.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<section id="viirs-detections" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="viirs-detections"><span class="header-section-number">2.2.1</span> VIIRS detections</h3>
+<p>First we look at a time series of monthly VIIRS detections globally (<a href="#fig-viirs-time-series">Figure&nbsp;<span>2.5</span></a>). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-viirs-time-series" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-viirs-time-series-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.5: Monthly VIIRS detections.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Next we can look at at a map of these VIIRS detections (<a href="#fig-viirs-map">Figure&nbsp;<span>2.6</span></a>), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (<a href="#fig-effort-map">Figure&nbsp;<span>2.4</span></a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-viirs-map" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="results_files/figure-html/fig-viirs-map-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.6: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -311,6 +348,7 @@ div.csl-indent {
 Institute, Flanders Marine. 2023. <span>“Maritime Boundaries Geodatabase, Version 12.”</span> <em>Available Online at Https://Www.marineregions.org/. Https://Doi.org/10.14284/628</em>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->
