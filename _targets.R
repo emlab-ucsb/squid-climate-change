@@ -87,8 +87,8 @@ list(
     "sql/gridded_daily_effort_by_vessel.sql",
     run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
                                    stringr::str_glue(ais_date_start = ais_date_start,
-                                            ais_date_end = ais_date_end,
-                                            spatial_resolution = spatial_resolution),
+                                                     ais_date_end = ais_date_end,
+                                                     spatial_resolution = spatial_resolution),
                                  bq_table_name = "gridded_daily_effort_by_vessel",
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,
@@ -118,11 +118,6 @@ list(
                                     billing_project = billing_project,
                                     # Re-run this target if gridded_time_effort_by_flag_bq changes
                                     gridded_time_effort_by_flag_bq)
-  ),
-  # Summarize data for quarto notebook
-  tar_target(
-    name = gridded_time_effort_by_flag_summary,
-    skimr::skim(gridded_time_effort_by_flag)
   ),
   # Get VIIRS data
   # Recreate this query: https://github.com/GlobalFishingWatch/paper-global-squid/blob/main/queries/VIIRS/get_viirs_without_noise.sql
@@ -183,57 +178,74 @@ list(
                             date_end = "2024-08-31",
                             download_path_base = glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"))
   ),
-  # Now aggregate SST data to our spatiotemporal resolution
+  # Create a tibble that extracts the data and month from all SST files names
+  tar_target(
+    name = sst_data_file_tibble,
+    tibble::tibble(file_name = list.files(glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1"),
+                                          full.names = TRUE)) |>
+      dplyr::mutate(date = stringr::str_sub(file_name,start = -14, end = -5) |>
+                      stringr::str_replace_all("_","-") |>
+                      lubridate::ymd(),
+                    month = lubridate::floor_date(date, unit = "month"))
+  ),
+  # Aggregate data temporally/spatially one month at a time, to avoid
+  # load all files at once. Then bind them all together once they're aggregated
   tar_target(
     name = sst_data_aggregated,
-    spatio_temporal_aggregate(file_list = list.files(glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"),
-                                                     full.names = TRUE),
-                              spatial_resolution = spatial_resolution,
-                              temporal_resolution = temporal_resolution,
-                              n_cores = n_cores)|>
-      tibble::as_tibble()
+    unique(sst_data_file_tibble$month) |>
+      purrr::map(~{
+        print(glue::glue("Starting {.x}"))
+        file_list <- sst_data_file_tibble |>
+          dplyr::filter(month == .x) |>
+          dplyr::pull(file_name)
+        spatio_temporal_aggregate(file_list = file_list,
+                                  spatial_resolution = spatial_resolution,
+                                  temporal_resolution = temporal_resolution)
+      }) |>
+        data.table::rbindlist()
   ),
-  # Now aggregate SST data by time, to make time series
+  # Now aggregate SST data by time, to make global time series
   tar_target(
     name = sst_data_aggregated_time_series,
     sst_data_aggregated |>
-      collapse::collap(FUN = list(mean_sst = collapse::fmean),
-                       by = ~ time,
-                       cols = "mean_sst",
-                       give.names = FALSE,
-                       parallel = TRUE,
-                       mc.cores = n_cores)
-  ),
-  # Summarize data for quarto notebook
-  tar_target(
-    name = sst_data_aggregated_summary,
-    skimr::skim(sst_data_aggregated)
+      collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+                       by = ~ month,
+                       cols = "sst_deg_c_mean")
   ),
   # Subset to one month of SST data for making an exploratory data analysis map
   tar_target(
     name = sst_data_aggregated_one_month_subset,
     sst_data_aggregated |>
-      collapse::fsubset(time == as.POSIXct("2024-08-01",tz="UTC")) |>
-      collapse::fselect(lon_bin, lat_bin, mean_sst)
+      collapse::fsubset(month == lubridate::ymd("2024-08-01")) |>
+      collapse::fselect(-month)
   ),
-  # Inner join together SST and effort datasets
-  # Then left join VIIRS dataset, since it only covers part of the time series
+  # Inner join together SST and AIS-based effort datasets
   tar_target(
-    name = joined_dataset,
-    sst_data_aggregated |>
-      collapse::frename(month = time) |>
+    name = joined_dataset_ais,
+    gridded_time_effort_by_flag |>
       collapse::fmutate(month = lubridate::ymd(month)) |>
-      dplyr::inner_join(gridded_time_effort_by_flag |>
-                          dplyr::mutate(month = lubridate::ymd(month)),
-                        by = c("month","lat_bin","lon_bin")) |>
-      dplyr::left_join(gridded_viirs_detections |>
-                          dplyr::mutate(month = lubridate::ymd(month)),
-                        by = c("month","lat_bin","lon_bin")) 
+      dplyr::inner_join(sst_data_aggregated,
+                        by = c("month","lat_bin","lon_bin"))
+  ),
+  # Inner join together SST and VIIRS detections datasets
+  tar_target(
+    name = joined_dataset_viirs,
+    gridded_viirs_detections |>
+      collapse::fmutate(month = lubridate::ymd(month)) |>
+      dplyr::inner_join(sst_data_aggregated |>
+                          collapse::frename(month = time) |>
+                          collapse::fmutate(month = lubridate::ymd(month)),
+                        by = c("month","lat_bin","lon_bin"))
   ),
   # Summarize data for quarto notebook
   tar_target(
-    name = joined_dataset_summary,
-    skimr::skim(joined_dataset)
+    name = joined_dataset_ais_summary,
+    skimr::skim(joined_dataset_ais)
+  ),
+  # Summarize data for quarto notebook
+  tar_target(
+    name = joined_dataset_viirs_summary,
+    skimr::skim(joined_dataset_viirs)
   ),
   # Make quarto notebook -----
   tar_quarto(

@@ -141,8 +141,7 @@ download_erddap_wrapper <- function(dataset_name,
 
 spatio_temporal_aggregate <- function(file_list,
                                       spatial_resolution,
-                                      temporal_resolution,
-                                      n_cores){
+                                      temporal_resolution){
   
   temporal_resolution_lower <- stringr::str_to_lower(temporal_resolution)
   
@@ -151,17 +150,12 @@ spatio_temporal_aggregate <- function(file_list,
       data_file |>
         data.table::fread(select = c("time","longitude","latitude","sst"))  |>
         collapse::fsubset(!is.na(sst)) |>
-        collapse::fmutate(time = lubridate::floor_date(time, temporal_resolution_lower),
+        collapse::fmutate(month = lubridate::floor_date(time, temporal_resolution_lower),
                           lon_bin = floor(longitude / spatial_resolution) * spatial_resolution,
-                          lat_bin = floor(latitude / spatial_resolution) * spatial_resolution) |>
-        collapse::collap(FUN = list(mean_sst = collapse::fmean, 
-                                     sd_sst = collapse::fsd, 
-                                     min_sst = collapse::fmin, 
-                                     max_sst = collapse::fmax),
-                          by = ~ time + lon_bin + lat_bin,
-                          cols = "sst",
-                         give.names = FALSE,
-                         parallel = TRUE,
-                         mc.cores = n_cores)}) |>
-    data.table::rbindlist()
+                          lat_bin = floor(latitude / spatial_resolution) * spatial_resolution)}) |>
+    data.table::rbindlist() |>
+    collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+                     by = ~ month + lon_bin + lat_bin,
+                     cols = "sst") |>
+    collapse::frename(sst_deg_c_mean = sst)
 }
