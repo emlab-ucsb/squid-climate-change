@@ -77,7 +77,7 @@ We filter to just those vessels where `best.best_vessel_class = squid_jigger`. A
 
 ### Sea surface temperature (SST)
 
-Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We aggregate the data to `r spatial_resolution`x`r spatial_resolution` degree monthly resolution by calculating the mean, standard deviation, minimum, and maximum SST for each `r spatial_resolution`x`r spatial_resolution` degree pixel and month.
+Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We spatiotemporally aggregate the data to `r spatial_resolution`x`r spatial_resolution` degree monthly resolution by calculating the mean from across days and 0.25x0.25 degree pixels.
 
 We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
 
