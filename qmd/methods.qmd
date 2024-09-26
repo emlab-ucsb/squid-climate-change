@@ -17,11 +17,10 @@ targets::tar_load(c("ais_date_start",
                     "spatial_resolution",
                     "temporal_resolution",
                     "squid_vessel_list",
-                    #"gridded_time_effort_by_flag_summary",
-                    #"sst_data_aggregated_summary",
                     "sst_data_aggregated_one_month_subset",
                     "sst_data_aggregated_time_series",
-                    "joined_dataset_summary"))
+                    "joined_dataset_ais_summary",
+                    "joined_dataset_viirs_summary"))
 
 source("r/functions.R")
 ```
@@ -90,7 +89,7 @@ land <- rnaturalearth::ne_countries(returnclass = "sf")
 
 ggplot() +
   geom_tile(data = sst_data_aggregated_one_month_subset,
-            aes(fill = mean_sst,
+            aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
   geom_sf(data = land,
@@ -119,16 +118,16 @@ Aggregating across the mean sea surface temperatures of each pixel, we can calcu
 #| fig-cap: Time series of global mean sea surface temperature.
 
 sst_data_aggregated_time_series |>
-  ggplot(aes(x = time, y = mean_sst)) +
+  ggplot(aes(x = month, y = sst_deg_c_mean)) +
   geom_line() +
   theme_plot() +
   labs(x = "",
-       y = "Mean global sea surface temperature\n(degrees C)")
+       y = "Mean monthly global SST\n(degrees C)")
 ```
 
 ### Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)
 
-We use the NOAA VIIRS (Visible Infrared Imaging Radiometer Suite) data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.
+We use the [NASA VIIRS (Visible Infrared Imaging Radiometer Suite)](https://www.earthdata.nasa.gov/sensors/viirs) data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.
 
 We leverage the VIIRS boat detection dataset developed by @elvidge2015automatic. We then apply similar processing as @seto2023fishing, which includes the following steps:
 
@@ -168,28 +167,51 @@ ais_viirs_comparison_data |>
 ```
 
 
-### Joined dataset
+### Joined datasets
 
-The final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data, the gridded SST data, and the gridded VIIRS detections. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month, since both datasets cover the entire time series. We then left join the VIIRS detection dataset by pixel and month, since this dataset only covers January 2017 through December 2021. Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.  
+#### SST and AIS-based effort
+
+One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month. Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
+
+Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.  
+
+The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_ais)`. The dataset has the following colums:
+
+* **month**: Month (first day of month) (date)  
+* **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
+* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  * **flag**:  Fishing flag (character)  
+* **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
+* **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
+
+Here we summarize these data (@tbl-summary-stats-joined-dataset-ais):
+
+```{r}
+#| label: tbl-summary-stats-joined-dataset-ais
+#| tbl-cap: Summary statistics for joined dataset that includes gridded SST and AIS-based fishing effort
+
+joined_dataset_ais_summary
+```
+
+#### SST and VIIRS detections
+
+The other version of the final dataset we use for our analysis is a combination of the  gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. . Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.
+
+Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.  
 
 The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset)`. The dataset has the following colums:
 
 * **month**: Month (first day of month) (date)  
 * **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
-* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  * **flag**:  Fishing flag (character)  
-* **mean_sst**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sd_sst**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **min_sst**: Minimum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric) 
-* **max_sst**: Maximum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric) 
-* **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
-* **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
+* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)
+* **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
 * **viirs_detections**: Night light detections from the VIIRS dataset (numeric)
 
-Here we summarize these data (@tbl-summary-stats):
+Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):
 
 ```{r}
-#| label: tbl-summary-stats
-#| tbl-cap: Summary statistics for joined dataset that includes, gridded SST, AIS-based fishing effort, and VIIRS detections
+#| label: tbl-summary-stats-joined-dataset-VIIRS
+#| tbl-cap: Summary statistics for joined dataset that includes gridded SST and VIIRS detections
 
-joined_dataset_summary
+joined_dataset_viirs_summary
 ```

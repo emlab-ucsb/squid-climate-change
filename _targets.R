@@ -232,9 +232,7 @@ list(
     name = joined_dataset_viirs,
     gridded_viirs_detections |>
       collapse::fmutate(month = lubridate::ymd(month)) |>
-      dplyr::inner_join(sst_data_aggregated |>
-                          collapse::frename(month = time) |>
-                          collapse::fmutate(month = lubridate::ymd(month)),
+      dplyr::inner_join(sst_data_aggregated,
                         by = c("month","lat_bin","lon_bin"))
   ),
   # Summarize data for quarto notebook

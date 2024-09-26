@@ -161,7 +161,7 @@ div.csl-indent {
   <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.2</span> Vessel info</a></li>
   <li><a href="#sea-surface-temperature-sst" id="toc-sea-surface-temperature-sst" class="nav-link" data-scroll-target="#sea-surface-temperature-sst"><span class="header-section-number">1.1.3</span> Sea surface temperature (SST)</a></li>
   <li><a href="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" id="toc-night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="nav-link" data-scroll-target="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.4</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</a></li>
-  <li><a href="#joined-dataset" id="toc-joined-dataset" class="nav-link" data-scroll-target="#joined-dataset"><span class="header-section-number">1.1.5</span> Joined dataset</a></li>
+  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.5</span> Joined datasets</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -245,7 +245,7 @@ div.csl-indent {
 </section>
 <section id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="level3" data-number="1.1.4">
 <h3 data-number="1.1.4" class="anchored" data-anchor-id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.4</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</h3>
-<p>We use the NOAA VIIRS (Visible Infrared Imaging Radiometer Suite) data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.</p>
+<p>We use the <a href="https://www.earthdata.nasa.gov/sensors/viirs">NASA VIIRS (Visible Infrared Imaging Radiometer Suite)</a> data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.</p>
 <p>We leverage the VIIRS boat detection dataset developed by <span class="citation" data-cites="elvidge2015automatic">Elvidge et al. (<a href="references.html#ref-elvidge2015automatic" role="doc-biblioref">2015</a>)</span>. We then apply similar processing as <span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span>, which includes the following steps:</p>
 <ul>
 <li>Reduce false detections near South America caused by the the South Atlantic Anomaly (an abundance of high-energy particles in the atmosphere).</li>
@@ -265,10 +265,13 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="joined-dataset" class="level3" data-number="1.1.5">
-<h3 data-number="1.1.5" class="anchored" data-anchor-id="joined-dataset"><span class="header-section-number">1.1.5</span> Joined dataset</h3>
-<p>The final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data, the gridded SST data, and the gridded VIIRS detections. We inner join the AIS-based effort and SST datasets by 0.5x0.5 degree pixel and month, since both datasets cover the entire time series. We then left join the VIIRS detection dataset by pixel and month, since this dataset only covers January 2017 through December 2021. Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
-<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset)</code>. The dataset has the following colums:</p>
+<section id="joined-datasets" class="level3" data-number="1.1.5">
+<h3 data-number="1.1.5" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.5</span> Joined datasets</h3>
+<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.5.1">
+<h4 data-number="1.1.5.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.5.1</span> SST and AIS-based effort</h4>
+<p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.5x0.5 degree pixel and month. Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
+<p>Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
+<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
 <ul>
 <li><strong>month</strong>: Month (first day of month) (date)<br>
 </li>
@@ -276,37 +279,32 @@ div.csl-indent {
 </li>
 <li><strong>lat_bin</strong>: 0.5 degree latitude bin (degrees) (numeric) * <strong>flag</strong>: Fishing flag (character)<br>
 </li>
-<li><strong>mean_sst</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>sd_sst</strong>: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>min_sst</strong>: Minimum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric)</li>
-<li><strong>max_sst</strong>: Maximum sea surface temperature (degrees C), aggregated from the raw daily 0.25x0.25 degree data (numeric)</li>
+<li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
 <li><strong>fishing_hours</strong>: Total fishing effort across vessels (hours) (numeric)<br>
 </li>
-<li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)<br>
-</li>
-<li><strong>viirs_detections</strong>: Night light detections from the VIIRS dataset (numeric)</li>
+<li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)</li>
 </ul>
-<p>Here we summarize these data (<a href="#tbl-summary-stats">Table&nbsp;<span>1.1</span></a>):</p>
-<div id="tbl-summary-stats" class="cell tbl-parent quarto-layout-panel anchored">
+<p>Here we summarize these data (<a href="#tbl-summary-stats-joined-dataset-ais">Table&nbsp;<span>1.1</span></a>):</p>
+<div id="tbl-summary-stats-joined-dataset-ais" class="cell tbl-parent quarto-layout-panel anchored">
 <div class="panel-caption table-caption">
-<p>Table&nbsp;1.1: Summary statistics for joined dataset that includes, gridded SST, AIS-based fishing effort, and VIIRS detections</p>
+<p>Table&nbsp;1.1: Summary statistics for joined dataset that includes gridded SST and AIS-based fishing effort</p>
 </div>
 <div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-summary-stats-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-summary-stats" style="flex-basis: 100.0%;justify-content: center;">
+<div id="tbl-summary-stats-joined-dataset-ais-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-summary-stats-joined-dataset-ais" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
 <caption>(a) Data summary</caption>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Name</td>
-<td style="text-align: left;">joined_dataset</td>
+<td style="text-align: left;">joined_dataset_ais</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">1610486</td>
+<td style="text-align: left;">53404</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">11</td>
+<td style="text-align: left;">7</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -321,12 +319,12 @@ div.csl-indent {
 <td style="text-align: left;">1</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Date</td>
-<td style="text-align: left;">1</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">5</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">9</td>
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: left;">1</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">________________________</td>
@@ -373,55 +371,13 @@ div.csl-indent {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">flag</td>
-<td style="text-align: right;">179745</td>
+<td style="text-align: right;">6031</td>
 <td style="text-align: right;">0.89</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">45</td>
 <td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<p><strong>Variable type: Date</strong></p>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 13%">
-<col style="width: 13%">
-<col style="width: 13%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: left;">min</th>
-<th style="text-align: left;">max</th>
-<th style="text-align: left;">median</th>
-<th style="text-align: right;">n_unique</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">month</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">2016-01-01</td>
-<td style="text-align: left;">2024-08-01</td>
-<td style="text-align: left;">2021-02-01</td>
-<td style="text-align: right;">104</td>
 </tr>
 </tbody>
 </table>
@@ -465,121 +421,312 @@ div.csl-indent {
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">mean_sst</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">20.04</td>
-<td style="text-align: right;">6.81</td>
-<td style="text-align: right;">-1.65</td>
-<td style="text-align: right;">14.31</td>
-<td style="text-align: right;">20.41</td>
-<td style="text-align: right;">26.08</td>
-<td style="text-align: right;">35.46</td>
-<td style="text-align: left;">▁▅▇▇▃</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">sd_sst</td>
-<td style="text-align: right;">302</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">0.17</td>
-<td style="text-align: right;">0.19</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.05</td>
-<td style="text-align: right;">0.11</td>
-<td style="text-align: right;">0.22</td>
-<td style="text-align: right;">2.45</td>
-<td style="text-align: left;">▇▁▁▁▁</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">min_sst</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">19.85</td>
-<td style="text-align: right;">6.90</td>
-<td style="text-align: right;">-1.68</td>
-<td style="text-align: right;">13.95</td>
-<td style="text-align: right;">20.24</td>
-<td style="text-align: right;">25.98</td>
-<td style="text-align: right;">35.45</td>
-<td style="text-align: left;">▁▅▇▇▃</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">max_sst</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">20.23</td>
-<td style="text-align: right;">6.73</td>
-<td style="text-align: right;">-1.63</td>
-<td style="text-align: right;">14.66</td>
-<td style="text-align: right;">20.59</td>
-<td style="text-align: right;">26.17</td>
-<td style="text-align: right;">35.51</td>
-<td style="text-align: left;">▁▅▇▇▃</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;">lon_bin</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">16.89</td>
-<td style="text-align: right;">110.83</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">16.75</td>
+<td style="text-align: right;">110.57</td>
 <td style="text-align: right;">-180.00</td>
 <td style="text-align: right;">-82.00</td>
-<td style="text-align: right;">-0.50</td>
-<td style="text-align: right;">132.50</td>
+<td style="text-align: right;">10.00</td>
+<td style="text-align: right;">131.50</td>
 <td style="text-align: right;">179.50</td>
 <td style="text-align: left;">▂▇▁▃▇</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">lat_bin</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">4.22</td>
-<td style="text-align: right;">30.56</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">4.11</td>
+<td style="text-align: right;">30.51</td>
 <td style="text-align: right;">-54.50</td>
 <td style="text-align: right;">-16.50</td>
 <td style="text-align: right;">0.50</td>
-<td style="text-align: right;">36.00</td>
+<td style="text-align: right;">35.50</td>
 <td style="text-align: right;">80.50</td>
 <td style="text-align: left;">▅▇▅▇▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">fishing_hours</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">134.28</td>
-<td style="text-align: right;">456.21</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">135.18</td>
+<td style="text-align: right;">460.83</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">8.03</td>
-<td style="text-align: right;">20.90</td>
-<td style="text-align: right;">77.28</td>
+<td style="text-align: right;">8.06</td>
+<td style="text-align: right;">20.99</td>
+<td style="text-align: right;">77.74</td>
 <td style="text-align: right;">21005.80</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">fishing_kw_hours</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">164088.16</td>
-<td style="text-align: right;">636584.24</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">165200.51</td>
+<td style="text-align: right;">644600.30</td>
 <td style="text-align: right;">4.73</td>
-<td style="text-align: right;">8351.48</td>
-<td style="text-align: right;">23717.34</td>
-<td style="text-align: right;">90379.80</td>
+<td style="text-align: right;">8385.44</td>
+<td style="text-align: right;">23803.15</td>
+<td style="text-align: right;">90789.30</td>
 <td style="text-align: right;">31939325.02</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">viirs_detections</td>
-<td style="text-align: right;">944058</td>
-<td style="text-align: right;">0.41</td>
-<td style="text-align: right;">79.22</td>
-<td style="text-align: right;">209.98</td>
-<td style="text-align: right;">1.00</td>
-<td style="text-align: right;">4.00</td>
+<td style="text-align: left;">sst_deg_c_mean</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">20.07</td>
+<td style="text-align: right;">6.76</td>
+<td style="text-align: right;">-1.63</td>
+<td style="text-align: right;">14.33</td>
+<td style="text-align: right;">20.43</td>
+<td style="text-align: right;">26.10</td>
+<td style="text-align: right;">34.27</td>
+<td style="text-align: left;">▁▅▇▇▅</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: POSIXct</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">month</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2016-01-01</td>
+<td style="text-align: left;">2024-08-01</td>
+<td style="text-align: left;">2021-03-01</td>
+<td style="text-align: right;">104</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="sst-and-viirs-detections" class="level4" data-number="1.1.5.2">
+<h4 data-number="1.1.5.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.5.2</span> SST and VIIRS detections</h4>
+<p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.5x0.5 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. . Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
+<p>Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.</p>
+<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset)</code>. The dataset has the following colums:</p>
+<ul>
+<li><strong>month</strong>: Month (first day of month) (date)<br>
+</li>
+<li><strong>lon_bin</strong>: 0.5 degree longitude bin (degrees) (numeric)<br>
+</li>
+<li><strong>lat_bin</strong>: 0.5 degree latitude bin (degrees) (numeric)</li>
+<li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
+<li><strong>viirs_detections</strong>: Night light detections from the VIIRS dataset (numeric)</li>
+</ul>
+<p>Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):</p>
+<div id="tbl-summary-stats-joined-dataset-VIIRS" class="cell tbl-parent quarto-layout-panel anchored">
+<div class="panel-caption table-caption">
+<p>Table&nbsp;1.2: Summary statistics for joined dataset that includes gridded SST and VIIRS detections</p>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div id="tbl-summary-stats-joined-dataset-VIIRS-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-summary-stats-joined-dataset-VIIRS" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<caption>(a) Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">joined_dataset_viirs</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">411879</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">POSIXct</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: numeric</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 10%">
+<col style="width: 14%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 8%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">lon_bin</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">39.45</td>
+<td style="text-align: right;">95.13</td>
+<td style="text-align: right;">-180.0</td>
+<td style="text-align: right;">-44.00</td>
+<td style="text-align: right;">67.50</td>
+<td style="text-align: right;">119.00</td>
+<td style="text-align: right;">179.50</td>
+<td style="text-align: left;">▂▃▅▃▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lat_bin</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">15.52</td>
+<td style="text-align: right;">31.86</td>
+<td style="text-align: right;">-78.5</td>
+<td style="text-align: right;">-2.00</td>
 <td style="text-align: right;">18.00</td>
-<td style="text-align: right;">69.00</td>
+<td style="text-align: right;">38.00</td>
+<td style="text-align: right;">89.50</td>
+<td style="text-align: left;">▁▂▇▇▂</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">viirs_detections</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">24.19</td>
+<td style="text-align: right;">89.63</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">10.00</td>
 <td style="text-align: right;">4608.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sst_deg_c_mean</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">20.38</td>
+<td style="text-align: right;">9.91</td>
+<td style="text-align: right;">-1.8</td>
+<td style="text-align: right;">14.18</td>
+<td style="text-align: right;">24.43</td>
+<td style="text-align: right;">28.65</td>
+<td style="text-align: right;">35.12</td>
+<td style="text-align: left;">▃▂▃▆▇</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: POSIXct</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">min</th>
+<th style="text-align: left;">max</th>
+<th style="text-align: left;">median</th>
+<th style="text-align: right;">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">month</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">2017-01-01</td>
+<td style="text-align: left;">2021-12-01</td>
+<td style="text-align: left;">2019-06-01</td>
+<td style="text-align: right;">60</td>
 </tr>
 </tbody>
 </table>
@@ -608,6 +755,7 @@ Park, Jaeyoon, Jennifer Van Osdel, Joanna Turner, Courtney M Farthing, Nathan A 
 Seto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich, Masanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki Oozeki, and Osvaldo Urrutia S. 2023. <span>“Fishing Through the Cracks: The Unregulated Nature of Global Squid Fisheries.”</span> <em>Science Advances</em> 9 (10): eadd8125.
 </div>
 </div>
+</section>
 </section>
 </section>
 
