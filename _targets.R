@@ -178,7 +178,6 @@ list(
                             date_end = "2024-08-31",
                             download_path_base = glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"))
   ),
-  # Create a tibble that extracts the data and month from all SST files names
   tar_target(
     name = sst_data_file_tibble,
     tibble::tibble(file_name = list.files(glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1"),

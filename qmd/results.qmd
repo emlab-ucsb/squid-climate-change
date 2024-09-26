@@ -229,7 +229,7 @@ purrr::map(top_flags_all_time$country,
            })
 ```
 
-### VIIRS detections
+## VIIRS detections
 
 First we look at a time series of monthly VIIRS detections globally (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
 

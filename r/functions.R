@@ -126,6 +126,11 @@ download_erddap_wrapper <- function(dataset_name,
       dplyr::select(-zlev) |>
       tibble::as_tibble()
     
+    # We noticed there is an error in the 2023-02-01 file - it incorrectly gives the data as 2023-01-31
+    # So we need to manually fix it
+    if(data_date=="2023-02-01") data_tibble <- data_tibble |>
+      collapse::fmutate(time = lubridate::ymd_hms("2023-02-01 12:00:00"))
+    
     data.table::fwrite(data_tibble,
                        download_path)
     
