@@ -1,0 +1,423 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Exploratory data analysis {#sec-eda}
+
+```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
+#| label: set-chunk-options
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
+
+library(ggplot2)
+
+targets::tar_load(c("sst_data_aggregated_one_month_subset",
+                    "sst_data_aggregated_time_series",
+                    "squid_vessel_list",
+                    "joined_dataset_ais",
+                    "joined_dataset_viirs"))
+
+source("r/functions.R")
+```
+
+## Sea surface temperature (SST)
+
+We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
+
+```{r}
+#| label: fig-sst-map
+#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels.
+
+land <- rnaturalearth::ne_countries(returnclass = "sf")
+
+ggplot() +
+  geom_tile(data = sst_data_aggregated_one_month_subset,
+            aes(fill = sst_deg_c_mean,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Mean SST (degrees C)",
+                       option = "inferno",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```
+
+Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (@fig-sst-time-series). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.
+
+```{r}
+#| label: fig-sst-time-series
+#| fig-cap: Time series of global monthly mean sea surface temperature (SST).
+
+sst_data_aggregated_time_series |>
+  ggplot(aes(x = month, y = sst_deg_c_mean)) +
+  geom_line() +
+  theme_plot() +
+  labs(x = "",
+       y = "Mean monthly global SST\n(degrees C)")
+```
+
+## Fleet characteristics
+
+```{r}
+# Add country names to joined_dataset_ais
+joined_dataset_ais <- joined_dataset_ais |>
+  dplyr::mutate(country = countrycode::countrycode(flag,
+                                                   origin = "iso3c",
+                                                   destination = "country.name")) |>
+  # If country name is missing, call it Unknown
+  dplyr::mutate(country = ifelse(is.na(country), "Unknown",country))
+
+# Get top fishing flags across all time
+n_flags <- 10
+top_flags_all_time <- joined_dataset_ais |>
+  dplyr::group_by(country) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm = TRUE)) |>
+  dplyr::ungroup()  |>
+  dplyr::slice_max(order_by = fishing_kw_hours, n = n_flags) |>
+  dplyr::mutate(top = TRUE)
+
+joined_dataset_ais <- joined_dataset_ais  |>
+  dplyr::left_join(top_flags_all_time |>
+                     dplyr::select(country,top), by = "country") |>
+  dplyr::mutate(country_plotting = ifelse(is.na(top), "Other",country) |>
+                  forcats::fct_relevel(top_flags_all_time$country))
+
+other_effort_all_time <- joined_dataset_ais |>
+  dplyr::filter(country_plotting == "Other") |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm=TRUE)) |>
+  dplyr::mutate(country = "Other",
+                top = TRUE)
+
+# Include other in our top flags, for plotting
+top_flags_all_time <- top_flags_all_time |>
+  dplyr::bind_rows(other_effort_all_time) |>
+  dplyr::arrange(-fishing_kw_hours)
+```
+
+```{r}
+vessel_summary <- squid_vessel_list |>
+  dplyr::group_by(flag) |>
+  dplyr::summarize(`Total engine power (kW)` = sum(engine_power_kw,na.rm = TRUE),
+                   `Number unique vessels` = dplyr::n_distinct(ssvid)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(country = countrycode::countrycode(flag,
+                                                   origin = "iso3c",
+                                                   destination = "country.name")) |>
+  dplyr::mutate(country = ifelse(is.na(country), "Unknown",country)) |>
+  dplyr::select(-flag) 
+```
+
+Our analysis includes `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels spread across `r length(unique(vessel_summary$country))` flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and  (@fig-vessel-summary-by-flag). China dominates the fleet, with Taiwan a fairly distant second.
+
+```{r}
+#| label: fig-vessel-summary-by-flag
+#| fig-cap: Squid jigger vessel summary by flag, showing the total engine power (kW) and total number of unique vessels.
+#| fig-height: 7
+
+# Arrange plot by the number of unique vessels from each flag
+plot_order <- vessel_summary |>
+  dplyr::arrange(`Total engine power (kW)`) |>
+  dplyr::pull(country)
+
+vessel_summary |>
+  tidyr::pivot_longer(cols = -country,
+                      names_to = "metric",
+                      values_to = "value") |>
+  dplyr::mutate(metric = forcats::fct_relevel(metric,"Total engine power (kW)")) |>
+  ggplot(aes(x = value,
+             y = forcats::fct_relevel(country,plot_order))) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~metric,
+             scales = "free_x",
+             ncol = 2) +
+  labs(x = "",
+       y = "") +
+  theme_plot() +
+  scale_x_continuous(labels = scales::comma)
+
+```
+
+Next we look at total global fishing effort from 2016 through August 2024, by flag (@fig-effort-bar-plot). The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other". Again, China dominates the fishing effort, with Taiwan a fairly distant second.
+
+```{r}
+#| label: fig-effort-bar-plot
+#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024. The top 10 flags are shown, with all other flags aggregated into "Other".
+
+joined_dataset_ais|>
+  dplyr::group_by(country_plotting) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm = TRUE)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(x = fishing_kw_hours, y= reorder(country_plotting,fishing_kw_hours))) +
+  geom_bar(stat = "identity")+
+  labs(x = "Total fishing effort from 2016 through August 2024 (kW-hours)",
+       y = "")+
+  scale_x_continuous(labels = scales::unit_format(unit = "B", scale = 1e-9)) +
+  theme_plot()
+```
+
+## AIS-based fishing effort
+
+Next we look at a time series of total monthly global AIS-based fishing effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+
+```{r}
+#| label: fig-effort-time-series
+#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024. The top 10 flags are shown individually, with all other flags aggregated into "Other".
+#| fig-height: 7
+
+joined_dataset_ais|>
+  dplyr::group_by(month,
+                  country_plotting) |>
+  dplyr::mutate(country_plotting = forcats::fct_relevel(country_plotting,
+                                                        top_flags_all_time$country)) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(x = month, y= fishing_kw_hours, fill = country_plotting)) +
+ geom_line() +
+  labs(x = "",
+       y = "Monthly fishing effort by flag (kW-hours)")+
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
+  theme_plot() +
+  facet_grid(country_plotting~.,
+             scales = "free_y")
+```
+
+Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).
+
+```{r}
+#| label: fig-effort-map
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+
+land <- rnaturalearth::ne_countries(returnclass = "sf")
+
+# Load Marine Regions v12 EEZ
+eez <- sf::st_read("/home/emlab/data/marine-regions-eez-v12/World_EEZ_v12_20231025_LR/eez_v12_lowres.shp",quiet = TRUE)
+
+ggplot()  +
+  geom_tile(data = joined_dataset_ais |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```
+
+We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+
+```{r}
+purrr::map(top_flags_all_time$country,
+           function(country_tmp){
+             ggplot()  +
+  geom_tile(data = joined_dataset_ais |>
+              dplyr::filter(country_plotting == country_tmp) |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '',
+       title = glue::glue("{country_tmp}\n")) +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+           })
+```
+
+## VIIRS detections
+
+First we look at a time series of monthly VIIRS detections globally (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
+
+```{r}
+#| label: fig-viirs-time-series
+#| fig-cap: Monthly VIIRS detections.
+
+joined_dataset_viirs|>
+  dplyr::group_by(month) |>
+  dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(x = month, y= viirs_detections)) +
+ geom_line() +
+  labs(x = "",
+       y = "Monthly VIIRS detections")+
+  theme_plot() +
+  scale_y_continuous(labels = scales::comma)
+```
+
+Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (@fig-effort-map).
+
+```{r}
+#| label: fig-viirs-map
+#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+
+ggplot()  +
+  geom_tile(data = joined_dataset_viirs |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
+              dplyr::ungroup(),
+            aes(fill = viirs_detections,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("VIIRS detections",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```
+
+## Comparing AIS-based fishing effort and VIIRS detections
+
+We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (@fig-ais-viirs-comparison-time-series). Both datasets show a peak occurring in spring and a dip occurring in winter. They both also show a smaller peak occurring in fall, although this peak is much more pronounced in the VIIRS data.
+
+```{r}
+#| label: fig-ais-viirs-comparison-time-series
+#| fig-cap: Comparison of monthly time series of AIS-based fishing effort and VIIRS detections.
+
+monthly_ais_global <- joined_dataset_ais|>
+  dplyr::inner_join(joined_dataset_viirs |>
+                      dplyr::distinct(month),
+              by="month") |>
+  dplyr::group_by(month) |>
+  dplyr::summarize(value = sum(fishing_kw_hours)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(metric = "AIS-based fishing effort (kW-hours)")
+
+monthly_viirs_global <- joined_dataset_viirs|>
+  dplyr::group_by(month) |>
+  dplyr::summarize(value = sum(viirs_detections)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(metric = "VIIRS detections")
+
+monthly_ais_global |>
+  dplyr::bind_rows(monthly_viirs_global) |>
+  ggplot(aes(x = month, y= value)) +
+ geom_line() +
+  labs(x = "",
+       y = "")+
+  theme_plot() +
+  scale_y_continuous(labels = scales::comma) +
+  facet_wrap(metric~.,ncol=1,scales="free_y")
+```
+
+We next compare the datasets by aggregating effort and detections across each month and pixel. There appears to be a generally strong relationship between the two, although there are many outliers that appear to have very low AIS-based fishing effort but actually have a very high number of VIIRS detections.
+
+```{r}
+#| label: fig-ais-viirs-comparison
+#| fig-cap: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each pixel and month. A linear regression line fit is shown in blue.
+
+gridded_time_effort <- joined_dataset_ais |>
+  dplyr::group_by(month,lon_bin,lat_bin) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm=TRUE)) |>
+  dplyr::ungroup()
+
+ais_viirs_comparison_data <- gridded_time_effort |>
+  dplyr::inner_join(joined_dataset_viirs,
+              by=c("month","lon_bin","lat_bin")) 
+
+ais_viirs_comparison_data |>
+  ggplot(aes(x = fishing_kw_hours,
+             y = viirs_detections)) +
+  geom_point() +
+  theme_plot() +
+  geom_smooth(method = "lm") +
+  labs(x = "AIS-based fishing effort (kW-hours)",
+       y = "VIIRS detections") +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+```
+
+We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals. We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.
+
+```{r}
+# Make simple linear regression model between VIIRS detections and effort
+model <- lm(viirs_detections ~ fishing_kw_hours,
+            data = ais_viirs_comparison_data)
+
+# Add the residuals to the data
+ais_viirs_comparison_data <- ais_viirs_comparison_data |>
+  dplyr::mutate(residuals = residuals(model))
+
+# Plot the residuals
+ais_viirs_comparison_data |>
+  ggplot(aes(x = fishing_kw_hours,
+             y = residuals)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_plot() +
+  labs(x = "AIS-based fishing effort (kW-hours)",
+       y = "Residuals of VIIRS detections") +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma)
+
+```
+
