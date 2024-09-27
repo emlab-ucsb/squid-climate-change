@@ -32,7 +32,7 @@ In the second phase, we will develop a data-driven fishery model to simulate fut
 
 **Phase Three: Policy review and recommendations**
 
-Finally, we will assess various fisheries management strategies specific to individual country and regionsY, such as voluntary seasonal closures and enforced fishing moratoriums, to identify their effectiveness in addressing the challenges posed by climate change and overfishing. This will help us develop evidence-based policy recommendations aimed at ensuring the future profitability, resiliency, and sustainability of the Humboldt squid fishery.
+Finally, we will assess various fisheries management strategies specific to individual country and regions, such as voluntary seasonal closures and enforced fishing moratoriums, to identify their effectiveness in addressing the challenges posed by climate change and overfishing. This will help us develop evidence-based policy recommendations aimed at ensuring the future profitability, resiliency, and sustainability of the Humboldt squid fishery.
 
 ## Deliverables
 

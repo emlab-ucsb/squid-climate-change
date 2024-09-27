@@ -146,7 +146,7 @@ The other version of the final dataset we use for our analysis is a combination 
 
 Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.  
 
-The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset)`. The dataset has the following colums:
+The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_viirs)`. The dataset has the following colums:
 
 * **month**: Month (first day of month) (date)  
 * **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  

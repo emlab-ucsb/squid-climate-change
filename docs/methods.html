@@ -547,7 +547,7 @@ div.csl-indent {
 <h4 data-number="1.1.6.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.6.2</span> SST and VIIRS detections</h4>
 <p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.5x0.5 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.</p>
-<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset)</code>. The dataset has the following colums:</p>
+<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_viirs)</code>. The dataset has the following colums:</p>
 <ul>
 <li><strong>month</strong>: Month (first day of month) (date)<br>
 </li>
