@@ -16,7 +16,8 @@ targets::tar_load(c("sst_data_aggregated_one_month_subset",
                     "sst_data_aggregated_time_series",
                     "squid_vessel_list",
                     "joined_dataset_ais",
-                    "joined_dataset_viirs"))
+                    "joined_dataset_viirs",
+                    "oceanic_nino_index_data"))
 
 source("r/functions.R")
 ```
@@ -67,6 +68,25 @@ sst_data_aggregated_time_series |>
   theme_plot() +
   labs(x = "",
        y = "Mean monthly global SST\n(degrees C)")
+```
+
+## Oceanic Niño Index (ONI)
+
+Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (@fig-oni-time-series):
+
+
+```{r}
+#| label: fig-oni-time-series
+#| fig-cap: Time series of monthly Oceanic Niño Index (ONI).
+
+joined_dataset_ais |>
+  dplyr::distinct(month, oceanic_nino_index) |>
+  ggplot(aes(x = month, y = oceanic_nino_index)) +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_plot() +
+  labs(x = "",
+       y = "Oceanic Niño Index (ONI)")
 ```
 
 ## Fleet characteristics
@@ -396,28 +416,35 @@ ais_viirs_comparison_data |>
   scale_y_continuous(labels = scales::comma)
 ```
 
-We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals. We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.
+We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals (@fig-ais-viirs-residuals). We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.
 
 ```{r}
+#| label: fig-ais-viirs-residuals
+#| fig-cap: Residuals of VIIRS detections when regressed against AIS-based fishing effort. Points that fall outside of 3 standard deviations of residuals are marked in red.
 # Make simple linear regression model between VIIRS detections and effort
 model <- lm(viirs_detections ~ fishing_kw_hours,
             data = ais_viirs_comparison_data)
 
+# Calculate 3 standard deviations of residuals, to identify outliers
+outlier_threshold <- 3*sd(residuals(model))
+
 # Add the residuals to the data
 ais_viirs_comparison_data <- ais_viirs_comparison_data |>
-  dplyr::mutate(residuals = residuals(model))
+  dplyr::mutate(residual = residuals(model)) |>
+  dplyr::mutate(outlier = ifelse(abs(residual) > outlier_threshold, TRUE, FALSE))
 
 # Plot the residuals
 ais_viirs_comparison_data |>
   ggplot(aes(x = fishing_kw_hours,
-             y = residuals)) +
-  geom_point() +
+             y = residual)) +
+  geom_point(aes(color = outlier)) +
   geom_smooth(method = "lm") +
   theme_plot() +
   labs(x = "AIS-based fishing effort (kW-hours)",
        y = "Residuals of VIIRS detections") +
   scale_x_continuous(labels = scales::comma) +
-  scale_y_continuous(labels = scales::comma)
+  scale_y_continuous(labels = scales::comma) +
+  scale_color_manual("Outlier",
+                     values = c("TRUE" = "red", "FALSE" = "black"))
 
 ```
-

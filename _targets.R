@@ -218,21 +218,30 @@ list(
       collapse::fsubset(month == lubridate::ymd("2024-08-01")) |>
       collapse::fselect(-month)
   ),
-  # Inner join together SST and AIS-based effort datasets
+  # Pull Oceanic Nino Index data from NOAA
+  tar_target(
+    name = oceanic_nino_index_data,
+    pull_oni_data()
+  ),
+  # Join together AIS-based effort, SST, and ONI datasets
   tar_target(
     name = joined_dataset_ais,
     gridded_time_effort_by_flag |>
       collapse::fmutate(month = lubridate::ymd(month)) |>
       dplyr::inner_join(sst_data_aggregated,
-                        by = c("month","lat_bin","lon_bin"))
+                        by = c("month","lat_bin","lon_bin")) |>
+      dplyr::left_join(oceanic_nino_index_data, 
+                       by = "month")
   ),
-  # Inner join together SST and VIIRS detections datasets
+  # Join together VIIRS, SST, and ONI datasets
   tar_target(
     name = joined_dataset_viirs,
     gridded_viirs_detections |>
       collapse::fmutate(month = lubridate::ymd(month)) |>
       dplyr::inner_join(sst_data_aggregated,
-                        by = c("month","lat_bin","lon_bin"))
+                        by = c("month","lat_bin","lon_bin")) |>
+      dplyr::left_join(oceanic_nino_index_data, 
+                       by = "month")
   ),
   # Summarize data for quarto notebook
   tar_target(

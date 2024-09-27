@@ -164,3 +164,16 @@ spatio_temporal_aggregate <- function(file_list,
                      cols = "sst") |>
     collapse::frename(sst_deg_c_mean = sst)
 }
+
+# Pull NOAA Oceanic Nino Index (ONI) data
+pull_oni_data <- function(){
+  read.table(url("https://psl.noaa.gov/data/correlation/oni.data"),skip=1,nrows=75) |>
+    tibble::as_tibble() |>
+    dplyr::rename(year = V1) |>
+    tidyr::pivot_longer(-year) |>
+    dplyr::mutate(month = stringr::str_remove_all(name,"V") |>
+                    as.numeric() - 1,
+                  month = lubridate::ymd(glue::glue("{year}-{month}-1"))) |>
+    dplyr::filter(month < lubridate::ymd("2024-08-01")) |>
+    dplyr::select(month,oceanic_nino_index = value)
+}

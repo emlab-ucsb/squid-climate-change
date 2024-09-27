@@ -162,10 +162,11 @@ div.csl-indent {
    
   <ul>
   <li><a href="#sea-surface-temperature-sst" id="toc-sea-surface-temperature-sst" class="nav-link active" data-scroll-target="#sea-surface-temperature-sst"><span class="header-section-number">2.1</span> Sea surface temperature (SST)</a></li>
-  <li><a href="#fleet-characteristics" id="toc-fleet-characteristics" class="nav-link" data-scroll-target="#fleet-characteristics"><span class="header-section-number">2.2</span> Fleet characteristics</a></li>
-  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">2.3</span> AIS-based fishing effort</a></li>
-  <li><a href="#viirs-detections" id="toc-viirs-detections" class="nav-link" data-scroll-target="#viirs-detections"><span class="header-section-number">2.4</span> VIIRS detections</a></li>
-  <li><a href="#comparing-ais-based-fishing-effort-and-viirs-detections" id="toc-comparing-ais-based-fishing-effort-and-viirs-detections" class="nav-link" data-scroll-target="#comparing-ais-based-fishing-effort-and-viirs-detections"><span class="header-section-number">2.5</span> Comparing AIS-based fishing effort and VIIRS detections</a></li>
+  <li><a href="#oceanic-niño-index-oni" id="toc-oceanic-niño-index-oni" class="nav-link" data-scroll-target="#oceanic-niño-index-oni"><span class="header-section-number">2.2</span> Oceanic Niño Index (ONI)</a></li>
+  <li><a href="#fleet-characteristics" id="toc-fleet-characteristics" class="nav-link" data-scroll-target="#fleet-characteristics"><span class="header-section-number">2.3</span> Fleet characteristics</a></li>
+  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">2.4</span> AIS-based fishing effort</a></li>
+  <li><a href="#viirs-detections" id="toc-viirs-detections" class="nav-link" data-scroll-target="#viirs-detections"><span class="header-section-number">2.5</span> VIIRS detections</a></li>
+  <li><a href="#comparing-ais-based-fishing-effort-and-viirs-detections" id="toc-comparing-ais-based-fishing-effort-and-viirs-detections" class="nav-link" data-scroll-target="#comparing-ais-based-fishing-effort-and-viirs-detections"><span class="header-section-number">2.6</span> Comparing AIS-based fishing effort and VIIRS detections</a></li>
   </ul>
 </nav>
     </div>
@@ -214,51 +215,65 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="fleet-characteristics" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="fleet-characteristics"><span class="header-section-number">2.2</span> Fleet characteristics</h2>
-<p>Our analysis includes 1,561 squid vessels spread across 52 flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and (<a href="#fig-vessel-summary-by-flag">Figure&nbsp;<span>2.3</span></a>). China dominates the fleet, with Taiwan a fairly distant second.</p>
+<section id="oceanic-niño-index-oni" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="oceanic-niño-index-oni"><span class="header-section-number">2.2</span> Oceanic Niño Index (ONI)</h2>
+<p>Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (<a href="#fig-oni-time-series">Figure&nbsp;<span>2.3</span></a>):</p>
 <div class="cell">
 <div class="cell-output-display">
-<div id="fig-vessel-summary-by-flag" class="quarto-figure quarto-figure-center anchored">
+<div id="fig-oni-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
-<p><img src="eda_files/figure-html/fig-vessel-summary-by-flag-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.3: Squid jigger vessel summary by flag, showing the total engine power (kW) and total number of unique vessels.</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<p>Next we look at total global fishing effort from 2016 through August 2024, by flag (<a href="#fig-effort-bar-plot">Figure&nbsp;<span>2.4</span></a>). The top 10 flags are shown individually, with all other flags aggregated into “Other”. Again, China dominates the fishing effort, with Taiwan a fairly distant second.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-effort-bar-plot" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="eda_files/figure-html/fig-effort-bar-plot-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.4: Total fishing effort, by flag, from 2016 through August 2024. The top 10 flags are shown, with all other flags aggregated into “Other”.</figcaption>
+<p><img src="eda_files/figure-html/fig-oni-time-series-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.3: Time series of monthly Oceanic Niño Index (ONI).</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="ais-based-fishing-effort" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">2.3</span> AIS-based fishing effort</h2>
-<p>Next we look at a time series of total monthly global AIS-based fishing effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.5</span></a>). The top top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
+<section id="fleet-characteristics" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="fleet-characteristics"><span class="header-section-number">2.3</span> Fleet characteristics</h2>
+<p>Our analysis includes 1,561 squid vessels spread across 52 flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and (<a href="#fig-vessel-summary-by-flag">Figure&nbsp;<span>2.4</span></a>). China dominates the fleet, with Taiwan a fairly distant second.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-vessel-summary-by-flag" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-vessel-summary-by-flag-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.4: Squid jigger vessel summary by flag, showing the total engine power (kW) and total number of unique vessels.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Next we look at total global fishing effort from 2016 through August 2024, by flag (<a href="#fig-effort-bar-plot">Figure&nbsp;<span>2.5</span></a>). The top 10 flags are shown individually, with all other flags aggregated into “Other”. Again, China dominates the fishing effort, with Taiwan a fairly distant second.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-bar-plot" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-effort-bar-plot-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.5: Total fishing effort, by flag, from 2016 through August 2024. The top 10 flags are shown, with all other flags aggregated into “Other”.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="ais-based-fishing-effort" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">2.4</span> AIS-based fishing effort</h2>
+<p>Next we look at a time series of total monthly global AIS-based fishing effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.6</span></a>). The top top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-effort-time-series-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.5: Monthly fishing effort by flag from 2016 through August 2024. The top 10 flags are shown individually, with all other flags aggregated into “Other”.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.6: Monthly fishing effort by flag from 2016 through August 2024. The top 10 flags are shown individually, with all other flags aggregated into “Other”.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Next we can look at at a map of AIS-based squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.6</span></a>), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
+<p>Next we can look at at a map of AIS-based squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.7</span></a>), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-effort-map-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.6: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.7: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.</figcaption>
 </figure>
 </div>
 </div>
@@ -269,114 +284,114 @@ div.csl-indent {
 <pre><code>[[1]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[2]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[3]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-3.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[4]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-4.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[5]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-5.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-5.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[6]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-6.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-6.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[7]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-7.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-7.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[8]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-8.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-8.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[9]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-9.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-9.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[10]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-10.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-10.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[11]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-10-11.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-11-11.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
-<section id="viirs-detections" class="level2" data-number="2.4">
-<h2 data-number="2.4" class="anchored" data-anchor-id="viirs-detections"><span class="header-section-number">2.4</span> VIIRS detections</h2>
-<p>First we look at a time series of monthly VIIRS detections globally (<a href="#fig-viirs-time-series">Figure&nbsp;<span>2.7</span></a>). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.</p>
+<section id="viirs-detections" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="viirs-detections"><span class="header-section-number">2.5</span> VIIRS detections</h2>
+<p>First we look at a time series of monthly VIIRS detections globally (<a href="#fig-viirs-time-series">Figure&nbsp;<span>2.8</span></a>). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-viirs-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-viirs-time-series-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.7: Monthly VIIRS detections.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.8: Monthly VIIRS detections.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Next we can look at at a map of these VIIRS detections (<a href="#fig-viirs-map">Figure&nbsp;<span>2.8</span></a>), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (<a href="#fig-effort-map">Figure&nbsp;<span>2.6</span></a>).</p>
+<p>Next we can look at at a map of these VIIRS detections (<a href="#fig-viirs-map">Figure&nbsp;<span>2.9</span></a>), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (<a href="#fig-effort-map">Figure&nbsp;<span>2.7</span></a>).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-viirs-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-viirs-map-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.8: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.9: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="comparing-ais-based-fishing-effort-and-viirs-detections" class="level2" data-number="2.5">
-<h2 data-number="2.5" class="anchored" data-anchor-id="comparing-ais-based-fishing-effort-and-viirs-detections"><span class="header-section-number">2.5</span> Comparing AIS-based fishing effort and VIIRS detections</h2>
-<p>We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (<a href="#fig-ais-viirs-comparison-time-series">Figure&nbsp;<span>2.9</span></a>). Both datasets show a peak occurring in spring and a dip occurring in winter. They both also show a smaller peak occurring in fall, although this peak is much more pronounced in the VIIRS data.</p>
+<section id="comparing-ais-based-fishing-effort-and-viirs-detections" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="comparing-ais-based-fishing-effort-and-viirs-detections"><span class="header-section-number">2.6</span> Comparing AIS-based fishing effort and VIIRS detections</h2>
+<p>We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (<a href="#fig-ais-viirs-comparison-time-series">Figure&nbsp;<span>2.10</span></a>). Both datasets show a peak occurring in spring and a dip occurring in winter. They both also show a smaller peak occurring in fall, although this peak is much more pronounced in the VIIRS data.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-ais-viirs-comparison-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-ais-viirs-comparison-time-series-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.9: Comparison of monthly time series of AIS-based fishing effort and VIIRS detections.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.10: Comparison of monthly time series of AIS-based fishing effort and VIIRS detections.</figcaption>
 </figure>
 </div>
 </div>
@@ -387,15 +402,20 @@ div.csl-indent {
 <div id="fig-ais-viirs-comparison" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-ais-viirs-comparison-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.10: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each pixel and month. A linear regression line fit is shown in blue.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.11: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each pixel and month. A linear regression line fit is shown in blue.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals. We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.</p>
+<p>We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals (<a href="#fig-ais-viirs-residuals">Figure&nbsp;<span>2.12</span></a>). We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.</p>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+<div id="fig-ais-viirs-residuals" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-ais-viirs-residuals-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.12: Residuals of VIIRS detections when regressed against AIS-based fishing effort. Points that fall outside of 3 standard deviations of residuals are marked in red.</figcaption>
+</figure>
+</div>
 </div>
 </div>
 
