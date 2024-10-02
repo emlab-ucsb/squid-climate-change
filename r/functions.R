@@ -49,32 +49,32 @@ pull_gfw_data_locally_arbitrary <- function(sql, billing_project, ...){
 # Based loosely off fishwatchr::theme_gfw_map()
 # https://github.com/GlobalFishingWatch/fishwatchr/blob/master/R/theme_gfw_map.R
 theme_map <- function(){
-  theme_minimal() %+replace%
-    theme(panel.background = element_rect(fill = "black"),
+  ggplot2::theme_minimal() %+replace%
+    ggplot2::theme(panel.background = ggplot2::element_rect(fill = "black"),
           legend.position = "bottom",
           legend.direction = "horizontal",
-          plot.title = element_text(hjust = 0.5),
-          panel.grid.minor = element_line(color = "black"),
-          panel.grid.major = element_line(color = "black"),
-          axis.text.x = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.title.y = element_blank(),
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          strip.background = element_rect(fill=NA,color=NA),
+          plot.title = ggplot2::element_text(hjust = 0.5),
+          panel.grid.minor = ggplot2::element_line(color = "black"),
+          panel.grid.major = ggplot2::element_line(color = "black"),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
+          axis.title.y = ggplot2::element_blank(),
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.y = ggplot2::element_blank(),
+          strip.background = ggplot2::element_rect(fill=NA,color=NA),
           plot.margin = unit(c(0.25,0,0,0), "cm"))
 }
 
 # Set consistent theme for all other plots
 theme_plot <- function(){
-  theme_minimal() %+replace%
-    theme(axis.title.x = element_text(face = "bold"),
-          axis.title.y = element_text(angle = 90,
+  ggplot2::theme_minimal() %+replace%
+    ggplot2::theme(axis.title.x = ggplot2::element_text(face = "bold"),
+          axis.title.y = ggplot2::element_text(angle = 90,
                                       face = "bold",
                                       vjust = 3),
-          strip.text.x = element_text(angle = 0,
+          strip.text.x = ggplot2::element_text(angle = 0,
                                       face = "bold"),
-          strip.text.y = element_text(angle = 0,
+          strip.text.y = ggplot2::element_text(angle = 0,
                                       face = "bold"))} 
 
 # Wrapper for downloading and saving ERDDAP data from NOAA
