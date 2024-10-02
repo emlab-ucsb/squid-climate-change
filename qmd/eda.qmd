@@ -17,7 +17,8 @@ targets::tar_load(c("sst_data_aggregated_one_month_subset",
                     "squid_vessel_list",
                     "joined_dataset_ais",
                     "joined_dataset_viirs",
-                    "oceanic_nino_index_data"))
+                    "oceanic_nino_index_data",
+                    "eez_info"))
 
 source("r/functions.R")
 ```
@@ -447,4 +448,40 @@ ais_viirs_comparison_data |>
   scale_color_manual("Outlier",
                      values = c("TRUE" = "red", "FALSE" = "black"))
 
+```
+
+# Distance to nearest EEZ
+
+Here we look at a map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel.
+
+```{r}
+#| label: fig-distance-to-eez-map
+#| fig-cap: Map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+ggplot()  +
+  geom_tile(data = eez_info,
+            aes(fill = distance_to_nearest_eez_m/1e3,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Distance to nearest EEZ (km)",
+                       option = "rocket",
+                       na.value = "black",
+                       labels = scales::comma,
+                       direction = -1) +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
 ```

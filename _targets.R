@@ -169,6 +169,28 @@ list(
                                     gridded_viirs_detections_bq) |>
       dplyr::filter(lubridate::year(month) < 2022)
   ),
+  # Generate EEZ info table - for each lon_bin/lat_bin pixel, determine: 1) which EEZ it's in (or high seas);
+  # 2) For high seas pixels, distance to nearest EEZ; for 3) for high seas pixels, nearest EEZ
+  tar_file_read(
+    name = eez_info_bq,
+    "sql/eez_info.sql",
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
+                                   stringr::str_glue(spatial_resolution = spatial_resolution),
+                                 bq_table_name = "eez_info",
+                                 bq_dataset = bq_dataset,
+                                 billing_project = billing_project,
+                                 bq_project = bq_project,
+                                 write_disposition = 'WRITE_TRUNCATE')
+  ),
+  # Pull eez data locally
+  tar_file_read(
+    name = eez_info,
+    "sql/eez_info_with_names.sql",
+    pull_gfw_data_locally_arbitrary(sql = readr::read_file(!!.x),
+                                    billing_project = billing_project,
+                                    # Re-run this target if eez_info_bq changes
+                                    eez_info_bq)
+  ),
   # Process SST data ----
   # Download SST data from NOAA - Daily, 0.25x0.25 degree resolution from OI V2.1
   # And save to emLab shared data directory
@@ -225,7 +247,7 @@ list(
     name = oceanic_nino_index_data,
     pull_oni_data()
   ),
-  # Join together AIS-based effort, SST, and ONI datasets
+  # Join together AIS-based effort, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_ais,
     gridded_time_effort_by_flag |>
@@ -233,10 +255,12 @@ list(
       dplyr::inner_join(sst_data_aggregated,
                         by = c("month","lat_bin","lon_bin")) |>
       dplyr::left_join(oceanic_nino_index_data, 
-                       by = "month")
+                       by = "month") |>
+      dplyr::inner_join(eez_info,
+                       by = c("lon_bin","lat_bin"))
   ),
   # Join datasets ----
-  # Join together VIIRS, SST, and ONI datasets
+  # Join together VIIRS, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_viirs,
     gridded_viirs_detections |>
@@ -244,7 +268,9 @@ list(
       dplyr::inner_join(sst_data_aggregated,
                         by = c("month","lat_bin","lon_bin")) |>
       dplyr::left_join(oceanic_nino_index_data, 
-                       by = "month")
+                       by = "month") |>
+      dplyr::inner_join(eez_info,
+                       by = c("lon_bin","lat_bin"))
   ),
   # Summarize data for quarto notebook ----
   # AIS data

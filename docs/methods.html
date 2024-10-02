@@ -169,7 +169,8 @@ div.csl-indent {
   <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">1.1.4</span> AIS-based Fishing effort</a></li>
   <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.5</span> Vessel info</a></li>
   <li><a href="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" id="toc-night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="nav-link" data-scroll-target="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.6</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</a></li>
-  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</a></li>
+  <li><a href="#eez-information" id="toc-eez-information" class="nav-link" data-scroll-target="#eez-information"><span class="header-section-number">1.1.7</span> EEZ information</a></li>
+  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.8</span> Joined datasets</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -280,16 +281,28 @@ div.csl-indent {
 </ul>
 <p>We then finally aggregate the total detections for each 0.25x0.25 degree pixel and month.</p>
 </section>
-<section id="joined-datasets" class="level3" data-number="1.1.7">
-<h3 data-number="1.1.7" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</h3>
-<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.7.1">
-<h4 data-number="1.1.7.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.7.1</span> SST and AIS-based effort</h4>
-<p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
+<section id="eez-information" class="level3" data-number="1.1.7">
+<h3 data-number="1.1.7" class="anchored" data-anchor-id="eez-information"><span class="header-section-number">1.1.7</span> EEZ information</h3>
+<p>For each 0.25x0.25 degree pixel, we determine a numer of EEZ features. To do so, we leverage the GFW table <code>pipe_static.regions</code>, which provides rasterized EEZ information for high resolution 0.01x0.01 degree pixels. We aggregate this raster up to our spatial resolution to determine the following fatures:</p>
+<ul>
+<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>high_seas</code></li>
+<li><strong>distance_to_nearest_eez_m</strong>: For high seas pixels, this is the distance to the nearest EEZ pixel in meters (using distance on the surface of a WGS84 spheroid); for pixels within an EEZ, this is 0</li>
+<li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel</li>
+<li><strong>pixel_sovereign1_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code></li>
+<li><strong>nearest_pixel_sovereign1_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code</li>
+</ul>
+</section>
+<section id="joined-datasets" class="level3" data-number="1.1.8">
+<h3 data-number="1.1.8" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.8</span> Joined datasets</h3>
+<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.8.1">
+<h4 data-number="1.1.8.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.8.1</span> SST and AIS-based effort</h4>
+<p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
 <ul>
 <li><strong>month</strong>: Month (first day of month) (date)<br>
 </li>
+<li><strong>flag</strong> : Fishing vessel flag (character)</li>
 <li><strong>lon_bin</strong>: 0.25 degree longitude bin (degrees) (numeric)<br>
 </li>
 <li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric) * <strong>flag</strong>: Fishing flag (character)<br>
@@ -300,6 +313,11 @@ div.csl-indent {
 <li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)<br>
 </li>
 <li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
+<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>distance_to_nearest_eez_m</strong>: For high seas pixels, this is the distance to the nearest EEZ pixel in meters; for pixels within an EEZ, this is 0 (meters) (numeric)</li>
+<li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
+<li><strong>pixel_sovereign1_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>nearest_pixel_sovereign1_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 </ul>
 <p>Here we summarize these data (<a href="#tbl-summary-stats-joined-dataset-ais">Table&nbsp;<span>1.1</span></a>):</p>
 <div id="tbl-summary-stats-joined-dataset-ais" class="cell tbl-parent quarto-layout-panel anchored">
@@ -321,7 +339,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">8</td>
+<td style="text-align: left;">13</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -333,11 +351,11 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">character</td>
-<td style="text-align: left;">1</td>
+<td style="text-align: left;">5</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">6</td>
+<td style="text-align: left;">7</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">POSIXct</td>
@@ -364,14 +382,14 @@ div.csl-indent {
 <div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
 <colgroup>
-<col style="width: 19%">
-<col style="width: 13%">
-<col style="width: 19%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 8%">
+<col style="width: 29%">
 <col style="width: 12%">
-<col style="width: 15%">
+<col style="width: 17%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 7%">
+<col style="width: 10%">
+<col style="width: 13%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -396,6 +414,46 @@ div.csl-indent {
 <td style="text-align: right;">45</td>
 <td style="text-align: right;">0</td>
 </tr>
+<tr class="even">
+<td style="text-align: left;">eez_id</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">63</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">nearest_eez_id</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">101</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">pixel_sovereign1_iso3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">nearest_sovereign1_iso3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">0</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -409,17 +467,17 @@ div.csl-indent {
 <div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
 <colgroup>
-<col style="width: 16%">
+<col style="width: 20%">
 <col style="width: 8%">
-<col style="width: 12%">
+<col style="width: 11%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 6%">
 <col style="width: 7%">
 <col style="width: 8%">
-<col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 10%">
-<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 9%">
+<col style="width: 4%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -515,6 +573,19 @@ div.csl-indent {
 <td style="text-align: right;">2.48</td>
 <td style="text-align: left;">▇▆▆▂▂</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;">distance_to_nearest_eez_m</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">279966.10</td>
+<td style="text-align: right;">321312.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">19013.99</td>
+<td style="text-align: right;">159340.65</td>
+<td style="text-align: right;">424973.15</td>
+<td style="text-align: right;">1888741.50</td>
+<td style="text-align: left;">▇▂▁▁▁</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -563,9 +634,9 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="sst-and-viirs-detections" class="level4" data-number="1.1.7.2">
-<h4 data-number="1.1.7.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.7.2</span> SST and VIIRS detections</h4>
-<p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.25x0.25 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
+<section id="sst-and-viirs-detections" class="level4" data-number="1.1.8.2">
+<h4 data-number="1.1.8.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.8.2</span> SST and VIIRS detections</h4>
+<p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.25x0.25 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_viirs)</code>. The dataset has the following colums:</p>
 <ul>
@@ -578,6 +649,11 @@ div.csl-indent {
 <li><strong>viirs_detections</strong>: Night light detections from the VIIRS dataset (numeric)<br>
 </li>
 <li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
+<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>distance_to_nearest_eez_m</strong>: For high seas pixels, this is the distance to the nearest EEZ pixel in meters; for pixels within an EEZ, this is 0 (meters) (numeric)</li>
+<li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
+<li><strong>pixel_sovereign1_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>nearest_pixel_sovereign1_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 </ul>
 <p>Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):</p>
 <div id="tbl-summary-stats-joined-dataset-VIIRS" class="cell tbl-parent quarto-layout-panel anchored">
@@ -595,11 +671,11 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">724963</td>
+<td style="text-align: left;">724248</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">6</td>
+<td style="text-align: left;">11</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -610,20 +686,99 @@ div.csl-indent {
 <td style="text-align: left;"></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">5</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">4</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">6</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">POSIXct</td>
 <td style="text-align: left;">1</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">________________________</td>
 <td style="text-align: left;"></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">Group variables</td>
 <td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<p><strong>Variable type: character</strong></p>
+</div>
+</div>
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 12%">
+<col style="width: 17%">
+<col style="width: 4%">
+<col style="width: 4%">
+<col style="width: 7%">
+<col style="width: 10%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">eez_id</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">257</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">nearest_eez_id</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">257</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">pixel_sovereign1_iso3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">153</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">nearest_sovereign1_iso3</td>
+<td style="text-align: right;">15048</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">152</td>
+<td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
@@ -638,17 +793,17 @@ div.csl-indent {
 <div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
 <colgroup>
-<col style="width: 19%">
-<col style="width: 10%">
-<col style="width: 14%">
-<col style="width: 6%">
-<col style="width: 6%">
+<col style="width: 22%">
 <col style="width: 8%">
-<col style="width: 6%">
-<col style="width: 7%">
+<col style="width: 12%">
 <col style="width: 7%">
 <col style="width: 8%">
+<col style="width: 7%">
+<col style="width: 5%">
 <col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 9%">
+<col style="width: 5%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -670,10 +825,10 @@ div.csl-indent {
 <td style="text-align: left;">lon_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">55.75</td>
-<td style="text-align: right;">88.93</td>
+<td style="text-align: right;">55.86</td>
+<td style="text-align: right;">88.89</td>
 <td style="text-align: right;">-180.00</td>
-<td style="text-align: right;">-0.25</td>
+<td style="text-align: right;">0.00</td>
 <td style="text-align: right;">104.25</td>
 <td style="text-align: right;">119.75</td>
 <td style="text-align: right;">179.75</td>
@@ -683,8 +838,8 @@ div.csl-indent {
 <td style="text-align: left;">lat_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">15.83</td>
-<td style="text-align: right;">28.02</td>
+<td style="text-align: right;">15.80</td>
+<td style="text-align: right;">28.00</td>
 <td style="text-align: right;">-78.50</td>
 <td style="text-align: right;">1.25</td>
 <td style="text-align: right;">16.50</td>
@@ -696,8 +851,8 @@ div.csl-indent {
 <td style="text-align: left;">viirs_detections</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">13.76</td>
-<td style="text-align: right;">39.38</td>
+<td style="text-align: right;">13.77</td>
+<td style="text-align: right;">39.40</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">2.00</td>
@@ -709,11 +864,11 @@ div.csl-indent {
 <td style="text-align: left;">sst_deg_c_mean</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">21.87</td>
-<td style="text-align: right;">9.12</td>
+<td style="text-align: right;">21.88</td>
+<td style="text-align: right;">9.10</td>
 <td style="text-align: right;">-1.80</td>
-<td style="text-align: right;">16.83</td>
-<td style="text-align: right;">25.93</td>
+<td style="text-align: right;">16.86</td>
+<td style="text-align: right;">25.94</td>
 <td style="text-align: right;">28.93</td>
 <td style="text-align: right;">35.16</td>
 <td style="text-align: left;">▂▂▃▆▇</td>
@@ -730,6 +885,19 @@ div.csl-indent {
 <td style="text-align: right;">0.40</td>
 <td style="text-align: right;">0.90</td>
 <td style="text-align: left;">▇▆▆▇▇</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">distance_to_nearest_eez_m</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">65597.32</td>
+<td style="text-align: right;">216449.04</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2506006.82</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 </tbody>
 </table>
@@ -770,7 +938,7 @@ div.csl-indent {
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">2017-01-01</td>
 <td style="text-align: left;">2021-12-01</td>
-<td style="text-align: left;">2019-05-01</td>
+<td style="text-align: left;">2019-06-01</td>
 <td style="text-align: right;">60</td>
 </tr>
 </tbody>
