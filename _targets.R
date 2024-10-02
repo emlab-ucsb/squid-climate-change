@@ -1,8 +1,4 @@
-# Created by use_targets().
-# Follow the comments below to fill in this target script.
-# Then follow the manual to check and run the pipeline:
-#   https://books.ropensci.org/targets/walkthrough.html#inspect-the-pipeline
-
+# Targets setup ----
 # Load packages required to define the pipeline:
 library(targets)
 library(tarchetypes) # Load other packages as needed.
@@ -40,8 +36,8 @@ billing_project <- "emlab-gcp"
 options(scipen = 20)
 
 
-# Replace the target list below with your own:
 list(
+  # Specify analysis parameters ----
   # Set the date to start pulling AIS data
   tar_target(
     name = ais_date_start,
@@ -55,13 +51,15 @@ list(
   # Set spatial pixel size resolution in degrees lat/lon
   tar_target(
     name = spatial_resolution,
-    0.5
+    0.25
   ),
   # Set temporal resolution - can be DAY, MONTH, or YEAR
   tar_target(
     name = temporal_resolution,
     'MONTH'
   ),
+  # Pull GFW data from BigQuery ----
+  ## AIS data ----
   # Get list of squid vessels
   tar_file_read(
     name = squid_vessel_list_bq,
@@ -119,7 +117,7 @@ list(
                                     # Re-run this target if gridded_time_effort_by_flag_bq changes
                                     gridded_time_effort_by_flag_bq)
   ),
-  # Get VIIRS data
+  ## VIIRS data ----
   # Recreate this query: https://github.com/GlobalFishingWatch/paper-global-squid/blob/main/queries/VIIRS/get_viirs_without_noise.sql
   # Which comes from this paper: https://www.science.org/doi/10.1126/sciadv.add8125
   tar_file_read(
@@ -158,7 +156,9 @@ list(
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,
                                  bq_project = bq_project,
-                                 write_disposition = 'WRITE_TRUNCATE')
+                                 write_disposition = 'WRITE_TRUNCATE',
+                                 # Re-run this target if viirs_smallest_zenith_bq changes
+                                 viirs_smallest_zenith_bq)
   ),
   # Pull gridded_viirs_detections data locally
   tar_target(
@@ -169,6 +169,7 @@ list(
                                     gridded_viirs_detections_bq) |>
       dplyr::filter(lubridate::year(month) < 2022)
   ),
+  # Process SST data ----
   # Download SST data from NOAA - Daily, 0.25x0.25 degree resolution from OI V2.1
   # And save to emLab shared data directory
   tar_target(
@@ -218,6 +219,7 @@ list(
       collapse::fsubset(month == lubridate::ymd("2024-08-01")) |>
       collapse::fselect(-month)
   ),
+  # Process ONI data ----
   # Pull Oceanic Nino Index data from NOAA
   tar_target(
     name = oceanic_nino_index_data,
@@ -233,6 +235,7 @@ list(
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month")
   ),
+  # Join datasets ----
   # Join together VIIRS, SST, and ONI datasets
   tar_target(
     name = joined_dataset_viirs,
@@ -243,12 +246,13 @@ list(
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month")
   ),
-  # Summarize data for quarto notebook
+  # Summarize data for quarto notebook ----
+  # AIS data
   tar_target(
     name = joined_dataset_ais_summary,
     skimr::skim(joined_dataset_ais)
   ),
-  # Summarize data for quarto notebook
+  # VIIRS data
   tar_target(
     name = joined_dataset_viirs_summary,
     skimr::skim(joined_dataset_viirs)

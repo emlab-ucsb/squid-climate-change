@@ -164,11 +164,12 @@ div.csl-indent {
   <li><a href="#data-sources" id="toc-data-sources" class="nav-link active" data-scroll-target="#data-sources"><span class="header-section-number">1.1</span> Data sources</a>
   <ul class="collapse">
   <li><a href="#sea-surface-temperature-sst" id="toc-sea-surface-temperature-sst" class="nav-link" data-scroll-target="#sea-surface-temperature-sst"><span class="header-section-number">1.1.1</span> Sea surface temperature (SST)</a></li>
-  <li><a href="#oceanic-niño-index-oni" id="toc-oceanic-niño-index-oni" class="nav-link" data-scroll-target="#oceanic-niño-index-oni"><span class="header-section-number">1.1.2</span> Oceanic Niño Index (ONI)</a></li>
-  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">1.1.3</span> AIS-based Fishing effort</a></li>
-  <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.4</span> Vessel info</a></li>
-  <li><a href="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" id="toc-night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="nav-link" data-scroll-target="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.5</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</a></li>
-  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.6</span> Joined datasets</a></li>
+  <li><a href="#sea-surface-temperature-sst-forecasts-under-climate-change" id="toc-sea-surface-temperature-sst-forecasts-under-climate-change" class="nav-link" data-scroll-target="#sea-surface-temperature-sst-forecasts-under-climate-change"><span class="header-section-number">1.1.2</span> Sea surface temperature (SST) forecasts under climate change</a></li>
+  <li><a href="#oceanic-niño-index-oni" id="toc-oceanic-niño-index-oni" class="nav-link" data-scroll-target="#oceanic-niño-index-oni"><span class="header-section-number">1.1.3</span> Oceanic Niño Index (ONI)</a></li>
+  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">1.1.4</span> AIS-based Fishing effort</a></li>
+  <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.5</span> Vessel info</a></li>
+  <li><a href="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" id="toc-night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="nav-link" data-scroll-target="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.6</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</a></li>
+  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -197,10 +198,29 @@ div.csl-indent {
 <h2 data-number="1.1" class="anchored" data-anchor-id="data-sources"><span class="header-section-number">1.1</span> Data sources</h2>
 <section id="sea-surface-temperature-sst" class="level3" data-number="1.1.1">
 <h3 data-number="1.1.1" class="anchored" data-anchor-id="sea-surface-temperature-sst"><span class="header-section-number">1.1.1</span> Sea surface temperature (SST)</h3>
-<p>Sea surface temperature (SST) data come from <a href="https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html">NOAA’s Optimum Interpolation Sea Surface Temperature (OISST) version 2.1</a> (<span class="citation" data-cites="huang2021improvements">Huang et al. (<a href="references.html#ref-huang2021improvements" role="doc-biblioref">2021</a>)</span>), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We spatiotemporally aggregate the data to 0.5x0.5 degree monthly resolution by calculating the mean from across days and 0.25x0.25 degree pixels.</p>
+<p>Sea surface temperature (SST) data come from <a href="https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html">NOAA’s Optimum Interpolation Sea Surface Temperature (OISST) version 2.1</a> (<span class="citation" data-cites="huang2021improvements">Huang et al. (<a href="references.html#ref-huang2021improvements" role="doc-biblioref">2021</a>)</span>), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We spatiotemporally aggregate the data to 0.25x0.25 degree monthly resolution by calculating the mean from across days and 0.25x0.25 degree pixels.</p>
 </section>
-<section id="oceanic-niño-index-oni" class="level3" data-number="1.1.2">
-<h3 data-number="1.1.2" class="anchored" data-anchor-id="oceanic-niño-index-oni"><span class="header-section-number">1.1.2</span> Oceanic Niño Index (ONI)</h3>
+<section id="sea-surface-temperature-sst-forecasts-under-climate-change" class="level3" data-number="1.1.2">
+<h3 data-number="1.1.2" class="anchored" data-anchor-id="sea-surface-temperature-sst-forecasts-under-climate-change"><span class="header-section-number">1.1.2</span> Sea surface temperature (SST) forecasts under climate change</h3>
+<p>We use SST forecasts under climate change from the <a href="https://interactive-atlas.ipcc.ch/regional-information#eyJ0eXBlIjoiQVRMQVMiLCJjb21tb25zIjp7ImxhdCI6OTc3MiwibG5nIjo0MDA2OTIsInpvb20iOjQsInByb2oiOiJFUFNHOjU0MDMwIiwibW9kZSI6ImNvbXBsZXRlX2F0bGFzIn0sInByaW1hcnkiOnsic2NlbmFyaW8iOiJzc3A1ODUiLCJwZXJpb2QiOiJmYXIiLCJzZWFzb24iOiJ5ZWFyIiwiZGF0YXNldCI6IkNNSVA2IiwidmFyaWFibGUiOiJ0b3MiLCJ2YWx1ZVR5cGUiOiJWQUxVRSIsImhhdGNoaW5nIjoiU0lNUExFIiwicmVnaW9uU2V0IjoiYXI2IiwiYmFzZWxpbmUiOiJwcmVJbmR1c3RyaWFsIiwicmVnaW9uc1NlbGVjdGVkIjpbXX0sInBsb3QiOnsiYWN0aXZlVGFiIjoicGx1bWUiLCJtYXNrIjoibm9uZSIsInNjYXR0ZXJZTWFnIjpudWxsLCJzY2F0dGVyWVZhciI6bnVsbCwic2hvd2luZyI6ZmFsc2V9fQ==">IPCC WGI Interactive Atlas</a>(<span class="citation" data-cites="iturbide2021repository">Iturbide et al. (<a href="references.html#ref-iturbide2021repository" role="doc-biblioref">2021</a>)</span>). The Atlas provides a platform for accessing ensemble forecasts from CMIP6 (Coupled Model Intercomparison Project Phase 6), which represent the latest global climate forecasts available and served as the basis of the <a href="https://www.ipcc.ch/assessment-report/ar6/">6th IPCC Assessment Report</a>.</p>
+<p>We pull 1x1 degree monthly SST data for three time horizons:</p>
+<ol type="1">
+<li>Near Term (2021-2040)</li>
+<li>Medium Term (2041-2060)</li>
+<li>Long Term (2081-2100)</li>
+</ol>
+<p>And for each time horizon, we pull data from four climate change scenarios:</p>
+<ol type="1">
+<li>SSP1-2.6</li>
+<li>SSP2-4.5</li>
+<li>SSP3-7.0</li>
+<li>SSP5-8.5</li>
+</ol>
+<p>This gives us a total of 12 different forecasts to analyze.</p>
+<p>We pull data for three dif</p>
+</section>
+<section id="oceanic-niño-index-oni" class="level3" data-number="1.1.3">
+<h3 data-number="1.1.3" class="anchored" data-anchor-id="oceanic-niño-index-oni"><span class="header-section-number">1.1.3</span> Oceanic Niño Index (ONI)</h3>
 <p>According to <a href="https://www.climate.gov/news-features/understanding-climate/climate-variability-oceanic-nino-index">NOAA</a>:</p>
 <ul>
 <li>“The Oceanic Niño Index (ONI) is NOAA’s primary index for tracking the ocean part of ENSO, the El Niño-Southern Oscillation climate pattern.”</li>
@@ -209,8 +229,8 @@ div.csl-indent {
 </ul>
 <p>We downloaded these data from <code>https://psl.noaa.gov/data/correlation/oni.data</code> on September 27, 2024.</p>
 </section>
-<section id="ais-based-fishing-effort" class="level3" data-number="1.1.3">
-<h3 data-number="1.1.3" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">1.1.3</span> AIS-based Fishing effort</h3>
+<section id="ais-based-fishing-effort" class="level3" data-number="1.1.4">
+<h3 data-number="1.1.4" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">1.1.4</span> AIS-based Fishing effort</h3>
 <p>We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (<span class="citation" data-cites="kroodsma2018tracking">Kroodsma et al. (<a href="references.html#ref-kroodsma2018tracking" role="doc-biblioref">2018</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.messages</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_ais_v3_published.messages</code>):</p>
 <ul>
 <li><code>ssvid</code>: source specific vessel id; MMSI for AIS</li>
@@ -221,10 +241,10 @@ div.csl-indent {
 <li><code>night_loitering</code>: 1 if the seg_id of every message of a squid_jigger that is at night and not moving, 0 if not.</li>
 </ul>
 <p>In order to minimize noisy data, we only include AIS messages that have a <code>clean_segs</code> boolean (i.e., all messages must have <code>good_seg</code> boolean and must not have an <code>overlapping_and_short</code> boolean). We filter to just those messages where <code>night_loitering = 1</code>. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any <code>hours</code> where <code>night_loitering = 1</code> can be classified as <code>fishing_hours</code></p>
-<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 0.5x0.5 degree pixels, which are roughly 55.5km x 55.5km at the equator), temporally by month, and by flag. We currently process data from 2016-01-01 through 2024-08-31.</p>
+<p>We take the raw high-resolution AIS data and aggregate <code>fishing_hours</code> spatially (by 0.25x0.25 degree pixels, which are roughly 27.75km x 27.75km at the equator), temporally by month, and by flag. We currently process data from 2016-01-01 through 2024-08-31.</p>
 </section>
-<section id="vessel-info" class="level3" data-number="1.1.4">
-<h3 data-number="1.1.4" class="anchored" data-anchor-id="vessel-info"><span class="header-section-number">1.1.4</span> Vessel info</h3>
+<section id="vessel-info" class="level3" data-number="1.1.5">
+<h3 data-number="1.1.5" class="anchored" data-anchor-id="vessel-info"><span class="header-section-number">1.1.5</span> Vessel info</h3>
 <p>Vessel characteristics data processed are by Global Fishing Watch (<span class="citation" data-cites="park2023tracking">Park et al. (<a href="references.html#ref-park2023tracking" role="doc-biblioref">2023</a>)</span>). We use the V3 pipeline table <code>pipe_ais_v3_published.vi_ssvid_v20240601</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_ais_v3_published.vi_ssvid_v20240301</code>):</p>
 <ul>
 <li><code>ssvid</code>: source specific vessel id; MMSI for AIS</li>
@@ -237,8 +257,8 @@ div.csl-indent {
 </ul>
 <p>We filter to just those vessels where <code>best.best_vessel_class = squid_jigger</code>. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., <code>activitiy.active_hours &lt; 24</code>) or are noisy/spoofing/offsetting vessels (i.e., <code>NOT activity.offsetting OR activity.overlap_hours_multinames &gt; 0.</code>) They are simply not reliable and will not provide good effort estimates. This leaves us with 1,561 squid vessels for our analysis.</p>
 </section>
-<section id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="level3" data-number="1.1.5">
-<h3 data-number="1.1.5" class="anchored" data-anchor-id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.5</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</h3>
+<section id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="level3" data-number="1.1.6">
+<h3 data-number="1.1.6" class="anchored" data-anchor-id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.6</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</h3>
 <p>As an alternative to AIS-based fishing effort, we can use the <a href="https://www.earthdata.nasa.gov/sensors/viirs">NASA VIIRS (Visible Infrared Imaging Radiometer Suite)</a> data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.</p>
 <p>We leverage the VIIRS boat detection (VBD) dataset developed by <span class="citation" data-cites="elvidge2015automatic">Elvidge et al. (<a href="references.html#ref-elvidge2015automatic" role="doc-biblioref">2015</a>)</span>. This dataset is available through GFW as the BigQuery table <code>pipe_viirs_production_v20180723.raw_vbd_global</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_viirs_production_v20180723.raw_vbd_global</code>):</p>
 <ul>
@@ -258,21 +278,21 @@ div.csl-indent {
 <li>Use a same radiance threshold of 10 nW cm−2 sr−1 used by <span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span> (and established by <span class="citation" data-cites="park2020illuminating">Park et al. (<a href="references.html#ref-park2020illuminating" role="doc-biblioref">2020</a>)</span>) in order to filter detections to those likely engaged in in pelagic light-luring activity.</li>
 <li>To eliminate double-counting when there may be multiple satellite overpasses on a single night, only count detections from the overpass with the smallest satellite zenith angle (smaller zenith angles are more accurate)</li>
 </ul>
-<p>We then finally aggregate the total detections for each 0.5x0.5 degree pixel and month.</p>
+<p>We then finally aggregate the total detections for each 0.25x0.25 degree pixel and month.</p>
 </section>
-<section id="joined-datasets" class="level3" data-number="1.1.6">
-<h3 data-number="1.1.6" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.6</span> Joined datasets</h3>
-<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.6.1">
-<h4 data-number="1.1.6.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.6.1</span> SST and AIS-based effort</h4>
-<p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.5x0.5 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
+<section id="joined-datasets" class="level3" data-number="1.1.7">
+<h3 data-number="1.1.7" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</h3>
+<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.7.1">
+<h4 data-number="1.1.7.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.7.1</span> SST and AIS-based effort</h4>
+<p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
 <ul>
 <li><strong>month</strong>: Month (first day of month) (date)<br>
 </li>
-<li><strong>lon_bin</strong>: 0.5 degree longitude bin (degrees) (numeric)<br>
+<li><strong>lon_bin</strong>: 0.25 degree longitude bin (degrees) (numeric)<br>
 </li>
-<li><strong>lat_bin</strong>: 0.5 degree latitude bin (degrees) (numeric) * <strong>flag</strong>: Fishing flag (character)<br>
+<li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric) * <strong>flag</strong>: Fishing flag (character)<br>
 </li>
 <li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
 <li><strong>fishing_hours</strong>: Total fishing effort across vessels (hours) (numeric)<br>
@@ -297,7 +317,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">52879</td>
+<td style="text-align: left;">110347</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
@@ -368,8 +388,8 @@ div.csl-indent {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">flag</td>
-<td style="text-align: right;">5909</td>
-<td style="text-align: right;">0.89</td>
+<td style="text-align: right;">9307</td>
+<td style="text-align: right;">0.92</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">3</td>
 <td style="text-align: right;">0</td>
@@ -392,10 +412,10 @@ div.csl-indent {
 <col style="width: 16%">
 <col style="width: 8%">
 <col style="width: 12%">
+<col style="width: 7%">
 <col style="width: 8%">
-<col style="width: 8%">
-<col style="width: 6%">
-<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 7%">
 <col style="width: 7%">
 <col style="width: 7%">
 <col style="width: 10%">
@@ -421,73 +441,73 @@ div.csl-indent {
 <td style="text-align: left;">lon_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">16.71</td>
-<td style="text-align: right;">110.75</td>
+<td style="text-align: right;">9.64</td>
+<td style="text-align: right;">108.94</td>
 <td style="text-align: right;">-180.00</td>
-<td style="text-align: right;">-82.00</td>
-<td style="text-align: right;">-4.00</td>
-<td style="text-align: right;">132.00</td>
-<td style="text-align: right;">179.50</td>
-<td style="text-align: left;">▂▇▁▃▇</td>
+<td style="text-align: right;">-83.25</td>
+<td style="text-align: right;">-58.00</td>
+<td style="text-align: right;">124.75</td>
+<td style="text-align: right;">179.75</td>
+<td style="text-align: left;">▂▇▁▃▆</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">lat_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">4.14</td>
-<td style="text-align: right;">30.57</td>
-<td style="text-align: right;">-54.50</td>
-<td style="text-align: right;">-16.50</td>
-<td style="text-align: right;">0.50</td>
-<td style="text-align: right;">35.50</td>
-<td style="text-align: right;">80.50</td>
+<td style="text-align: right;">2.91</td>
+<td style="text-align: right;">30.46</td>
+<td style="text-align: right;">-54.25</td>
+<td style="text-align: right;">-16.75</td>
+<td style="text-align: right;">-1.00</td>
+<td style="text-align: right;">31.50</td>
+<td style="text-align: right;">80.75</td>
 <td style="text-align: left;">▅▇▅▇▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">fishing_hours</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">134.56</td>
-<td style="text-align: right;">457.20</td>
+<td style="text-align: right;">64.48</td>
+<td style="text-align: right;">206.23</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">8.04</td>
-<td style="text-align: right;">20.93</td>
-<td style="text-align: right;">77.50</td>
-<td style="text-align: right;">21005.80</td>
+<td style="text-align: right;">6.38</td>
+<td style="text-align: right;">15.14</td>
+<td style="text-align: right;">47.32</td>
+<td style="text-align: right;">15298.78</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">fishing_kw_hours</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">164498.37</td>
-<td style="text-align: right;">638360.25</td>
-<td style="text-align: right;">4.73</td>
-<td style="text-align: right;">8359.09</td>
-<td style="text-align: right;">23755.05</td>
-<td style="text-align: right;">90508.93</td>
-<td style="text-align: right;">31939325.02</td>
+<td style="text-align: right;">78828.48</td>
+<td style="text-align: right;">294274.25</td>
+<td style="text-align: right;">2.41</td>
+<td style="text-align: right;">6818.36</td>
+<td style="text-align: right;">17709.45</td>
+<td style="text-align: right;">55348.18</td>
+<td style="text-align: right;">22738775.12</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">sst_deg_c_mean</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">20.04</td>
-<td style="text-align: right;">6.77</td>
-<td style="text-align: right;">-1.63</td>
-<td style="text-align: right;">14.28</td>
-<td style="text-align: right;">20.36</td>
-<td style="text-align: right;">26.11</td>
-<td style="text-align: right;">34.27</td>
-<td style="text-align: left;">▁▅▇▇▅</td>
+<td style="text-align: right;">20.03</td>
+<td style="text-align: right;">6.74</td>
+<td style="text-align: right;">-1.64</td>
+<td style="text-align: right;">14.27</td>
+<td style="text-align: right;">20.44</td>
+<td style="text-align: right;">26.03</td>
+<td style="text-align: right;">34.25</td>
+<td style="text-align: left;">▁▅▇▇▃</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">oceanic_nino_index</td>
-<td style="text-align: right;">825</td>
-<td style="text-align: right;">0.98</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">1489</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.86</td>
 <td style="text-align: right;">-1.27</td>
 <td style="text-align: right;">-0.81</td>
 <td style="text-align: right;">-0.08</td>
@@ -543,17 +563,17 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="sst-and-viirs-detections" class="level4" data-number="1.1.6.2">
-<h4 data-number="1.1.6.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.6.2</span> SST and VIIRS detections</h4>
-<p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.5x0.5 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
+<section id="sst-and-viirs-detections" class="level4" data-number="1.1.7.2">
+<h4 data-number="1.1.7.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.7.2</span> SST and VIIRS detections</h4>
+<p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.25x0.25 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data. Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_viirs)</code>. The dataset has the following colums:</p>
 <ul>
 <li><strong>month</strong>: Month (first day of month) (date)<br>
 </li>
-<li><strong>lon_bin</strong>: 0.5 degree longitude bin (degrees) (numeric)<br>
+<li><strong>lon_bin</strong>: 0.25 degree longitude bin (degrees) (numeric)<br>
 </li>
-<li><strong>lat_bin</strong>: 0.5 degree latitude bin (degrees) (numeric)</li>
+<li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric)</li>
 <li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
 <li><strong>viirs_detections</strong>: Night light detections from the VIIRS dataset (numeric)<br>
 </li>
@@ -575,7 +595,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">411879</td>
+<td style="text-align: left;">724963</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
@@ -624,8 +644,8 @@ div.csl-indent {
 <col style="width: 6%">
 <col style="width: 6%">
 <col style="width: 8%">
-<col style="width: 7%">
 <col style="width: 6%">
+<col style="width: 7%">
 <col style="width: 7%">
 <col style="width: 8%">
 <col style="width: 6%">
@@ -650,62 +670,62 @@ div.csl-indent {
 <td style="text-align: left;">lon_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">39.45</td>
-<td style="text-align: right;">95.13</td>
+<td style="text-align: right;">55.75</td>
+<td style="text-align: right;">88.93</td>
 <td style="text-align: right;">-180.00</td>
-<td style="text-align: right;">-44.00</td>
-<td style="text-align: right;">67.50</td>
-<td style="text-align: right;">119.00</td>
-<td style="text-align: right;">179.50</td>
-<td style="text-align: left;">▂▃▅▃▇</td>
+<td style="text-align: right;">-0.25</td>
+<td style="text-align: right;">104.25</td>
+<td style="text-align: right;">119.75</td>
+<td style="text-align: right;">179.75</td>
+<td style="text-align: left;">▁▂▃▃▇</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">lat_bin</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">15.52</td>
-<td style="text-align: right;">31.86</td>
+<td style="text-align: right;">15.83</td>
+<td style="text-align: right;">28.02</td>
 <td style="text-align: right;">-78.50</td>
-<td style="text-align: right;">-2.00</td>
-<td style="text-align: right;">18.00</td>
-<td style="text-align: right;">38.00</td>
-<td style="text-align: right;">89.50</td>
-<td style="text-align: left;">▁▂▇▇▂</td>
+<td style="text-align: right;">1.25</td>
+<td style="text-align: right;">16.50</td>
+<td style="text-align: right;">35.75</td>
+<td style="text-align: right;">89.75</td>
+<td style="text-align: left;">▁▁▇▆▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">viirs_detections</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">24.19</td>
-<td style="text-align: right;">89.63</td>
+<td style="text-align: right;">13.76</td>
+<td style="text-align: right;">39.38</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">1.00</td>
 <td style="text-align: right;">2.00</td>
-<td style="text-align: right;">10.00</td>
-<td style="text-align: right;">4608.00</td>
+<td style="text-align: right;">9.00</td>
+<td style="text-align: right;">1821.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">sst_deg_c_mean</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">20.38</td>
-<td style="text-align: right;">9.91</td>
+<td style="text-align: right;">21.87</td>
+<td style="text-align: right;">9.12</td>
 <td style="text-align: right;">-1.80</td>
-<td style="text-align: right;">14.18</td>
-<td style="text-align: right;">24.43</td>
-<td style="text-align: right;">28.65</td>
-<td style="text-align: right;">35.12</td>
-<td style="text-align: left;">▃▂▃▆▇</td>
+<td style="text-align: right;">16.83</td>
+<td style="text-align: right;">25.93</td>
+<td style="text-align: right;">28.93</td>
+<td style="text-align: right;">35.16</td>
+<td style="text-align: left;">▂▂▃▆▇</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">oceanic_nino_index</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">-0.15</td>
-<td style="text-align: right;">0.62</td>
+<td style="text-align: right;">-0.14</td>
+<td style="text-align: right;">0.61</td>
 <td style="text-align: right;">-1.27</td>
-<td style="text-align: right;">-0.70</td>
+<td style="text-align: right;">-0.67</td>
 <td style="text-align: right;">-0.11</td>
 <td style="text-align: right;">0.40</td>
 <td style="text-align: right;">0.90</td>
@@ -750,7 +770,7 @@ div.csl-indent {
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">2017-01-01</td>
 <td style="text-align: left;">2021-12-01</td>
-<td style="text-align: left;">2019-06-01</td>
+<td style="text-align: left;">2019-05-01</td>
 <td style="text-align: right;">60</td>
 </tr>
 </tbody>
@@ -766,6 +786,9 @@ Elvidge, CD, M Zhizhin, K Baugh, and FC Hsu. 2015. <span>“Automatic Boat Ident
 </div>
 <div id="ref-huang2021improvements" class="csl-entry" role="listitem">
 Huang, Boyin, Chunying Liu, Viva Banzon, Eric Freeman, Garrett Graham, Bill Hankins, Tom Smith, and Huai-Min Zhang. 2021. <span>“Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version 2.1.”</span> <em>Journal of Climate</em> 34 (8): 2923–39.
+</div>
+<div id="ref-iturbide2021repository" class="csl-entry" role="listitem">
+Iturbide, Maialen, Jesús Fernández, José Manuel Gutiérrez, Joaquı́n Bedia, Ezequiel Cimadevilla, Javier Dı́ez-Sierra, Rodrigo Manzanas, et al. 2021. <span>“Repository Supporting the Implementation of FAIR Principles in the IPCC-WG1 Atlas. Zenodo.”</span> Intergovernmental Panel on Climate Change (IPCC) Geneva.
 </div>
 <div id="ref-kroodsma2018tracking" class="csl-entry" role="listitem">
 Kroodsma, David A, Juan Mayorga, Timothy Hochberg, Nathan A Miller, Kristina Boerder, Francesco Ferretti, Alex Wilson, et al. 2018. <span>“Tracking the Global Footprint of Fisheries.”</span> <em>Science</em> 359 (6378): 904–8.
