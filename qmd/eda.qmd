@@ -453,11 +453,11 @@ ais_viirs_comparison_data |>
 
 # Distance to nearest EEZ
 
-Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel.
+Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. For pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas.
 
 ```{r}
 #| label: fig-distance-to-eez-map
-#| fig-cap: Map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel. EEZ boundaries from Marine Regions V12 are shown in blank.
+#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in blank.
 ggplot()  +
   geom_tile(data = pixels_eez_with_info,
             aes(fill = nearest_eez_distance_m/1e3,
@@ -469,7 +469,7 @@ ggplot()  +
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
-  scale_fill_viridis_c("Distance to nearest EEZ (km)",
+  scale_fill_viridis_c("Distance to nearest 200nm EEZ/high seas boundary (km)",
                        option = "rocket",
                        na.value = "black",
                        labels = scales::comma,

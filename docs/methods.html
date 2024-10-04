@@ -284,15 +284,7 @@ div.csl-indent {
 </section>
 <section id="eez-information" class="level3" data-number="1.1.7">
 <h3 data-number="1.1.7" class="anchored" data-anchor-id="eez-information"><span class="header-section-number">1.1.7</span> EEZ information</h3>
-<p>For each 0.25x0.25 degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a>:</p>
-<p>boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a>:</p>
-<ul>
-<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>high_seas</code></li>
-<li><strong>distance_to_nearest_eez_m</strong>: For high seas pixels, this is the distance to the nearest EEZ pixel in meters (using distance on the surface of a WGS84 spheroid); for pixels within an EEZ, this is 0</li>
-<li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel</li>
-<li><strong>pixel_sovereign1_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code></li>
-<li><strong>nearest_pixel_sovereign1_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code</li>
-</ul>
+<p>For each 0.25x0.25 degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a>(<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (<code>high_seas</code>). For pixels that are within an EEZ (<code>eez_id</code>), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (<code>pixel_sovereign1_iso3</code>); for pixels that are on the high seas, the EEZ id takes a value of <code>NA</code>, and the country code takes a value of <code>high_seas</code>. We next determine the distance in meters to the nearest 200nm EEZ/high seas boundary (<code>distance_to_nearest_eez_m</code>), so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (<code>nearest_eez_id</code>) and ISO3 sovereign country code (<code>nearest_pixel_sovereign1_iso3</code>) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.</p>
 </section>
 <section id="joined-datasets" class="level3" data-number="1.1.8">
 <h3 data-number="1.1.8" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.8</span> Joined datasets</h3>
@@ -315,10 +307,10 @@ div.csl-indent {
 <li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)<br>
 </li>
 <li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
-<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of NA (string)</li>
-<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest high seas/EEZ boundary(meters) (numeric)</li>
+<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>NA</code> (string)</li>
+<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)</li>
 <li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
-<li><strong>eez_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
 <li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 <li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
 </ul>
@@ -345,10 +337,10 @@ div.csl-indent {
 <li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)<br>
 </li>
 <li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
-<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of NA (string)</li>
-<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest high seas/EEZ boundary(meters) (numeric)</li>
+<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>NA</code> (string)</li>
+<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)</li>
 <li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
-<li><strong>eez_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
 <li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 <li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
 </ul>
@@ -722,9 +714,9 @@ div.csl-indent {
 </li>
 <li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
 <li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of NA (string)</li>
-<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest high seas/EEZ boundary(meters) (numeric)</li>
+<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)</li>
 <li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
-<li><strong>eez_iso3</strong>: ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
+<li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
 <li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 <li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
 </ul>
@@ -1073,6 +1065,9 @@ Elvidge, CD, M Zhizhin, K Baugh, and FC Hsu. 2015. <span>“Automatic Boat Ident
 </div>
 <div id="ref-huang2021improvements" class="csl-entry" role="listitem">
 Huang, Boyin, Chunying Liu, Viva Banzon, Eric Freeman, Garrett Graham, Bill Hankins, Tom Smith, and Huai-Min Zhang. 2021. <span>“Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version 2.1.”</span> <em>Journal of Climate</em> 34 (8): 2923–39.
+</div>
+<div id="ref-marineregionsv12" class="csl-entry" role="listitem">
+Institute, Flanders Marine. 2023. <span>“Maritime Boundaries Geodatabase, Version 12.”</span> <em>Available Online at Https://Www.marineregions.org/. Https://Doi.org/10.14284/628</em>.
 </div>
 <div id="ref-iturbide2021repository" class="csl-entry" role="listitem">
 Iturbide, Maialen, Jesús Fernández, José Manuel Gutiérrez, Joaquı́n Bedia, Ezequiel Cimadevilla, Javier Dı́ez-Sierra, Rodrigo Manzanas, et al. 2021. <span>“Repository Supporting the Implementation of FAIR Principles in the IPCC-WG1 Atlas. Zenodo.”</span> Intergovernmental Panel on Climate Change (IPCC) Geneva.
