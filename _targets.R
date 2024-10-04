@@ -224,7 +224,7 @@ list(
                                   spatial_resolution = spatial_resolution,
                                   temporal_resolution = temporal_resolution)
       }) |>
-        data.table::rbindlist()
+      data.table::rbindlist()
   ),
   # Now aggregate SST data by time, to make global time series
   tar_target(
@@ -247,6 +247,86 @@ list(
     name = oceanic_nino_index_data,
     pull_oni_data()
   ),
+  # Process EEZ data ---
+  # Load full resolution Marine Regions V12 EEZ data
+  tar_file_read(
+    name = eez_full_res,
+    glue::glue("{data_directory_base}/data//marine-regions-eez-v12/World_EEZ_v12_20231025/eez_v12.shp"),
+    sf::st_read(!!.x, quiet = TRUE) |>
+      # Don't include joint regimes or disputed areas
+      dplyr::filter(POL_TYPE == "200NM") |>
+      # Don't include Antarctica - classify it as high seas instead
+      dplyr::filter(ISO_SOV1 != "ATA") |>
+      # Make sure all geometries are valid
+      sf::st_make_valid() 
+  ),
+  # Load EEZ boundaries from Marine Regions V12
+  # Only want boundaries corresponding to those between an EEZ and high seas
+  tar_file_read(
+    name = eez_boundaries_high_seas,
+    glue::glue("{data_directory_base}/data/marine-regions-eez-v12/World_EEZ_v12_20231025/eez_boundaries_v12.shp"),
+    sf::st_read(!!.x, quiet = TRUE) |>
+      dplyr::filter(LINE_TYPE == "200 NM")
+  ),
+  # Determine pixels for which we'll want to determine EEZ info - use all pixels that have SST data
+  tar_target(
+    name = pixels_for_eez_calculations,
+    sst_data_aggregated |>
+      dplyr::distinct(lon_bin,lat_bin) |>
+      dplyr::mutate(lon_bin_centroid = lon_bin + spatial_resolution/2,
+                    lat_bin_centroid = lat_bin + spatial_resolution/2) |>
+      sf::st_as_sf(coords = c("lon_bin_centroid", "lat_bin_centroid"), 
+                   crs = 4326)
+  ),
+  # Assign EEZ to centroid of each pixel
+  tar_target(
+    pixels_with_eez,
+    pixels_for_eez_calculations |>
+      sf::st_intersection(eez_full_res |>
+                            dplyr::select(eez_id = MRGID)) |>
+      sf::st_set_geometry(NULL)|> 
+      tibble::as_tibble()
+  ),
+  # Assign nearest EEZ, and its distance, to each pixel
+  tar_target(
+    pixels_with_nearest_eez,
+    nngeo::st_nn(pixels_for_eez_calculations,
+                 eez_boundaries_high_seas, 
+                 # Only select single nearest eez
+                 k = 1, 
+                 returnDist = T,
+                 parallel = n_cores) |> 
+      tibble::as_tibble() |>
+      tidyr::unnest(c(nn,dist)) |>
+      dplyr::mutate(nearest_eez_id =  eez_boundaries_high_seas$MRGID_SOV1[as.numeric(nn)], 
+                    nearest_eez_distance_m = as.numeric(dist)) |>
+      dplyr::select(-c(nn,dist)) |>
+      dplyr::bind_cols(pixels_for_eez_calculations |>
+                         dplyr::select(lon_bin, lat_bin) |>
+                         sf::st_set_geometry(NULL))
+  ),
+  # Now put together all EEZ info
+  tar_target(
+    pixels_eez_with_info,
+    pixels_for_eez_calculations |>
+      dplyr::select(lon_bin, lat_bin) |>
+      sf::st_set_geometry(NULL) |>
+      tibble::as_tibble() |>
+      dplyr::left_join(pixels_with_eez, by = c("lon_bin","lat_bin"))|>
+      dplyr::left_join(pixels_with_nearest_eez, by = c("lon_bin","lat_bin")) |>
+      dplyr::left_join(eez_full_res |>
+                         sf::st_set_geometry(NULL) |>
+                         dplyr::select(eez_id = MRGID,
+                                       eez_iso3 = ISO_SOV1), by = "eez_id") |>
+      dplyr::left_join(eez_full_res |>
+                         sf::st_set_geometry(NULL) |>
+                         dplyr::select(eez_id = MRGID,
+                                       eez_iso3 = ISO_SOV1) |>
+                         dplyr::rename(nearest_eez_id = eez_id,
+                                       nearest_eez_iso3 = eez_iso3), by = "nearest_eez_id") |>
+      dplyr::mutate(eez_iso3 = ifelse(is.na(eez_iso3),"high_seas",eez_iso3)) |>
+      dplyr::mutate(high_seas = ifelse(eez_iso3 == "high_seas",TRUE,FALSE))
+  ),
   # Join together AIS-based effort, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_ais,
@@ -256,8 +336,8 @@ list(
                         by = c("month","lat_bin","lon_bin")) |>
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month") |>
-      dplyr::inner_join(eez_info,
-                       by = c("lon_bin","lat_bin"))
+      dplyr::inner_join(pixels_eez_with_info,
+                        by = c("lon_bin","lat_bin"))
   ),
   # Join datasets ----
   # Join together VIIRS, SST, ONI, and EEZ datasets
@@ -269,8 +349,8 @@ list(
                         by = c("month","lat_bin","lon_bin")) |>
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month") |>
-      dplyr::inner_join(eez_info,
-                       by = c("lon_bin","lat_bin"))
+      dplyr::inner_join(pixels_eez_with_info,
+                        by = c("lon_bin","lat_bin"))
   ),
   # Summarize data for quarto notebook ----
   # AIS data

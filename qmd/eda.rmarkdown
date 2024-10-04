@@ -4,7 +4,11 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+
 # Exploratory data analysis {#sec-eda}
+
+
 
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
@@ -23,9 +27,13 @@ targets::tar_load(c("sst_data_aggregated_one_month_subset",
 source("r/functions.R")
 ```
 
+
+
 ## Sea surface temperature (SST)
 
 We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
+
+
 
 ```{r}
 #| label: fig-sst-map
@@ -57,7 +65,11 @@ ggplot() +
   scale_y_continuous(expand = c(0, 0))
 ```
 
+
+
 Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (@fig-sst-time-series). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.
+
+
 
 ```{r}
 #| label: fig-sst-time-series
@@ -71,9 +83,13 @@ sst_data_aggregated_time_series |>
        y = "Mean monthly global SST\n(degrees C)")
 ```
 
+
+
 ## Oceanic Niño Index (ONI)
 
 Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (@fig-oni-time-series):
+
+
 
 
 ```{r}
@@ -90,7 +106,11 @@ joined_dataset_ais |>
        y = "Oceanic Niño Index (ONI)")
 ```
 
+
+
 ## Fleet characteristics
+
+
 
 ```{r}
 # Add country names to joined_dataset_ais
@@ -141,7 +161,11 @@ vessel_summary <- squid_vessel_list |>
   dplyr::select(-flag) 
 ```
 
+
+
 Our analysis includes `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels spread across `r length(unique(vessel_summary$country))` flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and  (@fig-vessel-summary-by-flag). China dominates the fleet, with Taiwan a fairly distant second.
+
+
 
 ```{r}
 #| label: fig-vessel-summary-by-flag
@@ -171,7 +195,11 @@ vessel_summary |>
 
 ```
 
+
+
 Next we look at total global fishing effort from 2016 through August 2024, by flag (@fig-effort-bar-plot). The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other". Again, China dominates the fishing effort, with Taiwan a fairly distant second.
+
+
 
 ```{r}
 #| label: fig-effort-bar-plot
@@ -189,9 +217,13 @@ joined_dataset_ais|>
   theme_plot()
 ```
 
+
+
 ## AIS-based fishing effort
 
 Next we look at a time series of total monthly global AIS-based fishing effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+
+
 
 ```{r}
 #| label: fig-effort-time-series
@@ -215,7 +247,11 @@ joined_dataset_ais|>
              scales = "free_y")
 ```
 
+
+
 Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).
+
+
 
 ```{r}
 #| label: fig-effort-map
@@ -258,7 +294,11 @@ ggplot()  +
   scale_y_continuous(expand = c(0, 0))
 ```
 
+
+
 We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+
+
 
 ```{r}
 purrr::map(top_flags_all_time$country,
@@ -298,9 +338,13 @@ purrr::map(top_flags_all_time$country,
            })
 ```
 
+
+
 ## VIIRS detections
 
 First we look at a time series of monthly VIIRS detections globally (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
+
+
 
 ```{r}
 #| label: fig-viirs-time-series
@@ -318,7 +362,11 @@ joined_dataset_viirs|>
   scale_y_continuous(labels = scales::comma)
 ```
 
+
+
 Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (@fig-effort-map).
+
+
 
 ```{r}
 #| label: fig-viirs-map
@@ -356,9 +404,13 @@ ggplot()  +
   scale_y_continuous(expand = c(0, 0))
 ```
 
+
+
 ## Comparing AIS-based fishing effort and VIIRS detections
 
 We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (@fig-ais-viirs-comparison-time-series). Both datasets show a peak occurring in spring and a dip occurring in winter. They both also show a smaller peak occurring in fall, although this peak is much more pronounced in the VIIRS data.
+
+
 
 ```{r}
 #| label: fig-ais-viirs-comparison-time-series
@@ -390,7 +442,11 @@ monthly_ais_global |>
   facet_wrap(metric~.,ncol=1,scales="free_y")
 ```
 
+
+
 We next compare the datasets by aggregating effort and detections across each month and pixel. There appears to be a generally strong relationship between the two, although there are many outliers that appear to have very low AIS-based fishing effort but actually have a very high number of VIIRS detections.
+
+
 
 ```{r}
 #| label: fig-ais-viirs-comparison
@@ -417,7 +473,11 @@ ais_viirs_comparison_data |>
   scale_y_continuous(labels = scales::comma)
 ```
 
+
+
 We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals (@fig-ais-viirs-residuals). We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.
+
+
 
 ```{r}
 #| label: fig-ais-viirs-residuals
@@ -450,9 +510,13 @@ ais_viirs_comparison_data |>
 
 ```
 
+
+
 # Distance to nearest EEZ
 
 Here we look at a map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel.
+
+
 
 ```{r}
 #| label: fig-distance-to-eez-map
