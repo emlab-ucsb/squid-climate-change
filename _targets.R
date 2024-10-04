@@ -305,13 +305,17 @@ list(
                                        eez_iso3 = ISO_SOV1), by = "eez_id") |>
       dplyr::left_join(eez_full_res |>
                          sf::st_set_geometry(NULL) |>
-                         dplyr::select(eez_id = MRGID,
-                                       eez_iso3 = ISO_SOV1) |>
-                         dplyr::rename(nearest_eez_id = eez_id,
-                                       nearest_eez_iso3 = eez_iso3), by = "nearest_eez_id") |>
+                         dplyr::select(nearest_eez_id = MRGID_SOV1,
+                          nearest_eez_iso3 = ISO_SOV1) |>
+                         dplyr::distinct(), by = "nearest_eez_id") |>
       dplyr::mutate(eez_id = ifelse(is.na(eez_id),"high_seas",eez_id)) |>
       dplyr::mutate(eez_iso3 = ifelse(is.na(eez_iso3),"high_seas",eez_iso3)) |>
-      dplyr::mutate(high_seas = ifelse(eez_iso3 == "high_seas",TRUE,FALSE))
+      dplyr::mutate(high_seas = ifelse(eez_iso3 == "high_seas",TRUE,FALSE)) |>
+      # Make this a charcter to match eez_id
+      dplyr::mutate(nearest_eez_id = as.character(nearest_eez_id)) |>
+      # If a pixel is within an EEZ, nearest eez ID and iso3 should match pixel
+      dplyr::mutate(nearest_eez_id = ifelse(!high_seas,eez_id,nearest_eez_id)) |>
+      dplyr::mutate(nearest_eez_iso3 = ifelse(!high_seas,eez_iso3,nearest_eez_iso3))
   ),
   # Join together AIS-based effort, SST, ONI, and EEZ datasets
   tar_target(
