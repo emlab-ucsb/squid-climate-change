@@ -18,7 +18,8 @@ targets::tar_load(c("sst_data_aggregated_one_month_subset",
                     "joined_dataset_ais",
                     "joined_dataset_viirs",
                     "oceanic_nino_index_data",
-                    "pixels_eez_with_info"))
+                    "pixels_eez_with_info",
+                    "eez_boundaries_high_seas"))
 
 source("r/functions.R")
 ```
@@ -452,19 +453,19 @@ ais_viirs_comparison_data |>
 
 # Distance to nearest EEZ
 
-Here we look at a map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel.
+Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel.
 
 ```{r}
 #| label: fig-distance-to-eez-map
-#| fig-cap: Map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+#| fig-cap: Map showing the distance to the nearest EEZ for each 0.25x0.25 degree pixel. EEZ boundaries from Marine Regions V12 are shown in blank.
 ggplot()  +
   geom_tile(data = pixels_eez_with_info,
             aes(fill = nearest_eez_distance_m/1e3,
                 x = lon_bin,
                 y = lat_bin)) +
-  geom_sf(data = eez,
+  geom_sf(data = eez_boundaries_high_seas,
           fill = NA,
-          color = "orange") +
+          color = "black") +
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
