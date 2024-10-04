@@ -159,10 +159,13 @@ spatio_temporal_aggregate <- function(file_list,
                           lon_bin = floor(longitude / spatial_resolution) * spatial_resolution,
                           lat_bin = floor(latitude / spatial_resolution) * spatial_resolution)}) |>
     data.table::rbindlist() |>
-    collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+    collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean,
+      sst_deg_c_sd = collapse::fsd,
+    sst_deg_c_min = collapse::fmin,
+  sst_deg_c_max = collapse::fmax),
                      by = ~ month + lon_bin + lat_bin,
-                     cols = "sst") |>
-    collapse::frename(sst_deg_c_mean = sst)
+                     cols = "sst")|> 
+    dplyr::rename_with(~stringr::str_remove_all(.,".sst"), .cols = everything())
 }
 
 # Pull NOAA Oceanic Nino Index (ONI) data

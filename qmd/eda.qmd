@@ -12,8 +12,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
 
 library(ggplot2)
 
-targets::tar_load(c("sst_data_aggregated_one_month_subset",
-                    "sst_data_aggregated_time_series",
+targets::tar_load(c("sst_data_aggregated",
                     "squid_vessel_list",
                     "joined_dataset_ais",
                     "joined_dataset_viirs",
@@ -35,7 +34,8 @@ We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
 land <- rnaturalearth::ne_countries(returnclass = "sf")
 
 ggplot() +
-  geom_tile(data = sst_data_aggregated_one_month_subset,
+  geom_tile(data = sst_data_aggregated |>
+      collapse::fsubset(month == lubridate::ymd("2024-08-01")),
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
@@ -64,12 +64,45 @@ Aggregating across the mean sea surface temperatures of each pixel, we can calcu
 #| label: fig-sst-time-series
 #| fig-cap: Time series of global monthly mean sea surface temperature (SST).
 
-sst_data_aggregated_time_series |>
+sst_data_aggregated |>
+      collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+                       by = ~ month,
+                       cols = "sst_deg_c_mean") |>
   ggplot(aes(x = month, y = sst_deg_c_mean)) +
   geom_line() +
   theme_plot() +
   labs(x = "",
        y = "Mean monthly global SST\n(degrees C)")
+```
+
+There is also some discussion about whether we could simply use the mean SST as our main explanatory variable, or if we need to bin the daily estimates which may allow us to capture non-linear and extreme effects that would not be capture by simply using the mean. We will need to have at least one version of the regression which only uses the mean, since we will not be able to use binned data in the predictions under the various climate change scenarios. However, there may be interest in including a binned version of the regression in the analysis.
+
+To see if this could help, we first do some exploratory data analysis to get a sense of how much day-to-day within-month variation there is in SST. For each month and pixel, we can calculate the difference between the maximum and minimum temperatures to show us the range of data (@fig-sst-range-by-pixel-month). Here we see that almost all pixel-months have a range of only 0, 1, or 2 degrees C. Very few pixel-months have a range greater than 5 degrees.
+
+```{r}
+#| label: fig-sst-range-by-pixel-month
+#| fig-cap: Looking across all pixels and months in the dataset, this shows the distribution of the temperature range (difference between the maximum and minimum daily temperatures in each pixel-month).
+
+sst_data_aggregated |>
+  ggplot() +
+  geom_histogram(aes(sst_deg_c_max - sst_deg_c_min)) +
+  theme_plot() +
+  labs(x = "Range (minimum to maximum) across days in each pixel-month (degrees C)",
+       y = "Count of pixel-months across our dataset")
+```
+
+
+For each pixel-month, we calculate the standard deviation in temperature across the days in that month (@fig-sst-sd-by-pixel-month). We can then look at the distributions of this standr deviation metric across all pixel-months. Most standard deviations are less than 1 degree, and almos all are less than 2.5 degrees.
+```{r}
+#| label: fig-sst-sd-by-pixel-month
+#| fig-cap: Looking across all pixels and months in the dataset, this shows the distribution of the temperature standard deviation (calculated across the daily temperatures in each pixel-month).
+
+sst_data_aggregated |>
+  ggplot() +
+  geom_histogram(aes(sst_deg_c_sd)) +
+  theme_plot() +
+  labs(x = "Standard deviation across days in each pixel-month (degrees C)",
+       y = "Count of pixel-months across our dataset")
 ```
 
 ## Oceanic Niño Index (ONI)

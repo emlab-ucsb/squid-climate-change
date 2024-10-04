@@ -226,21 +226,6 @@ list(
       }) |>
       data.table::rbindlist()
   ),
-  # Now aggregate SST data by time, to make global time series
-  tar_target(
-    name = sst_data_aggregated_time_series,
-    sst_data_aggregated |>
-      collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
-                       by = ~ month,
-                       cols = "sst_deg_c_mean")
-  ),
-  # Subset to one month of SST data for making an exploratory data analysis map
-  tar_target(
-    name = sst_data_aggregated_one_month_subset,
-    sst_data_aggregated |>
-      collapse::fsubset(month == lubridate::ymd("2024-08-01")) |>
-      collapse::fselect(-month)
-  ),
   # Process ONI data ----
   # Pull Oceanic Nino Index data from NOAA
   tar_target(
@@ -324,6 +309,7 @@ list(
                                        eez_iso3 = ISO_SOV1) |>
                          dplyr::rename(nearest_eez_id = eez_id,
                                        nearest_eez_iso3 = eez_iso3), by = "nearest_eez_id") |>
+      dplyr::mutate(eez_id = ifelse(is.na(eez_id),"high_seas",eez_id)) |>
       dplyr::mutate(eez_iso3 = ifelse(is.na(eez_iso3),"high_seas",eez_iso3)) |>
       dplyr::mutate(high_seas = ifelse(eez_iso3 == "high_seas",TRUE,FALSE))
   ),

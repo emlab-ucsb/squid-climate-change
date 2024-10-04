@@ -27,7 +27,7 @@ source("r/functions.R")
 
 ### Sea surface temperature (SST)
 
-Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. We spatiotemporally aggregate the data to `r spatial_resolution`x`r spatial_resolution` degree monthly resolution by calculating the mean from across days and 0.25x0.25 degree pixels.
+Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. Keeping the full 0.25x0.25 degree spatial resolution, we temporally aggregate the daily data to monthly resolution by calculating the mean, standard deviation, minimum, and maximum from across the days in each month.
 
 ### Sea surface temperature (SST) forecasts under climate change
 
@@ -137,7 +137,7 @@ We then finally aggregate the total detections for each `r spatial_resolution`x`
 
 ### EEZ information
 
-For each `r spatial_resolution`x`r spatial_resolution` degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php)(@marineregionsv12). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (`high_seas`). For pixels that are within an EEZ (`eez_id`), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (`pixel_sovereign1_iso3`); for pixels that are on the high seas, the EEZ id takes a value of `NA`, and the country code takes a value of `high_seas`. We next determine the distance in meters to the nearest 200nm EEZ/high seas boundary (`distance_to_nearest_eez_m`), so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (`nearest_eez_id`) and ISO3 sovereign country code (`nearest_pixel_sovereign1_iso3`) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.
+For each `r spatial_resolution`x`r spatial_resolution` degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php)(@marineregionsv12). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (`high_seas`). For pixels that are within an EEZ (`eez_id`), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (`pixel_sovereign1_iso3`); for pixels that are on the high seas, the EEZ id takes a value of `high_seas` and the country code also takes a value of `high_seas`. We next determine the distance in meters from the centroid of the pixel to the nearest 200nm EEZ/high seas boundary line (`distance_to_nearest_eez_m`); so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (`nearest_eez_id`) and ISO3 sovereign country code (`nearest_pixel_sovereign1_iso3`) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.
 
 ### Joined datasets
 
@@ -154,10 +154,13 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
 * **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  * **flag**:  Fishing flag (character)  
 * **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sst_deg_c_sd**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sst_deg_c_min**: Minimum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sst_deg_c_max**: Maxiumum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
 * **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
 * **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
 * **oceanic_nino_index**: Oceanic Niño Index (ONI) (numeric) 
-* **eez_id**: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of `NA` (string)
+* **eez_id**: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of `high_seas` (string)
 * **distance_to_nearest_eez_m**: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)
 * **nearest_eez_id**: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)
 * **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
@@ -179,10 +182,13 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
 * **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  * **flag**:  Fishing flag (character)  
 * **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sst_deg_c_sd**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sst_deg_c_min**: Minimum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
+* **sst_deg_c_max**: Maxiumum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
 * **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
 * **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
 * **oceanic_nino_index**: Oceanic Niño Index (ONI) (numeric) 
-* **eez_id**: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of `NA` (string)
+* **eez_id**: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of `high_seas` (string)
 * **distance_to_nearest_eez_m**: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)
 * **nearest_eez_id**: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)
 * **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
