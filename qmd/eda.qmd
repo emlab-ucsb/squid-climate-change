@@ -18,9 +18,23 @@ targets::tar_load(c("sst_data_aggregated",
                     "joined_dataset_viirs",
                     "oceanic_nino_index_data",
                     "pixels_eez_with_info",
-                    "eez_boundaries_high_seas"))
+                    "eez_boundaries_high_seas",
+                    "sst_cc_forecast_data"))
 
 source("r/functions.R")
+
+# Create analysis bounding box from Kaiwen's slack message
+# https://emlab-ucsb.slack.com/archives/C07LGMHGYGH/p1728334195437609
+
+analysis_bounding_box_point1 <- data.frame(geometry = "POINT (-86 0)") |> 
+  sf::st_as_sf(wkt = "geometry", crs = "WGS84") 
+analysis_bounding_box_point2 <- data.frame(geometry = "POINT (-70 -22)") |> 
+  sf::st_as_sf(wkt = "geometry", crs = "WGS84") 
+
+analysis_bounding_box <- dplyr::bind_rows(analysis_bounding_box_point1,
+analysis_bounding_box_point2) |>
+  sf::st_bbox() |> 
+  sf::st_as_sfc()
 ```
 
 ## Sea surface temperature (SST)
@@ -29,16 +43,19 @@ We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
 
 ```{r}
 #| label: fig-sst-map
-#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels.
+#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels. The currently proposed analysis scope bounding box is shown as a white outline.
 
 land <- rnaturalearth::ne_countries(returnclass = "sf")
 
 ggplot() +
   geom_tile(data = sst_data_aggregated |>
-      collapse::fsubset(month == lubridate::ymd("2024-08-01")),
+              collapse::fsubset(month == lubridate::ymd("2024-08-01")),
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
+ geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "white") +                 
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -65,9 +82,9 @@ Aggregating across the mean sea surface temperatures of each pixel, we can calcu
 #| fig-cap: Time series of global monthly mean sea surface temperature (SST).
 
 sst_data_aggregated |>
-      collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
-                       by = ~ month,
-                       cols = "sst_deg_c_mean") |>
+  collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+                   by = ~ month,
+                   cols = "sst_deg_c_mean") |>
   ggplot(aes(x = month, y = sst_deg_c_mean)) +
   geom_line() +
   theme_plot() +
@@ -105,11 +122,71 @@ sst_data_aggregated |>
        y = "Count of pixel-months across our dataset")
 ```
 
+### Sea surface temperature (SST) forecasts under climate change
+
+Here we look at a map of mean sea surface temperature (SST) under 4 different climate change scenarios, for the `Long Term (2081-2100)` forecast horizon (@fig-sst-map-cc-scenarios).
+
+```{r}
+#| label: fig-sst-map-cc-scenarios
+#| fig-cap: Map of mean sea surface temperature (SST) under 4 different climate change scenarios, for the "Long Term (2081-2100)" forecast horizon. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a white outline.
+ggplot() +
+  geom_tile(data = sst_cc_forecast_data |>
+  dplyr::filter(time_period == "Long Term (2081-2100)"),
+            aes(fill = sst_deg_c_mean,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "white") +                        
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Mean SST (degrees C)",
+                       option = "inferno",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  facet_wrap(scenario~.)
+```
+
+Here we look at time series of climate change forecasts for global monthly average SST for each projection time period and scenario (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time periods further into the future, and for more extreme climate change scenarios.
+
+```{r}
+#| label: fig-sst-cc-forecasts-time-series
+#| fig-cap: Climate change forecasts for global monthly average SST for each projection time period and scenario.
+
+sst_cc_forecast_data |>
+  dplyr::group_by(time_period,scenario,month_number) |>
+  dplyr::summarize(sst_deg_c_mean = mean(sst_deg_c_mean)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(time_period = forcats::fct_relevel(time_period,"Near Term (2021-2040)",
+                                                   "Medium Term (2041-2060)"),
+                scenario = forcats::fct_rev(scenario)) |>
+  ggplot(aes(x = month_number,
+             y = sst_deg_c_mean)) +
+  geom_line(aes(color = scenario)) +
+  facet_grid(~time_period) +
+  theme_plot() +
+  scale_color_brewer("CC Scenario",palette = "Set1") +
+  scale_x_continuous(breaks = seq(1:12)) +
+  labs(x = "Month",
+       y = "Forecasted SST (degrees C)")
+```
+
 ## Oceanic Niño Index (ONI)
 
 Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (@fig-oni-time-series):
-
-
+  
+  
 ```{r}
 #| label: fig-oni-time-series
 #| fig-cap: Time series of monthly Oceanic Niño Index (ONI).
@@ -240,7 +317,7 @@ joined_dataset_ais|>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
   dplyr::ungroup() |>
   ggplot(aes(x = month, y= fishing_kw_hours, fill = country_plotting)) +
- geom_line() +
+  geom_line() +
   labs(x = "",
        y = "Monthly fishing effort by flag (kW-hours)")+
   scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
@@ -253,7 +330,7 @@ Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map)
 
 ```{r}
 #| label: fig-effort-map
-#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a white outline.
 
 land <- rnaturalearth::ne_countries(returnclass = "sf")
 
@@ -272,6 +349,9 @@ ggplot()  +
   geom_sf(data = eez,
           fill = NA,
           color = "orange") +
+   geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "white") +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -298,37 +378,40 @@ We can also look at these maps, broken apart by flag, and still aggregating squi
 purrr::map(top_flags_all_time$country,
            function(country_tmp){
              ggplot()  +
-  geom_tile(data = joined_dataset_ais |>
-              dplyr::filter(country_plotting == country_tmp) |>
-              dplyr::group_by(lat_bin,
-                              lon_bin) |>
-              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
-              dplyr::ungroup(),
-            aes(fill = fishing_kw_hours,
-                x = lon_bin,
-                y = lat_bin)) +
-  geom_sf(data = eez,
+               geom_tile(data = joined_dataset_ais |>
+                           dplyr::filter(country_plotting == country_tmp) |>
+                           dplyr::group_by(lat_bin,
+                                           lon_bin) |>
+                           dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+                           dplyr::ungroup(),
+                         aes(fill = fishing_kw_hours,
+                             x = lon_bin,
+                             y = lat_bin)) +
+               geom_sf(data = eez,
+                       fill = NA,
+                       color = "orange") +
+                geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "orange") +
-  geom_sf(data = land,
-          color = "#374a6d",
-          fill = "#374a6d") +
-  scale_fill_viridis_c("Fishing effort (kwW-hours)",
-                       trans = "log10",
-                       option = "mako",
-                       na.value = "black") +
-  labs(x = '',
-       y= '',
-       title = glue::glue("{country_tmp}\n")) +
-  theme_map() +
-  guides(fill = guide_colorbar(title.position = "top",
-                               title.hjust = 0.5,
-                               frame.colour = "black",
-                               ticks.colour = "black",
-                               barwidth = unit(12, "cm"),
-                               barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
+          color = "white") +                 
+               geom_sf(data = land,
+                       color = "#374a6d",
+                       fill = "#374a6d") +
+               scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                                    trans = "log10",
+                                    option = "mako",
+                                    na.value = "black") +
+               labs(x = '',
+                    y= '',
+                    title = glue::glue("{country_tmp}\n")) +
+               theme_map() +
+               guides(fill = guide_colorbar(title.position = "top",
+                                            title.hjust = 0.5,
+                                            frame.colour = "black",
+                                            ticks.colour = "black",
+                                            barwidth = unit(12, "cm"),
+                                            barheight = unit(1, "cm"))) +
+               scale_x_continuous(expand = c(0, 0)) +
+               scale_y_continuous(expand = c(0, 0))
            })
 ```
 
@@ -345,7 +428,7 @@ joined_dataset_viirs|>
   dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
   dplyr::ungroup() |>
   ggplot(aes(x = month, y= viirs_detections)) +
- geom_line() +
+  geom_line() +
   labs(x = "",
        y = "Monthly VIIRS detections")+
   theme_plot() +
@@ -356,7 +439,7 @@ Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggrega
 
 ```{r}
 #| label: fig-viirs-map
-#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange.
+#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a white outline.
 
 ggplot()  +
   geom_tile(data = joined_dataset_viirs |>
@@ -370,6 +453,9 @@ ggplot()  +
   geom_sf(data = eez,
           fill = NA,
           color = "orange") +
+   geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "white") +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -401,7 +487,7 @@ We first compare AIS-based fishing effort and VIIRS detections by looking at a t
 monthly_ais_global <- joined_dataset_ais|>
   dplyr::inner_join(joined_dataset_viirs |>
                       dplyr::distinct(month),
-              by="month") |>
+                    by="month") |>
   dplyr::group_by(month) |>
   dplyr::summarize(value = sum(fishing_kw_hours)) |>
   dplyr::ungroup() |>
@@ -416,7 +502,7 @@ monthly_viirs_global <- joined_dataset_viirs|>
 monthly_ais_global |>
   dplyr::bind_rows(monthly_viirs_global) |>
   ggplot(aes(x = month, y= value)) +
- geom_line() +
+  geom_line() +
   labs(x = "",
        y = "")+
   theme_plot() +
@@ -437,7 +523,7 @@ gridded_time_effort <- joined_dataset_ais |>
 
 ais_viirs_comparison_data <- gridded_time_effort |>
   dplyr::inner_join(joined_dataset_viirs,
-              by=c("month","lon_bin","lat_bin")) 
+                    by=c("month","lon_bin","lat_bin")) 
 
 ais_viirs_comparison_data |>
   ggplot(aes(x = fishing_kw_hours,
@@ -490,7 +576,7 @@ Here we look at a map showing the distance to the nearest 200nm EEZ/high seas bo
 
 ```{r}
 #| label: fig-distance-to-eez-map
-#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in blank.
+#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in blank. The currently proposed analysis scope bounding box is shown as a white outline.
 ggplot()  +
   geom_tile(data = pixels_eez_with_info,
             aes(fill = nearest_eez_distance_m/1e3,
@@ -499,6 +585,9 @@ ggplot()  +
   geom_sf(data = eez_boundaries_high_seas,
           fill = NA,
           color = "black") +
+   geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "white") +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +

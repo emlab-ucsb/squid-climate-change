@@ -180,3 +180,47 @@ pull_oni_data <- function(){
     dplyr::filter(month < lubridate::ymd("2024-08-01")) |>
     dplyr::select(month,oceanic_nino_index = value)
 }
+
+# Load all cliamte change SST forecast data, process into tidy tibble
+process_sst_cc_forecast_data <- function(project_directory){
+  list.files(glue::glue("{project_directory}/data/raw/ipcc_wgi_climate_forecasts"), full.names = TRUE) |>
+  purrr::map_df(function(file_name){
+    
+    
+    file_info_tibble <- tibble::tibble(file_name = file_name) |>
+      dplyr::mutate(time_period = dplyr::case_when(stringr::str_detect(file_name,"Long Term") ~ "Long Term (2081-2100)",
+                                                   stringr::str_detect(file_name,"Medium Term") ~ "Medium Term (2041-2060)",
+                                                   stringr::str_detect(file_name,"Near Term") ~ "Near Term (2021-2040)")) |>
+      dplyr::mutate(scenario = dplyr::case_when(stringr::str_detect(file_name,"SSP1-2.6") ~ "SSP1-2.6",
+                                                stringr::str_detect(file_name,"SSP2-4.5") ~ "SSP2-4.5",
+                                                stringr::str_detect(file_name,"SSP3-7.0") ~ "SSP3-7.0",
+                                                stringr::str_detect(file_name,"SSP5-8.5 ") ~ "SSP5-8.5")) |>
+      dplyr::mutate(month = dplyr::case_when(stringr::str_detect(file_name,"January") ~ "January",
+                                             stringr::str_detect(file_name,"February") ~ "February",
+                                             stringr::str_detect(file_name,"March") ~ "March",
+                                             stringr::str_detect(file_name,"April") ~ "April",
+                                             stringr::str_detect(file_name,"May") ~ "May",
+                                             stringr::str_detect(file_name,"June") ~ "June",
+                                             stringr::str_detect(file_name,"July") ~ "July",
+                                             stringr::str_detect(file_name,"August") ~ "August",
+                                             stringr::str_detect(file_name,"September") ~ "September",
+                                             stringr::str_detect(file_name,"October") ~ "October",
+                                             stringr::str_detect(file_name,"November") ~ "November",
+                                             stringr::str_detect(file_name,"December") ~ "December")) |>
+      dplyr::select(-file_name)
+    
+    file_name |>
+      terra::rast() |>
+      tidyterra::as_tibble(xy = TRUE) |>
+      dplyr::select(lon_bin = x,
+                    lat_bin = y,
+                    sst_deg_c_mean = tos) |>
+      dplyr::filter(!is.na(sst_deg_c_mean)) |>
+      tidyr::crossing(file_info_tibble)|>
+      dplyr::mutate(month_number = match(month, month.name))  |>
+      # Don't need month name column now
+      dplyr::select(-month) |>
+      # Data is at 1x1 degree resolution. Make lon/lat bin at lower left corner instead of centroid, for easy joining
+      dplyr::mutate(lon_bin = floor(lon_bin),
+                    lat_bin = floor(lat_bin))
+  })}
