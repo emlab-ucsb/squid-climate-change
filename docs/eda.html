@@ -195,7 +195,7 @@ div.csl-indent {
 <section id="sea-surface-temperature-sst" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="sea-surface-temperature-sst"><span class="header-section-number">2.1</span> Sea surface temperature (SST)</h2>
 <p>We can look at a map of SST, using August 2024 as an example (<a href="#fig-sst-map">Figure&nbsp;<span>2.1</span></a>).</p>
-<div class="cell" data-hash="eda_cache/html/fig-sst-map_91e098d43c7518cf5a28be1279fa516d">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -206,7 +206,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (<a href="#fig-sst-time-series">Figure&nbsp;<span>2.2</span></a>). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.</p>
-<div class="cell" data-hash="eda_cache/html/fig-sst-time-series_5c3d6e0d71ff0078a2aed04d60234aac">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -218,7 +218,7 @@ div.csl-indent {
 </div>
 <p>There is also some discussion about whether we could simply use the mean SST as our main explanatory variable, or if we need to bin the daily estimates which may allow us to capture non-linear and extreme effects that would not be capture by simply using the mean. We will need to have at least one version of the regression which only uses the mean, since we will not be able to use binned data in the predictions under the various climate change scenarios. However, there may be interest in including a binned version of the regression in the analysis.</p>
 <p>To see if this could help, we first do some exploratory data analysis to get a sense of how much day-to-day within-month variation there is in SST. For each month and pixel, we can calculate the difference between the maximum and minimum temperatures to show us the range of data (<a href="#fig-sst-range-by-pixel-month">Figure&nbsp;<span>2.3</span></a>). Here we see that almost all pixel-months have a range of only 0, 1, or 2 degrees C. Very few pixel-months have a range greater than 5 degrees.</p>
-<div class="cell" data-hash="eda_cache/html/fig-sst-range-by-pixel-month_79883823d9e860e9996bba36c689fa89">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-range-by-pixel-month" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -229,7 +229,7 @@ div.csl-indent {
 </div>
 </div>
 <p>For each pixel-month, we calculate the standard deviation in temperature across the days in that month (<a href="#fig-sst-sd-by-pixel-month">Figure&nbsp;<span>2.4</span></a>). We can then look at the distributions of this standr deviation metric across all pixel-months. Most standard deviations are less than 1 degree, and almos all are less than 2.5 degrees.</p>
-<div class="cell" data-hash="eda_cache/html/fig-sst-sd-by-pixel-month_3f6fe2a8ea43db45b48cd6c50b2dfed8">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-sd-by-pixel-month" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -243,7 +243,7 @@ div.csl-indent {
 <section id="sea-surface-temperature-sst-forecasts-under-climate-change" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="sea-surface-temperature-sst-forecasts-under-climate-change"><span class="header-section-number">2.2</span> Sea surface temperature (SST) forecasts under climate change</h2>
 <p>Here we look at a map of mean sea surface temperature (SST) under the four different climate change scenarios, and the three different forecast horizons (<a href="#fig-sst-map-cc-scenarios">Figure&nbsp;<span>2.5</span></a>).</p>
-<div class="cell" data-hash="eda_cache/html/fig-sst-map-cc-scenarios_4405cca196e86fd0f4aa5e870684ddff">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-map-cc-scenarios" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -254,7 +254,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Here we look at time series of climate change forecasts for global monthly average SST for each forecast time horizon and scenario (<a href="#fig-sst-cc-forecasts-time-series">Figure&nbsp;<span>2.6</span></a>). As expected, projected SST is higher for time horizon further into the future, and for more extreme climate change scenarios.</p>
-<div class="cell" data-hash="eda_cache/html/fig-sst-cc-forecasts-time-series_9e50be513f2a7dd41315aad9bf34bdf4">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-sst-cc-forecasts-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -268,7 +268,7 @@ div.csl-indent {
 <section id="oceanic-niño-index-oni" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="oceanic-niño-index-oni"><span class="header-section-number">2.3</span> Oceanic Niño Index (ONI)</h2>
 <p>Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (<a href="#fig-oni-time-series">Figure&nbsp;<span>2.7</span></a>):</p>
-<div class="cell" data-hash="eda_cache/html/fig-oni-time-series_8327250472886f932a940618fa02228a">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-oni-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -282,7 +282,7 @@ div.csl-indent {
 <section id="fleet-characteristics" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="fleet-characteristics"><span class="header-section-number">2.4</span> Fleet characteristics</h2>
 <p>Our analysis includes 1,561 squid vessels spread across 52 flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and (<a href="#fig-vessel-summary-by-flag">Figure&nbsp;<span>2.8</span></a>). China dominates the fleet, with Taiwan a fairly distant second.</p>
-<div class="cell" data-hash="eda_cache/html/fig-vessel-summary-by-flag_1ac7869b9af683a5e1157a77f562aa39">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-vessel-summary-by-flag" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -293,7 +293,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Next we look at total global fishing effort from 2016 through August 2024, by flag (<a href="#fig-effort-bar-plot">Figure&nbsp;<span>2.9</span></a>). The top 10 flags are shown individually, with all other flags aggregated into “Other”. Again, China dominates the fishing effort, with Taiwan a fairly distant second.</p>
-<div class="cell" data-hash="eda_cache/html/fig-effort-bar-plot_662ecf6ddf5e15023036da59383aa793">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-bar-plot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -307,7 +307,7 @@ div.csl-indent {
 <section id="ais-based-fishing-effort" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">2.5</span> AIS-based fishing effort</h2>
 <p>Next we look at a time series of total monthly global AIS-based fishing effort by fishing flag over time (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.10</span></a>). The top top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
-<div class="cell" data-hash="eda_cache/html/fig-effort-time-series_459c58e63cc41884954ccd77bcf6e5a4">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -318,7 +318,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Next we can look at at a map of AIS-based squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.11</span></a>), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
-<div class="cell" data-hash="eda_cache/html/fig-effort-map_785921e4277dd8dc9aa864efdd04785f">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -329,7 +329,7 @@ div.csl-indent {
 </div>
 </div>
 <p>We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top 10 flags are shown individually, with all other flags aggregated into “Other”.</p>
-<div class="cell" data-hash="eda_cache/html/unnamed-chunk-15_234d11ed1cd4ae363082785605c0057a">
+<div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>[[1]]</code></pre>
 </div>
@@ -411,7 +411,7 @@ div.csl-indent {
 <section id="viirs-detections" class="level2" data-number="2.6">
 <h2 data-number="2.6" class="anchored" data-anchor-id="viirs-detections"><span class="header-section-number">2.6</span> VIIRS detections</h2>
 <p>First we look at a time series of monthly VIIRS detections globally (<a href="#fig-viirs-time-series">Figure&nbsp;<span>2.12</span></a>). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.</p>
-<div class="cell" data-hash="eda_cache/html/fig-viirs-time-series_1555f60a9b627cb7d3e706fb38d40a35">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-viirs-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -422,7 +422,7 @@ div.csl-indent {
 </div>
 </div>
 <p>Next we can look at at a map of these VIIRS detections (<a href="#fig-viirs-map">Figure&nbsp;<span>2.13</span></a>), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (<a href="#fig-effort-map">Figure&nbsp;<span>2.11</span></a>).</p>
-<div class="cell" data-hash="eda_cache/html/fig-viirs-map_503faf206ed35b3b4300b1539988de64">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-viirs-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -436,7 +436,7 @@ div.csl-indent {
 <section id="comparing-ais-based-fishing-effort-and-viirs-detections" class="level2" data-number="2.7">
 <h2 data-number="2.7" class="anchored" data-anchor-id="comparing-ais-based-fishing-effort-and-viirs-detections"><span class="header-section-number">2.7</span> Comparing AIS-based fishing effort and VIIRS detections</h2>
 <p>We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (<a href="#fig-ais-viirs-comparison-time-series">Figure&nbsp;<span>2.14</span></a>). Both datasets show a peak occurring in spring and a dip occurring in winter. They both also show a smaller peak occurring in fall, although this peak is much more pronounced in the VIIRS data.</p>
-<div class="cell" data-hash="eda_cache/html/fig-ais-viirs-comparison-time-series_59f0aee1a97e1abb4c443bb6e3df0c9e">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-ais-viirs-comparison-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -447,7 +447,7 @@ div.csl-indent {
 </div>
 </div>
 <p>We next compare the datasets by aggregating effort and detections across each month and pixel. There appears to be a generally strong relationship between the two, although there are many outliers that appear to have very low AIS-based fishing effort but actually have a very high number of VIIRS detections.</p>
-<div class="cell" data-hash="eda_cache/html/fig-ais-viirs-comparison_4b5d395cd94efa40035ac489e14f593d">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-ais-viirs-comparison" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -458,7 +458,7 @@ div.csl-indent {
 </div>
 </div>
 <p>We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals (<a href="#fig-ais-viirs-residuals">Figure&nbsp;<span>2.16</span></a>). We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.</p>
-<div class="cell" data-hash="eda_cache/html/fig-ais-viirs-residuals_ecfb151ef94f833de6fdb5807d608fd9">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-ais-viirs-residuals" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
@@ -472,7 +472,7 @@ div.csl-indent {
 <section id="distance-to-nearest-eez" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Distance to nearest EEZ</h1>
 <p>Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. For pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas.</p>
-<div class="cell" data-hash="eda_cache/html/fig-distance-to-eez-map_e047d43f58284a759d54021c267ca517">
+<div class="cell">
 <div class="cell-output-display">
 <div id="fig-distance-to-eez-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">

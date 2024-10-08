@@ -10,7 +10,7 @@ editor_options:
 #| label: set-chunk-options
 
 # Use caching, png, to make this section faster
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE, cache=TRUE, dev='png')
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
 
 library(ggplot2)
 
@@ -131,12 +131,11 @@ Here we look at a map of mean sea surface temperature (SST) under the four diffe
 ```{r}
 #| label: fig-sst-map-cc-scenarios
 #| fig-cap: Map of mean August sea surface temperature (SST) under four different climate change scenarios, and three different forecast horizons. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a red outline.
-#| fig-height: 10
+#| fig-height: 8
 ggplot() +
   geom_tile(data = sst_cc_forecast_data|>
   dplyr::mutate(time_period = forcats::fct_relevel(time_period,"Near Term (2021-2040)",
-                                                   "Medium Term (2041-2060)"),
-                scenario = forcats::fct_rev(scenario)),
+                                                   "Medium Term (2041-2060)")),
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
