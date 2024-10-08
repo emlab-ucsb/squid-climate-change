@@ -45,7 +45,7 @@ We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
 
 ```{r}
 #| label: fig-sst-map
-#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels. The currently proposed analysis scope bounding box is shown as a red outline.
 
 land <- rnaturalearth::ne_countries(returnclass = "sf")
 
@@ -57,7 +57,7 @@ ggplot() +
                 y = lat_bin)) +
  geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "white") +                 
+          color = "red", linewidth = 1.5) +                 
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -124,13 +124,13 @@ sst_data_aggregated |>
        y = "Count of pixel-months across our dataset")
 ```
 
-### Sea surface temperature (SST) forecasts under climate change
+## Sea surface temperature (SST) forecasts under climate change
 
 Here we look at a map of mean sea surface temperature (SST) under the four different climate change scenarios, and the three different forecast horizons (@fig-sst-map-cc-scenarios).
 
 ```{r}
 #| label: fig-sst-map-cc-scenarios
-#| fig-cap: Map of mean August sea surface temperature (SST) under four different climate change scenarios, and three different forecast horizons. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-cap: Map of mean August sea surface temperature (SST) under four different climate change scenarios, and three different forecast horizons. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a red outline.
 #| fig-height: 10
 ggplot() +
   geom_tile(data = sst_cc_forecast_data,
@@ -139,7 +139,7 @@ ggplot() +
                 y = lat_bin)) +
   geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "white") +                        
+          color = "red", linewidth = 1.5) +                        
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -157,7 +157,7 @@ ggplot() +
                                barheight = unit(1, "cm"))) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  facet_wrap(time_period~scenario)
+  facet_wrap(scenario~time_period)
 ```
 
 Here we look at time series of climate change forecasts for global monthly average SST for each forecast time horizon and scenario (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time horizon further into the future, and for more extreme climate change scenarios.
@@ -331,7 +331,7 @@ Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map)
 
 ```{r}
 #| label: fig-effort-map
-#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a red outline.
 
 land <- rnaturalearth::ne_countries(returnclass = "sf")
 
@@ -352,7 +352,7 @@ ggplot()  +
           color = "orange") +
    geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "white") +                  
+          color = "red",linewidth = 1.5) +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -393,7 +393,7 @@ purrr::map(top_flags_all_time$country,
                        color = "orange") +
                 geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "white") +                 
+          color = "red", linewidth = 1.5) +                 
                geom_sf(data = land,
                        color = "#374a6d",
                        fill = "#374a6d") +
@@ -440,7 +440,7 @@ Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggrega
 
 ```{r}
 #| label: fig-viirs-map
-#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a red outline.
 
 ggplot()  +
   geom_tile(data = joined_dataset_viirs |>
@@ -456,7 +456,7 @@ ggplot()  +
           color = "orange") +
    geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "white") +                  
+          color = "red", linewidth = 1.5) +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -577,7 +577,7 @@ Here we look at a map showing the distance to the nearest 200nm EEZ/high seas bo
 
 ```{r}
 #| label: fig-distance-to-eez-map
-#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in blank. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in blank. The currently proposed analysis scope bounding box is shown as a red outline.
 ggplot()  +
   geom_tile(data = pixels_eez_with_info,
             aes(fill = nearest_eez_distance_m/1e3,
@@ -588,7 +588,7 @@ ggplot()  +
           color = "black") +
    geom_sf(data = analysis_bounding_box,
           fill = NA,
-          color = "white") +                  
+          color = "red", linewidth = 1.5) +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
