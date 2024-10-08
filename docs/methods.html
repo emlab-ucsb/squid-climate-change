@@ -205,21 +205,30 @@ div.csl-indent {
 <section id="sea-surface-temperature-sst-forecasts-under-climate-change" class="level3" data-number="1.1.2">
 <h3 data-number="1.1.2" class="anchored" data-anchor-id="sea-surface-temperature-sst-forecasts-under-climate-change"><span class="header-section-number">1.1.2</span> Sea surface temperature (SST) forecasts under climate change</h3>
 <p>We use SST forecasts under climate change from the <a href="https://interactive-atlas.ipcc.ch/regional-information#eyJ0eXBlIjoiQVRMQVMiLCJjb21tb25zIjp7ImxhdCI6OTc3MiwibG5nIjo0MDA2OTIsInpvb20iOjQsInByb2oiOiJFUFNHOjU0MDMwIiwibW9kZSI6ImNvbXBsZXRlX2F0bGFzIn0sInByaW1hcnkiOnsic2NlbmFyaW8iOiJzc3A1ODUiLCJwZXJpb2QiOiJmYXIiLCJzZWFzb24iOiJ5ZWFyIiwiZGF0YXNldCI6IkNNSVA2IiwidmFyaWFibGUiOiJ0b3MiLCJ2YWx1ZVR5cGUiOiJWQUxVRSIsImhhdGNoaW5nIjoiU0lNUExFIiwicmVnaW9uU2V0IjoiYXI2IiwiYmFzZWxpbmUiOiJwcmVJbmR1c3RyaWFsIiwicmVnaW9uc1NlbGVjdGVkIjpbXX0sInBsb3QiOnsiYWN0aXZlVGFiIjoicGx1bWUiLCJtYXNrIjoibm9uZSIsInNjYXR0ZXJZTWFnIjpudWxsLCJzY2F0dGVyWVZhciI6bnVsbCwic2hvd2luZyI6ZmFsc2V9fQ==">IPCC WGI Interactive Atlas</a>(<span class="citation" data-cites="iturbide2021repository">Iturbide et al. (<a href="references.html#ref-iturbide2021repository" role="doc-biblioref">2021</a>)</span>). The Atlas provides a platform for accessing ensemble forecasts from CMIP6 (Coupled Model Intercomparison Project Phase 6), which represent the latest global climate forecasts available and served as the basis of the <a href="https://www.ipcc.ch/assessment-report/ar6/">6th IPCC Assessment Report</a>.</p>
-<p>We pull 1x1 degree monthly SST data for three time horizons:</p>
+<p>We pull 1x1 degree monthly mean SST data for three time horizons:</p>
 <ol type="1">
 <li>Near Term (2021-2040)</li>
 <li>Medium Term (2041-2060)</li>
 <li>Long Term (2081-2100)</li>
 </ol>
-<p>And for each time horizon, we pull data from four climate change scenarios:</p>
+<p>And for each time horizon, we pull data from four climate change scenarios (more information on the scenarios can be found <a href="https://climate-scenarios.canada.ca/?page=cmip6-overview-notes">here</a>:</p>
 <ol type="1">
 <li>SSP1-2.6</li>
 <li>SSP2-4.5</li>
 <li>SSP3-7.0</li>
 <li>SSP5-8.5</li>
 </ol>
-<p>This gives us a total of 12 different forecasts to analyze.</p>
-<p>We pull data for three dif</p>
+<p>This gives us a total of 12 different forecasts to analyze. The dataset can be loaded in targets using <code>targets::tar_load(sst_cc_forecast_data)</code>, and it has the following columns:</p>
+<ul>
+<li><strong>lon_bin</strong>: 1x1 degree longitude bin (degrees) (numeric)<br>
+</li>
+<li><strong>lat_bin</strong>: 1x1 degree latitude bin (degrees) (numeric)<br>
+</li>
+<li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature from across the ensemble of CMIP6 models (degrees C) (numeric)</li>
+<li><strong>time_period</strong>: Future time horizon forecast time period (character)</li>
+<li><strong>scenario</strong>: Climate change scenario (character)</li>
+<li><strong>month_number</strong>: Month number (numeric)</li>
+</ul>
 </section>
 <section id="oceanic-niño-index-oni" class="level3" data-number="1.1.3">
 <h3 data-number="1.1.3" class="anchored" data-anchor-id="oceanic-niño-index-oni"><span class="header-section-number">1.1.3</span> Oceanic Niño Index (ONI)</h3>
@@ -299,7 +308,9 @@ div.csl-indent {
 <li><strong>flag</strong> : Fishing vessel flag (character)</li>
 <li><strong>lon_bin</strong>: 0.25 degree longitude bin (degrees) (numeric)<br>
 </li>
-<li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric) * <strong>flag</strong>: Fishing flag (character)<br>
+<li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric)<br>
+</li>
+<li><strong>flag</strong>: Fishing flag (character)<br>
 </li>
 <li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
 <li><strong>sst_deg_c_sd</strong>: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
@@ -922,7 +933,7 @@ div.csl-indent {
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0.24</td>
-<td style="text-align: left;">FAL: 552899, TRU: 172064</td>
+<td style="text-align: left;">FAL: 552904, TRU: 172059</td>
 </tr>
 </tbody>
 </table>

@@ -8,7 +8,9 @@ editor_options:
 
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
+
+# Use caching, png, to make this section faster
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE, cache=TRUE, dev='png')
 
 library(ggplot2)
 
@@ -124,14 +126,14 @@ sst_data_aggregated |>
 
 ### Sea surface temperature (SST) forecasts under climate change
 
-Here we look at a map of mean sea surface temperature (SST) under 4 different climate change scenarios, for the `Long Term (2081-2100)` forecast horizon (@fig-sst-map-cc-scenarios).
+Here we look at a map of mean sea surface temperature (SST) under the four different climate change scenarios, and the three different forecast horizons (@fig-sst-map-cc-scenarios).
 
 ```{r}
 #| label: fig-sst-map-cc-scenarios
-#| fig-cap: Map of mean sea surface temperature (SST) under 4 different climate change scenarios, for the "Long Term (2081-2100)" forecast horizon. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-cap: Map of mean August sea surface temperature (SST) under four different climate change scenarios, and three different forecast horizons. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a white outline.
+#| fig-height: 10
 ggplot() +
-  geom_tile(data = sst_cc_forecast_data |>
-  dplyr::filter(time_period == "Long Term (2081-2100)"),
+  geom_tile(data = sst_cc_forecast_data,
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
@@ -155,14 +157,14 @@ ggplot() +
                                barheight = unit(1, "cm"))) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  facet_wrap(scenario~.)
+  facet_wrap(time_period~scenario)
 ```
 
-Here we look at time series of climate change forecasts for global monthly average SST for each projection time period and scenario (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time periods further into the future, and for more extreme climate change scenarios.
+Here we look at time series of climate change forecasts for global monthly average SST for each forecast time horizon and scenario (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time horizon further into the future, and for more extreme climate change scenarios.
 
 ```{r}
 #| label: fig-sst-cc-forecasts-time-series
-#| fig-cap: Climate change forecasts for global monthly average SST for each projection time period and scenario.
+#| fig-cap: Climate change forecasts for global monthly average SST for each forecast time horizon and scenario.
 
 sst_cc_forecast_data |>
   dplyr::group_by(time_period,scenario,month_number) |>
@@ -185,7 +187,6 @@ sst_cc_forecast_data |>
 ## Oceanic Niño Index (ONI)
 
 Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (@fig-oni-time-series):
-  
   
 ```{r}
 #| label: fig-oni-time-series

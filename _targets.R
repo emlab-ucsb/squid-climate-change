@@ -250,7 +250,7 @@ list(
   tar_target(
     pixels_with_eez,
     pixels_for_eez_calculations |>
-      sf::st_intersection(eez_full_res |>
+      sf::st_join(eez_full_res |>
                             dplyr::select(eez_id = MRGID)) |>
       sf::st_set_geometry(NULL)|> 
       tibble::as_tibble()
