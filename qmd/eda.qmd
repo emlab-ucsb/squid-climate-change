@@ -6,6 +6,8 @@ editor_options:
 
 # Exploratory data analysis {#sec-eda}
 
+Note that all maps are zoomed into the area surrounded by the proposed geographic analysis scope.
+
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
 
@@ -21,22 +23,15 @@ targets::tar_load(c("sst_data_aggregated",
                     "oceanic_nino_index_data",
                     "pixels_eez_with_info",
                     "eez_boundaries_high_seas",
-                    "sst_cc_forecast_data"))
+                    "sst_cc_forecast_data",
+                    "eez",
+                    "sprfmo",
+                    "land",
+                    "analysis_scope_lon",
+                    "analysis_scope_lat",
+                    "analysis_bounding_box"))
 
 source("r/functions.R")
-
-# Create analysis bounding box from Kaiwen's slack message
-# https://emlab-ucsb.slack.com/archives/C07LGMHGYGH/p1728334195437609
-
-analysis_bounding_box_point1 <- data.frame(geometry = "POINT (-86 0)") |> 
-  sf::st_as_sf(wkt = "geometry", crs = "WGS84") 
-analysis_bounding_box_point2 <- data.frame(geometry = "POINT (-70 -22)") |> 
-  sf::st_as_sf(wkt = "geometry", crs = "WGS84") 
-
-analysis_bounding_box <- dplyr::bind_rows(analysis_bounding_box_point1,
-analysis_bounding_box_point2) |>
-  sf::st_bbox() |> 
-  sf::st_as_sfc()
 ```
 
 ## Sea surface temperature (SST)
@@ -45,9 +40,7 @@ We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
 
 ```{r}
 #| label: fig-sst-map
-#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels. The currently proposed analysis scope bounding box is shown as a red outline.
-
-land <- rnaturalearth::ne_countries(returnclass = "sf")
+#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels.
 
 ggplot() +
   geom_tile(data = sst_data_aggregated |>
@@ -55,9 +48,6 @@ ggplot() +
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
- geom_sf(data = analysis_bounding_box,
-          fill = NA,
-          color = "red", linewidth = 1.15) +                 
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -73,8 +63,10 @@ ggplot() +
                                ticks.colour = "black",
                                barwidth = unit(12, "cm"),
                                barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
 ```
 
 Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (@fig-sst-time-series). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.
@@ -130,18 +122,16 @@ Here we look at a map of mean sea surface temperature (SST) under the four diffe
 
 ```{r}
 #| label: fig-sst-map-cc-scenarios
-#| fig-cap: Map of mean August sea surface temperature (SST) under four different climate change scenarios, and three different forecast horizons. Data are for 1x1 degree pixels. The currently proposed analysis scope bounding box is shown as a red outline.
+#| fig-cap: Map of mean August sea surface temperature (SST) under four different climate change scenarios, and three different forecast horizons. Data are for 1x1 degree pixels. 
 #| fig-height: 8
+
 ggplot() +
   geom_tile(data = sst_cc_forecast_data|>
-  dplyr::mutate(time_period = forcats::fct_relevel(time_period,"Near Term (2021-2040)",
-                                                   "Medium Term (2041-2060)")),
+              dplyr::mutate(time_period = forcats::fct_relevel(time_period,"Near Term (2021-2040)",
+                                                               "Medium Term (2041-2060)")),
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
-  geom_sf(data = analysis_bounding_box,
-          fill = NA,
-          color = "red", linewidth = 1.15) +                        
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -157,9 +147,11 @@ ggplot() +
                                ticks.colour = "black",
                                barwidth = unit(12, "cm"),
                                barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  facet_grid(scenario~time_period)
+  facet_grid(time_period~scenario) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
 ```
 
 Here we look at time series of climate change forecasts for global monthly average SST for each forecast time horizon and scenario (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time horizon further into the future, and for more extreme climate change scenarios.
@@ -189,7 +181,7 @@ sst_cc_forecast_data |>
 ## Oceanic Niño Index (ONI)
 
 Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (@fig-oni-time-series):
-  
+
 ```{r}
 #| label: fig-oni-time-series
 #| fig-cap: Time series of monthly Oceanic Niño Index (ONI).
@@ -204,11 +196,13 @@ joined_dataset_ais |>
        y = "Oceanic Niño Index (ONI)")
 ```
 
-## Fleet characteristics
+## AIS-based Fishing effort
 
 ```{r}
 # Add country names to joined_dataset_ais
+# Filter to just analysis scope
 joined_dataset_ais <- joined_dataset_ais |>
+  dplyr::filter(within_analysis_scope) |>
   dplyr::mutate(country = countrycode::countrycode(flag,
                                                    origin = "iso3c",
                                                    destination = "country.name")) |>
@@ -216,7 +210,7 @@ joined_dataset_ais <- joined_dataset_ais |>
   dplyr::mutate(country = ifelse(is.na(country), "Unknown",country))
 
 # Get top fishing flags across all time
-n_flags <- 10
+n_flags <- 5
 top_flags_all_time <- joined_dataset_ais |>
   dplyr::group_by(country) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm = TRUE)) |>
@@ -226,76 +220,19 @@ top_flags_all_time <- joined_dataset_ais |>
 
 joined_dataset_ais <- joined_dataset_ais  |>
   dplyr::left_join(top_flags_all_time |>
-                     dplyr::select(country,top), by = "country") |>
-  dplyr::mutate(country_plotting = ifelse(is.na(top), "Other",country) |>
-                  forcats::fct_relevel(top_flags_all_time$country))
-
-other_effort_all_time <- joined_dataset_ais |>
-  dplyr::filter(country_plotting == "Other") |>
-  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm=TRUE)) |>
-  dplyr::mutate(country = "Other",
-                top = TRUE)
-
-# Include other in our top flags, for plotting
-top_flags_all_time <- top_flags_all_time |>
-  dplyr::bind_rows(other_effort_all_time) |>
-  dplyr::arrange(-fishing_kw_hours)
+                     dplyr::select(country,top), by = "country") 
 ```
-
-```{r}
-vessel_summary <- squid_vessel_list |>
-  dplyr::group_by(flag) |>
-  dplyr::summarize(`Total engine power (kW)` = sum(engine_power_kw,na.rm = TRUE),
-                   `Number unique vessels` = dplyr::n_distinct(ssvid)) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(country = countrycode::countrycode(flag,
-                                                   origin = "iso3c",
-                                                   destination = "country.name")) |>
-  dplyr::mutate(country = ifelse(is.na(country), "Unknown",country)) |>
-  dplyr::select(-flag) 
-```
-
-Our analysis includes `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels spread across `r length(unique(vessel_summary$country))` flags. For each flag, we look at the total engine power (kW) across the fleet and total number of unique vessels and  (@fig-vessel-summary-by-flag). China dominates the fleet, with Taiwan a fairly distant second.
-
-```{r}
-#| label: fig-vessel-summary-by-flag
-#| fig-cap: Squid jigger vessel summary by flag, showing the total engine power (kW) and total number of unique vessels.
-#| fig-height: 7
-
-# Arrange plot by the number of unique vessels from each flag
-plot_order <- vessel_summary |>
-  dplyr::arrange(`Total engine power (kW)`) |>
-  dplyr::pull(country)
-
-vessel_summary |>
-  tidyr::pivot_longer(cols = -country,
-                      names_to = "metric",
-                      values_to = "value") |>
-  dplyr::mutate(metric = forcats::fct_relevel(metric,"Total engine power (kW)")) |>
-  ggplot(aes(x = value,
-             y = forcats::fct_relevel(country,plot_order))) +
-  geom_bar(stat = "identity") +
-  facet_wrap(~metric,
-             scales = "free_x",
-             ncol = 2) +
-  labs(x = "",
-       y = "") +
-  theme_plot() +
-  scale_x_continuous(labels = scales::comma)
-
-```
-
-Next we look at total global fishing effort from 2016 through August 2024, by flag (@fig-effort-bar-plot). The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other". Again, China dominates the fishing effort, with Taiwan a fairly distant second.
+Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (@fig-effort-bar-plot). China dominates the fishing effort, with Taiwan a distant second.
 
 ```{r}
 #| label: fig-effort-bar-plot
-#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024. The top 10 flags are shown, with all other flags aggregated into "Other".
+#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope.
 
 joined_dataset_ais|>
-  dplyr::group_by(country_plotting) |>
+  dplyr::group_by(country) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm = TRUE)) |>
   dplyr::ungroup() |>
-  ggplot(aes(x = fishing_kw_hours, y= reorder(country_plotting,fishing_kw_hours))) +
+  ggplot(aes(x = fishing_kw_hours, y= reorder(country,fishing_kw_hours))) +
   geom_bar(stat = "identity")+
   labs(x = "Total fishing effort from 2016 through August 2024 (kW-hours)",
        y = "")+
@@ -303,29 +240,29 @@ joined_dataset_ais|>
   theme_plot()
 ```
 
-## AIS-based fishing effort
-
-Next we look at a time series of total monthly global AIS-based fishing effort by fishing flag over time (@fig-effort-time-series). The top top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series). The top top `r n_flags` flags are shown.
 
 ```{r}
 #| label: fig-effort-time-series
-#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024. The top 10 flags are shown individually, with all other flags aggregated into "Other".
+#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually.
 #| fig-height: 7
 
-joined_dataset_ais|>
+joined_dataset_ais|> 
+  dplyr::filter(country %in% top_flags_all_time$country) |>
+  dplyr::mutate(country = forcats::fct_relevel(country,
+                                               top_flags_all_time$country))|>
   dplyr::group_by(month,
-                  country_plotting) |>
-  dplyr::mutate(country_plotting = forcats::fct_relevel(country_plotting,
-                                                        top_flags_all_time$country)) |>
+                  country)  |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
   dplyr::ungroup() |>
-  ggplot(aes(x = month, y= fishing_kw_hours, fill = country_plotting)) +
+  ggplot(aes(x = month, y= fishing_kw_hours, fill = country)) +
   geom_line() +
   labs(x = "",
        y = "Monthly fishing effort by flag (kW-hours)")+
-  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6)) +
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6),
+                     limits = c(0,NA)) +
   theme_plot() +
-  facet_grid(country_plotting~.,
+  facet_grid(country~.,
              scales = "free_y")
 ```
 
@@ -333,12 +270,7 @@ Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map)
 
 ```{r}
 #| label: fig-effort-map
-#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a red outline.
-
-land <- rnaturalearth::ne_countries(returnclass = "sf")
-
-# Load Marine Regions v12 EEZ
-eez <- sf::st_read("/home/emlab/data/marine-regions-eez-v12/World_EEZ_v12_20231025_LR/eez_v12_lowres.shp",quiet = TRUE)
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow.
 
 ggplot()  +
   geom_tile(data = joined_dataset_ais |>
@@ -352,9 +284,9 @@ ggplot()  +
   geom_sf(data = eez,
           fill = NA,
           color = "orange") +
-   geom_sf(data = analysis_bounding_box,
+  geom_sf(data = sprfmo,
           fill = NA,
-          color = "red",linewidth = 1.15) +                  
+          color = "yellow") +
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -371,18 +303,20 @@ ggplot()  +
                                ticks.colour = "black",
                                barwidth = unit(12, "cm"),
                                barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
 ```
 
-We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown individually, with all other flags aggregated into "Other".
+We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown.
 
 ```{r}
 purrr::map(top_flags_all_time$country,
            function(country_tmp){
              ggplot()  +
                geom_tile(data = joined_dataset_ais |>
-                           dplyr::filter(country_plotting == country_tmp) |>
+                           dplyr::filter(country == country_tmp) |>
                            dplyr::group_by(lat_bin,
                                            lon_bin) |>
                            dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
@@ -393,9 +327,9 @@ purrr::map(top_flags_all_time$country,
                geom_sf(data = eez,
                        fill = NA,
                        color = "orange") +
-                geom_sf(data = analysis_bounding_box,
-          fill = NA,
-          color = "red", linewidth = 1.15) +                 
+               geom_sf(data = sprfmo,
+                       fill = NA,
+                       color = "yellow") +
                geom_sf(data = land,
                        color = "#374a6d",
                        fill = "#374a6d") +
@@ -413,18 +347,27 @@ purrr::map(top_flags_all_time$country,
                                             ticks.colour = "black",
                                             barwidth = unit(12, "cm"),
                                             barheight = unit(1, "cm"))) +
-               scale_x_continuous(expand = c(0, 0)) +
-               scale_y_continuous(expand = c(0, 0))
+               scale_x_continuous(expand = c(0, 0),
+                                  limits = analysis_scope_lon) +
+               scale_y_continuous(expand = c(0, 0),
+                                  limits = analysis_scope_lat)
            })
 ```
 
 ## VIIRS detections
 
-First we look at a time series of monthly VIIRS detections globally (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
+First we look at a time series of monthly VIIRS detections with the analysis scope (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
+
+```{r}
+# Only include inside analysis scope
+joined_dataset_viirs <- joined_dataset_viirs |>
+  dplyr::filter(within_analysis_scope)
+```
+
 
 ```{r}
 #| label: fig-viirs-time-series
-#| fig-cap: Monthly VIIRS detections.
+#| fig-cap: Monthly VIIRS detections within the analysis scope.
 
 joined_dataset_viirs|>
   dplyr::group_by(month) |>
@@ -435,14 +378,15 @@ joined_dataset_viirs|>
   labs(x = "",
        y = "Monthly VIIRS detections")+
   theme_plot() +
-  scale_y_continuous(labels = scales::comma)
+  scale_y_continuous(labels = scales::comma,
+                     limits = c(0,NA))
 ```
 
 Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (@fig-effort-map).
 
 ```{r}
 #| label: fig-viirs-map
-#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange. The currently proposed analysis scope bounding box is shown as a red outline.
+#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel.EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow.
 
 ggplot()  +
   geom_tile(data = joined_dataset_viirs |>
@@ -456,9 +400,9 @@ ggplot()  +
   geom_sf(data = eez,
           fill = NA,
           color = "orange") +
-   geom_sf(data = analysis_bounding_box,
+  geom_sf(data = sprfmo,
           fill = NA,
-          color = "red", linewidth = 1.15) +                  
+          color = "yellow") +
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -475,19 +419,22 @@ ggplot()  +
                                ticks.colour = "black",
                                barwidth = unit(12, "cm"),
                                barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
 ```
 
 ## Comparing AIS-based fishing effort and VIIRS detections
 
-We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (@fig-ais-viirs-comparison-time-series). Both datasets show a peak occurring in spring and a dip occurring in winter. They both also show a smaller peak occurring in fall, although this peak is much more pronounced in the VIIRS data.
+We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (@fig-ais-viirs-comparison-time-series).The datasets appear to track each other fairly well over time.
 
 ```{r}
 #| label: fig-ais-viirs-comparison-time-series
 #| fig-cap: Comparison of monthly time series of AIS-based fishing effort and VIIRS detections.
 
 monthly_ais_global <- joined_dataset_ais|>
+  
   dplyr::inner_join(joined_dataset_viirs |>
                       dplyr::distinct(month),
                     by="month") |>
@@ -509,17 +456,19 @@ monthly_ais_global |>
   labs(x = "",
        y = "")+
   theme_plot() +
-  scale_y_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma,
+                     limits = c(0,NA)) +
   facet_wrap(metric~.,ncol=1,scales="free_y")
 ```
 
-We next compare the datasets by aggregating effort and detections across each month and pixel. There appears to be a generally strong relationship between the two, although there are many outliers that appear to have very low AIS-based fishing effort but actually have a very high number of VIIRS detections.
+We next compare the datasets by aggregating effort and detections across each month and pixel, and filtering to just those pixels within the analysis bounding box. There appears to be a generally strong relationship between the two.
 
 ```{r}
 #| label: fig-ais-viirs-comparison
-#| fig-cap: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each pixel and month. A linear regression line fit is shown in blue.
+#| fig-cap: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each month and pixel within the analysis bounding box. A linear regression line fit is shown in blue.
 
 gridded_time_effort <- joined_dataset_ais |>
+  dplyr::filter(within_analysis_scope) |>
   dplyr::group_by(month,lon_bin,lat_bin) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm=TRUE)) |>
   dplyr::ungroup()
@@ -539,47 +488,14 @@ ais_viirs_comparison_data |>
   scale_x_continuous(labels = scales::comma) +
   scale_y_continuous(labels = scales::comma)
 ```
-
-We can fit a simple linear regression to VIIRS detections against fishing effort and look at the residuals (@fig-ais-viirs-residuals). We see that the residuals are generally fairly evenly spaced around 0, although for very low AIS-based effort there are many very high residuals, indicating pixel-months that have much more VIIRS detections than expected.
-
-```{r}
-#| label: fig-ais-viirs-residuals
-#| fig-cap: Residuals of VIIRS detections when regressed against AIS-based fishing effort. Points that fall outside of 3 standard deviations of residuals are marked in red.
-# Make simple linear regression model between VIIRS detections and effort
-model <- lm(viirs_detections ~ fishing_kw_hours,
-            data = ais_viirs_comparison_data)
-
-# Calculate 3 standard deviations of residuals, to identify outliers
-outlier_threshold <- 3*sd(residuals(model))
-
-# Add the residuals to the data
-ais_viirs_comparison_data <- ais_viirs_comparison_data |>
-  dplyr::mutate(residual = residuals(model)) |>
-  dplyr::mutate(outlier = ifelse(abs(residual) > outlier_threshold, TRUE, FALSE))
-
-# Plot the residuals
-ais_viirs_comparison_data |>
-  ggplot(aes(x = fishing_kw_hours,
-             y = residual)) +
-  geom_point(aes(color = outlier)) +
-  geom_smooth(method = "lm") +
-  theme_plot() +
-  labs(x = "AIS-based fishing effort (kW-hours)",
-       y = "Residuals of VIIRS detections") +
-  scale_x_continuous(labels = scales::comma) +
-  scale_y_continuous(labels = scales::comma) +
-  scale_color_manual("Outlier",
-                     values = c("TRUE" = "red", "FALSE" = "black"))
-
-```
-
 # Distance to nearest EEZ
 
 Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. For pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas.
 
 ```{r}
 #| label: fig-distance-to-eez-map
-#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in blank. The currently proposed analysis scope bounding box is shown as a red outline.
+#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in black.
+
 ggplot()  +
   geom_tile(data = pixels_eez_with_info,
             aes(fill = nearest_eez_distance_m/1e3,
@@ -588,9 +504,6 @@ ggplot()  +
   geom_sf(data = eez_boundaries_high_seas,
           fill = NA,
           color = "black") +
-   geom_sf(data = analysis_bounding_box,
-          fill = NA,
-          color = "red", linewidth = 1.15) +                  
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
@@ -608,6 +521,8 @@ ggplot()  +
                                ticks.colour = "black",
                                barwidth = unit(12, "cm"),
                                barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0))
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
 ```

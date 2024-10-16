@@ -224,3 +224,17 @@ process_sst_cc_forecast_data <- function(project_directory){
       dplyr::mutate(lon_bin = floor(lon_bin),
                     lat_bin = floor(lat_bin))
   })}
+
+make_bounding_box <- function(analysis_scope_lon,
+                              analysis_scope_lat){
+  
+  analysis_bounding_box_point1 <- data.frame(geometry = glue::glue("POINT ({analysis_scope_lon[1]} {analysis_scope_lat[1]})")) |> 
+    sf::st_as_sf(wkt = "geometry", crs = "WGS84") 
+  analysis_bounding_box_point2 <- data.frame(geometry = glue::glue("POINT ({analysis_scope_lon[2]} {analysis_scope_lat[2]})")) |> 
+    sf::st_as_sf(wkt = "geometry", crs = "WGS84") 
+  
+  analysis_bounding_box <- dplyr::bind_rows(analysis_bounding_box_point1,
+                                            analysis_bounding_box_point2) |>
+    sf::st_bbox() |> 
+    sf::st_as_sfc(crs = "WGS84")
+}

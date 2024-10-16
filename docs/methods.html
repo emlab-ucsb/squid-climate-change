@@ -173,6 +173,7 @@ div.csl-indent {
   <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.8</span> Joined datasets</a></li>
   <li><a href="#joined-datasets-1" id="toc-joined-datasets-1" class="nav-link" data-scroll-target="#joined-datasets-1"><span class="header-section-number">1.1.9</span> Joined datasets</a></li>
   </ul></li>
+  <li><a href="#geographic-analysis-scope" id="toc-geographic-analysis-scope" class="nav-link" data-scroll-target="#geographic-analysis-scope"><span class="header-section-number">1.2</span> Geographic analysis scope</a></li>
   </ul>
 </nav>
     </div>
@@ -360,6 +361,7 @@ div.csl-indent {
 <li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
 <li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 <li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
+<li><strong>within_analysis_scope</strong>: This is a logical for whether the pixel is within the analysis scope or note (logical)</li>
 </ul>
 <p>Here we summarize these data (<a href="#tbl-summary-stats-joined-dataset-ais">Table&nbsp;<span>1.1</span></a>):</p>
 <div id="tbl-summary-stats-joined-dataset-ais" class="cell tbl-parent quarto-layout-panel anchored">
@@ -381,7 +383,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">17</td>
+<td style="text-align: left;">18</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -397,7 +399,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">logical</td>
-<td style="text-align: left;">1</td>
+<td style="text-align: left;">2</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">numeric</td>
@@ -512,6 +514,13 @@ div.csl-indent {
 <div class="quarto-layout-row quarto-layout-valign-top">
 <div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 29%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 6%">
+<col style="width: 31%">
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">skim_variable</th>
@@ -528,6 +537,13 @@ div.csl-indent {
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0.83</td>
 <td style="text-align: left;">TRU: 91769, FAL: 18578</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">within_analysis_scope</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.32</td>
+<td style="text-align: left;">FAL: 74967, TRU: 35380</td>
 </tr>
 </tbody>
 </table>
@@ -769,6 +785,7 @@ div.csl-indent {
 <li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
 <li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
 <li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
+<li><strong>within_analysis_scope</strong>: This is a logical for whether the pixel is within the analysis scope or note (logical)</li>
 </ul>
 <p>Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):</p>
 <div id="tbl-summary-stats-joined-dataset-VIIRS" class="cell tbl-parent quarto-layout-panel anchored">
@@ -790,7 +807,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">15</td>
+<td style="text-align: left;">16</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -806,7 +823,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">logical</td>
-<td style="text-align: left;">1</td>
+<td style="text-align: left;">2</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">numeric</td>
@@ -912,11 +929,11 @@ div.csl-indent {
 <div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
 <table class="table table-sm table-striped small">
 <colgroup>
-<col style="width: 20%">
-<col style="width: 14%">
-<col style="width: 20%">
-<col style="width: 7%">
-<col style="width: 36%">
+<col style="width: 28%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 6%">
+<col style="width: 32%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -934,6 +951,13 @@ div.csl-indent {
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">0.24</td>
 <td style="text-align: left;">FAL: 552904, TRU: 172059</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">within_analysis_scope</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: left;">FAL: 695138, TRU: 29825</td>
 </tr>
 </tbody>
 </table>
@@ -1140,6 +1164,32 @@ div.csl-indent {
 </div>
 </div>
 </div>
+</section>
+</section>
+</section>
+<section id="geographic-analysis-scope" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="geographic-analysis-scope"><span class="header-section-number">1.2</span> Geographic analysis scope</h2>
+<p>Our proposed geographic scope encompasses a bounding box with a longitude range from -130 degrees to -70 degrees and a latitude range from -60 degrees to 10 degrees (<a href="#fig-effort-map-with-scope">Figure&nbsp;<span>1.1</span></a>; <a href="#fig-effort-map-with-scope-zoom">Figure&nbsp;<span>1.2</span></a>). This longitude range encompasses band of equatorial fishing effort to the west and the EEZs off the western coast of South America. The latitude range covers the minimum and maximum latitudes of the <a href="https://data.apps.fao.org/map/catalog/srv/eng/catalog.search#/metadata/fao-rfb-map-sprfmo">South Pacific Regional Fisheries Management Organisation (SPRFMO)</a>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-map-with-scope" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="methods_files/figure-html/fig-effort-map-with-scope-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;1.1: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-map-with-scope-zoom" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="methods_files/figure-html/fig-effort-map-with-scope-zoom-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;1.2: Zoomed in map of squid jigger fishing effort from 2016 through August 2024 to the proposed analysis scope, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -1168,8 +1218,6 @@ Park, Jaeyoon, Jennifer Van Osdel, Joanna Turner, Courtney M Farthing, Nathan A 
 Seto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich, Masanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki Oozeki, and Osvaldo Urrutia S. 2023. <span>“Fishing Through the Cracks: The Unregulated Nature of Global Squid Fisheries.”</span> <em>Science Advances</em> 9 (10): eadd8125.
 </div>
 </div>
-</section>
-</section>
 </section>
 
 </main> <!-- /main -->

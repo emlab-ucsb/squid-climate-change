@@ -18,7 +18,14 @@ targets::tar_load(c("ais_date_start",
                     "temporal_resolution",
                     "squid_vessel_list",
                     "joined_dataset_ais_summary",
-                    "joined_dataset_viirs_summary"))
+                    "joined_dataset_viirs_summary",
+                    "eez",
+                    "sprfmo",
+                    "land",
+                    "joined_dataset_ais",
+                    "analysis_scope_lon",
+                    "analysis_scope_lat",
+                    "analysis_bounding_box"))
 
 source("r/functions.R")
 ```
@@ -199,6 +206,7 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
 * **nearest_eez_iso3**: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel's ISO3 sovereign country code (string)
 * **high_seas**: This is a logical indicating whether the pixel is within the high seas or not (logical)
+* **within_analysis_scope**: This is a logical for whether the pixel is within the analysis scope or note (logical)  
 
 Here we summarize these data (@tbl-summary-stats-joined-dataset-ais):
 
@@ -229,6 +237,7 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
 * **nearest_eez_iso3**: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel's ISO3 sovereign country code (string)
 * **high_seas**: This is a logical indicating whether the pixel is within the high seas or not (logical)
+* **within_analysis_scope**: This is a logical for whether the pixel is within the analysis scope or note (logical)  
 
 
 Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):
@@ -239,3 +248,96 @@ Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):
 
 joined_dataset_viirs_summary
 ```
+
+## Geographic analysis scope
+
+Our proposed geographic scope encompasses a bounding box with a longitude range from `r analysis_scope_lon[1]` degrees to `r analysis_scope_lon[2]` degrees and a latitude range  from `r analysis_scope_lat[1]` degrees to `r analysis_scope_lat[2]` degrees (@fig-effort-map-with-scope; @fig-effort-map-with-scope-zoom). This longitude range encompasses band of equatorial fishing effort to the west and the EEZs off the western coast of South America. The latitude range covers the minimum and maximum latitudes of the [South Pacific Regional Fisheries Management Organisation (SPRFMO)](https://data.apps.fao.org/map/catalog/srv/eng/catalog.search#/metadata/fao-rfb-map-sprfmo).
+
+```{r}
+#| label: fig-effort-map-with-scope
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
+
+ggplot()  +
+  geom_tile(data = joined_dataset_ais |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+   geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "red",
+          linewidth = 0.55) +                  
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0))
+```
+
+```{r}
+#| label: fig-effort-map-with-scope-zoom
+#| fig-cap: Zoomed in map of squid jigger fishing effort from 2016 through August 2024 to the proposed analysis scope, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
+
+ggplot()  +
+  geom_tile(data = joined_dataset_ais |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+   geom_sf(data = analysis_bounding_box,
+          fill = NA,
+          color = "red",
+          linewidth = 0.65) +                  
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = c(analysis_scope_lon[1]-10, analysis_scope_lon[2]+10)) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(analysis_scope_lat[1]-10, analysis_scope_lat[2]+10))
+```
+

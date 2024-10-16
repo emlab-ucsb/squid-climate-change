@@ -300,6 +300,22 @@ list(
       dplyr::mutate(nearest_eez_id = ifelse(!high_seas,eez_id,nearest_eez_id)) |>
       dplyr::mutate(nearest_eez_iso3 = ifelse(!high_seas,eez_iso3,nearest_eez_iso3))
   ),
+  # Analysis longitude scope range
+  tar_target(
+    analysis_scope_lon,
+    c(-130,-70)
+  ),
+  # Analysis latitude scope range
+  tar_target(
+    analysis_scope_lat,
+    c(-60,10)
+  ),
+  # Now make analysis scope bounding box shapefile
+  tar_target(
+    analysis_bounding_box,
+    make_bounding_box(analysis_scope_lon,
+                      analysis_scope_lat)
+  ),
   # Join together AIS-based effort, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_ais,
@@ -310,7 +326,11 @@ list(
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month") |>
       dplyr::inner_join(pixels_eez_with_info,
-                        by = c("lon_bin","lat_bin"))
+                        by = c("lon_bin","lat_bin")) |>
+      # Determine if each pixel is within analysis scope
+      dplyr::mutate(within_analysis_scope = ifelse(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
+                                                      lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2],
+                                                    TRUE,FALSE))
   ),
   # Join datasets ----
   # Join together VIIRS, SST, ONI, and EEZ datasets
@@ -323,7 +343,11 @@ list(
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month") |>
       dplyr::inner_join(pixels_eez_with_info,
-                        by = c("lon_bin","lat_bin"))
+                        by = c("lon_bin","lat_bin")) |>
+      # Determine if each pixel is within analysis scope
+      dplyr::mutate(within_analysis_scope = ifelse(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
+                                                     lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2],
+                                                   TRUE,FALSE))
   ),
   # Summarize data for quarto notebook ----
   # AIS data
@@ -335,6 +359,23 @@ list(
   tar_target(
     name = joined_dataset_viirs_summary,
     skimr::skim(joined_dataset_viirs)
+  ),
+  # EEZ shapefile from Marine Regions v12 EEZ, for plotting
+  tar_target(
+    name = eez,
+    sf::st_read(glue::glue("{data_directory_base}/data/marine-regions-eez-v12/World_EEZ_v12_20231025_LR/eez_v12_lowres.shp",quiet = TRUE)) |>
+      # Only want 200NM shapes for plots
+      dplyr::filter(POL_TYPE == "200NM")
+  ),
+  # SPRFMO shapefile from FAO, for plotting
+  tar_target(
+    name = sprfmo,
+    sf::st_read(glue::glue("{project_directory}/data/raw/sprfmo_shapefile/RFB_SPRFMO.shp",quiet = TRUE))
+  ),
+  # Global land shapefile, for plotting
+  tar_target(
+    name = land,
+    rnaturalearth::ne_countries(returnclass = "sf")
   ),
   # Make quarto notebook -----
   tar_quarto(
