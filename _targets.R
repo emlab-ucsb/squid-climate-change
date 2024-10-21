@@ -308,7 +308,7 @@ list(
   # Analysis latitude scope range
   tar_target(
     analysis_scope_lat,
-    c(-60,10)
+    c(-40,10)
   ),
   # Now make analysis scope bounding box shapefile
   tar_target(
