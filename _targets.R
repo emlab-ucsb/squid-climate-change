@@ -351,7 +351,7 @@ list(
       dplyr::distinct(month,lon_bin,lat_bin) |>
       # Only select pixels within analysis scope
       dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
-                      lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2])
+                      lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2]) |>
       # Now add sst data
       dplyr::left_join(sst_data_aggregated,
                        by = c("month","lat_bin","lon_bin")) |>
