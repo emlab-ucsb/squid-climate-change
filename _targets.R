@@ -319,35 +319,53 @@ list(
   # Join together AIS-based effort, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_ais,
-    gridded_time_effort_by_flag |>
-      collapse::fmutate(month = lubridate::ymd(month)) |>
-      dplyr::inner_join(sst_data_aggregated,
-                        by = c("month","lat_bin","lon_bin")) |>
+    # Get all unique combinations of month, longitude, and latitude, and flag
+    sst_data_aggregated |>
+      dplyr::distinct(month,lon_bin,lat_bin) |>
+      # Only select pixels within analysis scope
+      dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
+                    lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2]) |>
+      
+      tidyr::crossing(gridded_time_effort_by_flag |>
+                        dplyr::distinct(flag)) |>
+      # Now add sst data
+      dplyr::left_join(sst_data_aggregated,
+                       by = c("month","lat_bin","lon_bin")) |>
+      # Now add effort data
+      dplyr::left_join(gridded_time_effort_by_flag |>
+                         collapse::fmutate(month = lubridate::ymd(month)),
+                        by = c("month","lat_bin","lon_bin","flag")) |>
+      dplyr::mutate(across(c(fishing_hours,fishing_kw_hours),~tidyr::replace_na(.,0))) |>
+      # Now add ONI data
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month") |>
-      dplyr::inner_join(pixels_eez_with_info,
-                        by = c("lon_bin","lat_bin")) |>
-      # Determine if each pixel is within analysis scope
-      dplyr::mutate(within_analysis_scope = ifelse(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
-                                                      lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2],
-                                                    TRUE,FALSE))
+      # Now add EEZ info
+      dplyr::left_join(pixels_eez_with_info,
+                        by = c("lon_bin","lat_bin")) 
   ),
   # Join datasets ----
   # Join together VIIRS, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_viirs,
-    gridded_viirs_detections |>
-      collapse::fmutate(month = lubridate::ymd(month)) |>
-      dplyr::inner_join(sst_data_aggregated,
-                        by = c("month","lat_bin","lon_bin")) |>
+    sst_data_aggregated |>
+      dplyr::distinct(month,lon_bin,lat_bin) |>
+      # Only select pixels within analysis scope
+      dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
+                      lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2])
+      # Now add sst data
+      dplyr::left_join(sst_data_aggregated,
+                       by = c("month","lat_bin","lon_bin")) |>
+      # Now add effort data
+      dplyr::left_join(gridded_viirs_detections |>
+                         collapse::fmutate(month = lubridate::ymd(month)),
+                       by = c("month","lat_bin","lon_bin")) |>
+      dplyr::mutate(across(c(viirs_detections),~tidyr::replace_na(.,0))) |>
+      # Now add ONI data
       dplyr::left_join(oceanic_nino_index_data, 
                        by = "month") |>
-      dplyr::inner_join(pixels_eez_with_info,
-                        by = c("lon_bin","lat_bin")) |>
-      # Determine if each pixel is within analysis scope
-      dplyr::mutate(within_analysis_scope = ifelse(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
-                                                     lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2],
-                                                   TRUE,FALSE))
+      # Now add EEZ info
+      dplyr::left_join(pixels_eez_with_info,
+                       by = c("lon_bin","lat_bin")) 
   ),
   # Summarize data for quarto notebook ----
   # AIS data

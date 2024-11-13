@@ -177,7 +177,7 @@ pull_oni_data <- function(){
     dplyr::mutate(month = stringr::str_remove_all(name,"V") |>
                     as.numeric() - 1,
                   month = lubridate::ymd(glue::glue("{year}-{month}-1"))) |>
-    dplyr::filter(month < lubridate::ymd("2024-08-01")) |>
+    dplyr::filter(month <= lubridate::ymd("2024-08-01")) |>
     dplyr::select(month,oceanic_nino_index = value)
 }
 
