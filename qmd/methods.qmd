@@ -156,7 +156,7 @@ For each `r spatial_resolution`x`r spatial_resolution` degree pixel, we determin
 
 One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month.  We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information  (by pixel).  Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
 
-Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.  
+Note that the joined dataset includes pixel-month-flags when have SST data but with no AIS-based fishing effort (i.e., the data are *not* conditional on there being some fishing effort for any given pixel-month-flag). These rows get a value of `0` for `fishing_hours` and `fishing_kw_hours`.
 
 The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_ais)`. The dataset has the following colums:
 
@@ -220,7 +220,7 @@ joined_dataset_ais_summary
 
 The other version of the final dataset we use for our analysis is a combination of the  gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information  (by pixel). Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.
 
-Note that the joined dataset does not contain pixel-months with zero VIIRS detections (i.e., the data are conditional on there being some detections for any given pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero VIIRS detection pixel-month rows.  
+Note that the joined dataset includes pixel-months when have SST data but with zero VIIRS detections (i.e., the data are *not* conditional on there being some detections for any given pixel-month). These rows get a value of `0` for `viirs_detections`.
 
 The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_viirs)`. The dataset has the following colums:
 
