@@ -206,7 +206,6 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
 * **nearest_eez_iso3**: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel's ISO3 sovereign country code (string)
 * **high_seas**: This is a logical indicating whether the pixel is within the high seas or not (logical)
-* **within_analysis_scope**: This is a logical for whether the pixel is within the analysis scope or note (logical)  
 
 Here we summarize these data (@tbl-summary-stats-joined-dataset-ais):
 
@@ -237,7 +236,6 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
 * **nearest_eez_iso3**: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel's ISO3 sovereign country code (string)
 * **high_seas**: This is a logical indicating whether the pixel is within the high seas or not (logical)
-* **within_analysis_scope**: This is a logical for whether the pixel is within the analysis scope or note (logical)  
 
 
 Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):

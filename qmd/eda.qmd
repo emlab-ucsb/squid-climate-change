@@ -202,7 +202,6 @@ joined_dataset_ais |>
 # Add country names to joined_dataset_ais
 # Filter to just analysis scope
 joined_dataset_ais <- joined_dataset_ais |>
-  dplyr::filter(within_analysis_scope) |>
   dplyr::mutate(country = countrycode::countrycode(flag,
                                                    origin = "iso3c",
                                                    destination = "country.name")) |>
@@ -358,12 +357,6 @@ purrr::map(top_flags_all_time$country,
 
 First we look at a time series of monthly VIIRS detections with the analysis scope (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
 
-```{r}
-# Only include inside analysis scope
-joined_dataset_viirs <- joined_dataset_viirs |>
-  dplyr::filter(within_analysis_scope)
-```
-
 
 ```{r}
 #| label: fig-viirs-time-series
@@ -468,7 +461,6 @@ We next compare the datasets by aggregating effort and detections across each mo
 #| fig-cap: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each month and pixel within the analysis bounding box. A linear regression line fit is shown in blue.
 
 gridded_time_effort <- joined_dataset_ais |>
-  dplyr::filter(within_analysis_scope) |>
   dplyr::group_by(month,lon_bin,lat_bin) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm=TRUE)) |>
   dplyr::ungroup()
