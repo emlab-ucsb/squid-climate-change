@@ -123,9 +123,7 @@ We filter to just those vessels where `best.best_vessel_class = squid_jigger`. A
 
 For each `r spatial_resolution`x`r spatial_resolution` degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php)(@marineregionsv12). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (`high_seas`). For pixels that are within an EEZ (`eez_id`), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (`pixel_sovereign1_iso3`); for pixels that are on the high seas, the EEZ id takes a value of `high_seas` and the country code also takes a value of `high_seas`. We next determine the distance in meters from the centroid of the pixel to the nearest 200nm EEZ/high seas boundary line (`distance_to_nearest_eez_m`); so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (`nearest_eez_id`) and ISO3 sovereign country code (`nearest_pixel_sovereign1_iso3`) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.
 
-### Joined datasets
-
-#### SST and AIS-based effort
+### Joined dataset: SST and AIS-based effort
 
 One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month.  We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information  (by pixel).  Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
 
@@ -138,34 +136,6 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
 * **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  
 * **flag**:  Fishing flag (character)  
-* **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sst_deg_c_sd**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sst_deg_c_min**: Minimum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sst_deg_c_max**: Maxiumum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
-* **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
-* **oceanic_nino_index**: Oceanic Niño Index (ONI) (numeric) 
-* **eez_id**: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of `high_seas` (string)
-* **distance_to_nearest_eez_m**: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)
-* **nearest_eez_id**: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)
-* **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
-* **nearest_eez_iso3**: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel's ISO3 sovereign country code (string)
-* **high_seas**: This is a logical indicating whether the pixel is within the high seas or not (logical)
-
-### Joined datasets
-
-#### SST and AIS-based effort
-
-One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month.  We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information  (by pixel).  Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
-
-Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.  
-
-The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_ais)`. The dataset has the following colums:
-
-* **month**: Month (first day of month) (date)  
-* **flag** : Fishing vessel flag (character)
-* **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
-* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  * **flag**:  Fishing flag (character)  
 * **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
 * **sst_deg_c_sd**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
 * **sst_deg_c_min**: Minimum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 

@@ -169,8 +169,7 @@ div.csl-indent {
   <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">1.1.4</span> AIS-based Fishing effort</a></li>
   <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.5</span> Vessel info</a></li>
   <li><a href="#eez-information" id="toc-eez-information" class="nav-link" data-scroll-target="#eez-information"><span class="header-section-number">1.1.6</span> EEZ information</a></li>
-  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</a></li>
-  <li><a href="#joined-datasets-1" id="toc-joined-datasets-1" class="nav-link" data-scroll-target="#joined-datasets-1"><span class="header-section-number">1.1.8</span> Joined datasets</a></li>
+  <li><a href="#joined-dataset-sst-and-ais-based-effort" id="toc-joined-dataset-sst-and-ais-based-effort" class="nav-link" data-scroll-target="#joined-dataset-sst-and-ais-based-effort"><span class="header-section-number">1.1.7</span> Joined dataset: SST and AIS-based effort</a></li>
   </ul></li>
   <li><a href="#geographic-analysis-scope" id="toc-geographic-analysis-scope" class="nav-link" data-scroll-target="#geographic-analysis-scope"><span class="header-section-number">1.2</span> Geographic analysis scope</a></li>
   </ul>
@@ -272,10 +271,8 @@ div.csl-indent {
 <h3 data-number="1.1.6" class="anchored" data-anchor-id="eez-information"><span class="header-section-number">1.1.6</span> EEZ information</h3>
 <p>For each 0.25x0.25 degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a>(<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (<code>high_seas</code>). For pixels that are within an EEZ (<code>eez_id</code>), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (<code>pixel_sovereign1_iso3</code>); for pixels that are on the high seas, the EEZ id takes a value of <code>high_seas</code> and the country code also takes a value of <code>high_seas</code>. We next determine the distance in meters from the centroid of the pixel to the nearest 200nm EEZ/high seas boundary line (<code>distance_to_nearest_eez_m</code>); so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (<code>nearest_eez_id</code>) and ISO3 sovereign country code (<code>nearest_pixel_sovereign1_iso3</code>) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.</p>
 </section>
-<section id="joined-datasets" class="level3" data-number="1.1.7">
-<h3 data-number="1.1.7" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</h3>
-<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.7.1">
-<h4 data-number="1.1.7.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.7.1</span> SST and AIS-based effort</h4>
+<section id="joined-dataset-sst-and-ais-based-effort" class="level3" data-number="1.1.7">
+<h3 data-number="1.1.7" class="anchored" data-anchor-id="joined-dataset-sst-and-ais-based-effort"><span class="header-section-number">1.1.7</span> Joined dataset: SST and AIS-based effort</h3>
 <p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset includes pixel-month-flags when have SST data but with no AIS-based fishing effort (i.e., the data are <em>not</em> conditional on there being some fishing effort for any given pixel-month-flag). These rows get a value of <code>0</code> for <code>fishing_hours</code> and <code>fishing_kw_hours</code>.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
@@ -288,39 +285,6 @@ div.csl-indent {
 <li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric)<br>
 </li>
 <li><strong>flag</strong>: Fishing flag (character)<br>
-</li>
-<li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>sst_deg_c_sd</strong>: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>sst_deg_c_min</strong>: Minimum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>sst_deg_c_max</strong>: Maxiumum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>fishing_hours</strong>: Total fishing effort across vessels (hours) (numeric)<br>
-</li>
-<li><strong>fishing_kw_hours</strong>: Total fishing effort across vessels (kW-hours) (numeric)<br>
-</li>
-<li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
-<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
-<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)</li>
-<li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
-<li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
-<li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
-<li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
-</ul>
-</section>
-</section>
-<section id="joined-datasets-1" class="level3" data-number="1.1.8">
-<h3 data-number="1.1.8" class="anchored" data-anchor-id="joined-datasets-1"><span class="header-section-number">1.1.8</span> Joined datasets</h3>
-<section id="sst-and-ais-based-effort-1" class="level4" data-number="1.1.8.1">
-<h4 data-number="1.1.8.1" class="anchored" data-anchor-id="sst-and-ais-based-effort-1"><span class="header-section-number">1.1.8.1</span> SST and AIS-based effort</h4>
-<p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
-<p>Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
-<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
-<ul>
-<li><strong>month</strong>: Month (first day of month) (date)<br>
-</li>
-<li><strong>flag</strong> : Fishing vessel flag (character)</li>
-<li><strong>lon_bin</strong>: 0.25 degree longitude bin (degrees) (numeric)<br>
-</li>
-<li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric) * <strong>flag</strong>: Fishing flag (character)<br>
 </li>
 <li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
 <li><strong>sst_deg_c_sd</strong>: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
@@ -731,7 +695,6 @@ div.csl-indent {
 </div>
 </div>
 </div>
-</section>
 </section>
 </section>
 <section id="geographic-analysis-scope" class="level2" data-number="1.2">
