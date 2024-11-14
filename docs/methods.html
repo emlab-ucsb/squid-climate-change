@@ -168,10 +168,9 @@ div.csl-indent {
   <li><a href="#oceanic-niño-index-oni" id="toc-oceanic-niño-index-oni" class="nav-link" data-scroll-target="#oceanic-niño-index-oni"><span class="header-section-number">1.1.3</span> Oceanic Niño Index (ONI)</a></li>
   <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">1.1.4</span> AIS-based Fishing effort</a></li>
   <li><a href="#vessel-info" id="toc-vessel-info" class="nav-link" data-scroll-target="#vessel-info"><span class="header-section-number">1.1.5</span> Vessel info</a></li>
-  <li><a href="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" id="toc-night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="nav-link" data-scroll-target="#night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.6</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</a></li>
-  <li><a href="#eez-information" id="toc-eez-information" class="nav-link" data-scroll-target="#eez-information"><span class="header-section-number">1.1.7</span> EEZ information</a></li>
-  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.8</span> Joined datasets</a></li>
-  <li><a href="#joined-datasets-1" id="toc-joined-datasets-1" class="nav-link" data-scroll-target="#joined-datasets-1"><span class="header-section-number">1.1.9</span> Joined datasets</a></li>
+  <li><a href="#eez-information" id="toc-eez-information" class="nav-link" data-scroll-target="#eez-information"><span class="header-section-number">1.1.6</span> EEZ information</a></li>
+  <li><a href="#joined-datasets" id="toc-joined-datasets" class="nav-link" data-scroll-target="#joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</a></li>
+  <li><a href="#joined-datasets-1" id="toc-joined-datasets-1" class="nav-link" data-scroll-target="#joined-datasets-1"><span class="header-section-number">1.1.8</span> Joined datasets</a></li>
   </ul></li>
   <li><a href="#geographic-analysis-scope" id="toc-geographic-analysis-scope" class="nav-link" data-scroll-target="#geographic-analysis-scope"><span class="header-section-number">1.2</span> Geographic analysis scope</a></li>
   </ul>
@@ -269,37 +268,14 @@ div.csl-indent {
 </ul>
 <p>We filter to just those vessels where <code>best.best_vessel_class = squid_jigger</code>. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., <code>activitiy.active_hours &lt; 24</code>) or are noisy/spoofing/offsetting vessels (i.e., <code>NOT activity.offsetting OR activity.overlap_hours_multinames &gt; 0.</code>) They are simply not reliable and will not provide good effort estimates. This leaves us with 1,561 squid vessels for our analysis.</p>
 </section>
-<section id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite" class="level3" data-number="1.1.6">
-<h3 data-number="1.1.6" class="anchored" data-anchor-id="night-light-detections-using-viirs-visible-infrared-imaging-radiometer-suite"><span class="header-section-number">1.1.6</span> Night light detections using VIIRS (Visible Infrared Imaging Radiometer Suite)</h3>
-<p>As an alternative to AIS-based fishing effort, we can use the <a href="https://www.earthdata.nasa.gov/sensors/viirs">NASA VIIRS (Visible Infrared Imaging Radiometer Suite)</a> data product to detect night light emissions from vessels. When the appropriate radiance threshold is applied, these can generally be assumed to represent light-luring squid vessels. Since use only the single most accurate VIIRS detection measurements each day, these can also be thought of as representing a fishing effort metric of vessel-days. We use the VIIRS data as an alternative fishing effort metric to AIS-based fishing effort since AIS is not used on all vessels, and since it can also be disabled on the vessels that do use it.</p>
-<p>We leverage the VIIRS boat detection (VBD) dataset developed by <span class="citation" data-cites="elvidge2015automatic">Elvidge et al. (<a href="references.html#ref-elvidge2015automatic" role="doc-biblioref">2015</a>)</span>. This dataset is available through GFW as the BigQuery table <code>pipe_viirs_production_v20180723.raw_vbd_global</code>. Variables of interest within this table include the following (descriptions are taken directly from the schema for <code>pipe_viirs_production_v20180723.raw_vbd_global</code>):</p>
-<ul>
-<li><code>id_Key</code>: Unique VBD ID.</li>
-<li><code>Date_Mscan</code>: VBD pixel date-time at mid-point of DNB scan reported in Universal Time</li>
-<li><code>Lat_DNB</code>: VBD pixel latitude from VIIRS DNB geolocation file</li>
-<li><code>Lon_DNB</code>: VBD pixel longitude from VIIRS DNB geolocation file</li>
-<li><code>Rad_DNB</code>: Radiance of VBD pixel in VIIRS DNB band<br>
-</li>
-<li><code>QF_Detect</code>: Integer quality flag for VBD pixel, yielding information about quality and type of detection</li>
-<li><code>SATZ_GDNBO</code>: Satellite zenith angle relative to the VBD pixel measured from the local vertical (from VIIRS GDNBO file)</li>
-<li><code>File_DNB</code>: VIIRS DNB HDF5 file</li>
-</ul>
-<p>We then apply similar processing as <span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span>, which includes the following steps:</p>
-<ul>
-<li>Reduce false detections near South America caused by the the South Atlantic Anomaly (an abundance of high-energy particles in the atmosphere).</li>
-<li>Use a same radiance threshold of 10 nW cm−2 sr−1 used by <span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span> (and established by <span class="citation" data-cites="park2020illuminating">Park et al. (<a href="references.html#ref-park2020illuminating" role="doc-biblioref">2020</a>)</span>) in order to filter detections to those likely engaged in in pelagic light-luring activity.</li>
-<li>To eliminate double-counting when there may be multiple satellite overpasses on a single night, only count detections from the overpass with the smallest satellite zenith angle (smaller zenith angles are more accurate)</li>
-</ul>
-<p>We then finally aggregate the total detections for each 0.25x0.25 degree pixel and month.</p>
-</section>
-<section id="eez-information" class="level3" data-number="1.1.7">
-<h3 data-number="1.1.7" class="anchored" data-anchor-id="eez-information"><span class="header-section-number">1.1.7</span> EEZ information</h3>
+<section id="eez-information" class="level3" data-number="1.1.6">
+<h3 data-number="1.1.6" class="anchored" data-anchor-id="eez-information"><span class="header-section-number">1.1.6</span> EEZ information</h3>
 <p>For each 0.25x0.25 degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a>(<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (<code>high_seas</code>). For pixels that are within an EEZ (<code>eez_id</code>), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (<code>pixel_sovereign1_iso3</code>); for pixels that are on the high seas, the EEZ id takes a value of <code>high_seas</code> and the country code also takes a value of <code>high_seas</code>. We next determine the distance in meters from the centroid of the pixel to the nearest 200nm EEZ/high seas boundary line (<code>distance_to_nearest_eez_m</code>); so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (<code>nearest_eez_id</code>) and ISO3 sovereign country code (<code>nearest_pixel_sovereign1_iso3</code>) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.</p>
 </section>
-<section id="joined-datasets" class="level3" data-number="1.1.8">
-<h3 data-number="1.1.8" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.8</span> Joined datasets</h3>
-<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.8.1">
-<h4 data-number="1.1.8.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.8.1</span> SST and AIS-based effort</h4>
+<section id="joined-datasets" class="level3" data-number="1.1.7">
+<h3 data-number="1.1.7" class="anchored" data-anchor-id="joined-datasets"><span class="header-section-number">1.1.7</span> Joined datasets</h3>
+<section id="sst-and-ais-based-effort" class="level4" data-number="1.1.7.1">
+<h4 data-number="1.1.7.1" class="anchored" data-anchor-id="sst-and-ais-based-effort"><span class="header-section-number">1.1.7.1</span> SST and AIS-based effort</h4>
 <p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset includes pixel-month-flags when have SST data but with no AIS-based fishing effort (i.e., the data are <em>not</em> conditional on there being some fishing effort for any given pixel-month-flag). These rows get a value of <code>0</code> for <code>fishing_hours</code> and <code>fishing_kw_hours</code>.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
@@ -331,10 +307,10 @@ div.csl-indent {
 </ul>
 </section>
 </section>
-<section id="joined-datasets-1" class="level3" data-number="1.1.9">
-<h3 data-number="1.1.9" class="anchored" data-anchor-id="joined-datasets-1"><span class="header-section-number">1.1.9</span> Joined datasets</h3>
-<section id="sst-and-ais-based-effort-1" class="level4" data-number="1.1.9.1">
-<h4 data-number="1.1.9.1" class="anchored" data-anchor-id="sst-and-ais-based-effort-1"><span class="header-section-number">1.1.9.1</span> SST and AIS-based effort</h4>
+<section id="joined-datasets-1" class="level3" data-number="1.1.8">
+<h3 data-number="1.1.8" class="anchored" data-anchor-id="joined-datasets-1"><span class="header-section-number">1.1.8</span> Joined datasets</h3>
+<section id="sst-and-ais-based-effort-1" class="level4" data-number="1.1.8.1">
+<h4 data-number="1.1.8.1" class="anchored" data-anchor-id="sst-and-ais-based-effort-1"><span class="header-section-number">1.1.8.1</span> SST and AIS-based effort</h4>
 <p>One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by 0.25x0.25 degree pixel and month. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.</p>
 <p>Note that the joined dataset does not contain flag-pixel-months with zero AIS-based fishing effort (i.e., the data are conditional on there being some effort for any given flag-pixel-month). If desired, once we have a spatial scope with which to restrict the analysis, we could construct a dataset for that bounding box that includes zero fishing effort flag-pixel-month rows.</p>
 <p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_ais)</code>. The dataset has the following colums:</p>
@@ -756,403 +732,6 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="sst-and-viirs-detections" class="level4" data-number="1.1.9.2">
-<h4 data-number="1.1.9.2" class="anchored" data-anchor-id="sst-and-viirs-detections"><span class="header-section-number">1.1.9.2</span> SST and VIIRS detections</h4>
-<p>The other version of the final dataset we use for our analysis is a combination of the gridded VIIRS detections data and gridded SST data, and the gridded VIIRS detections. We inner join the VIIRS detections and SST datasets by 0.25x0.25 degree pixel and month. Note that the VIIRS detection dataset only covers January 2017 through December 2021, so that is also the time range of this joined dataset. We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information (by pixel). Since the VIIRS dataset is not disaggregated by flag, each row in this joined dataset represents total detections in a given pixel and month, with the corresponding SST for that pixel and month.</p>
-<p>Note that the joined dataset includes pixel-months when have SST data but with zero VIIRS detections (i.e., the data are <em>not</em> conditional on there being some detections for any given pixel-month). These rows get a value of <code>0</code> for <code>viirs_detections</code>.</p>
-<p>The joined dataset can be loaded in R using the command <code>targets::tar_load(joined_dataset_viirs)</code>. The dataset has the following colums:</p>
-<ul>
-<li><strong>month</strong>: Month (first day of month) (date)<br>
-</li>
-<li><strong>lon_bin</strong>: 0.25 degree longitude bin (degrees) (numeric)<br>
-</li>
-<li><strong>lat_bin</strong>: 0.25 degree latitude bin (degrees) (numeric)</li>
-<li><strong>sst_deg_c_mean</strong>: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric)</li>
-<li><strong>viirs_detections</strong>: Night light detections from the VIIRS dataset (numeric)<br>
-</li>
-<li><strong>oceanic_nino_index</strong>: Oceanic Niño Index (ONI) (numeric)</li>
-<li><strong>eez_id</strong>: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of NA (string)</li>
-<li><strong>distance_to_nearest_eez_m</strong>: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)</li>
-<li><strong>nearest_eez_id</strong>: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)</li>
-<li><strong>eez_iso3</strong>: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of <code>high_seas</code> (string)</li>
-<li><strong>nearest_eez_iso3</strong>: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel’s ISO3 sovereign country code (string)</li>
-<li><strong>high_seas</strong>: This is a logical indicating whether the pixel is within the high seas or not (logical)</li>
-</ul>
-<p>Here we summarize these data (tbl-summary-stats-joined-dataset-VIIRS):</p>
-<div id="tbl-summary-stats-joined-dataset-VIIRS" class="cell tbl-parent quarto-layout-panel anchored">
-<div class="panel-caption table-caption">
-<p>Table&nbsp;1.2: Summary statistics for joined dataset that includes gridded SST and VIIRS detections</p>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div id="tbl-summary-stats-joined-dataset-VIIRS-1" class="quarto-layout-cell quarto-layout-cell-subref anchored" data-ref-parent="tbl-summary-stats-joined-dataset-VIIRS" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<caption>(a) Data summary</caption>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Name</td>
-<td style="text-align: left;">joined_dataset_viirs</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">4585256</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">15</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Key</td>
-<td style="text-align: left;">NULL</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">_______________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Column type frequency:</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">character</td>
-<td style="text-align: left;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">logical</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">numeric</td>
-<td style="text-align: left;">9</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">POSIXct</td>
-<td style="text-align: left;">1</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">________________________</td>
-<td style="text-align: left;"></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Group variables</td>
-<td style="text-align: left;">None</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<p><strong>Variable type: character</strong></p>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 22%">
-<col style="width: 13%">
-<col style="width: 18%">
-<col style="width: 5%">
-<col style="width: 5%">
-<col style="width: 8%">
-<col style="width: 12%">
-<col style="width: 14%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">min</th>
-<th style="text-align: right;">max</th>
-<th style="text-align: right;">empty</th>
-<th style="text-align: right;">n_unique</th>
-<th style="text-align: right;">whitespace</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">eez_id</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">14</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">nearest_eez_id</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">24</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">eez_iso3</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">11</td>
-<td style="text-align: right;">0</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">nearest_eez_iso3</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">0</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<p><strong>Variable type: logical</strong></p>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 14%">
-<col style="width: 20%">
-<col style="width: 7%">
-<col style="width: 37%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: left;">count</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">high_seas</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.79</td>
-<td style="text-align: left;">TRU: 3639272, FAL: 945984</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<p><strong>Variable type: numeric</strong></p>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 18%">
-<col style="width: 8%">
-<col style="width: 11%">
-<col style="width: 8%">
-<col style="width: 8%">
-<col style="width: 6%">
-<col style="width: 8%">
-<col style="width: 8%">
-<col style="width: 8%">
-<col style="width: 9%">
-<col style="width: 4%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: right;">mean</th>
-<th style="text-align: right;">sd</th>
-<th style="text-align: right;">p0</th>
-<th style="text-align: right;">p25</th>
-<th style="text-align: right;">p50</th>
-<th style="text-align: right;">p75</th>
-<th style="text-align: right;">p100</th>
-<th style="text-align: left;">hist</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">lon_bin</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-102.56</td>
-<td style="text-align: right;">16.08</td>
-<td style="text-align: right;">-130.00</td>
-<td style="text-align: right;">-116.50</td>
-<td style="text-align: right;">-102.75</td>
-<td style="text-align: right;">-89.00</td>
-<td style="text-align: right;">-70.25</td>
-<td style="text-align: left;">▇▇▇▇▅</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">lat_bin</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-15.81</td>
-<td style="text-align: right;">14.44</td>
-<td style="text-align: right;">-40.00</td>
-<td style="text-align: right;">-28.25</td>
-<td style="text-align: right;">-16.50</td>
-<td style="text-align: right;">-3.25</td>
-<td style="text-align: right;">10.00</td>
-<td style="text-align: left;">▇▇▇▇▇</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">sst_deg_c_mean</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">22.85</td>
-<td style="text-align: right;">4.19</td>
-<td style="text-align: right;">10.30</td>
-<td style="text-align: right;">19.96</td>
-<td style="text-align: right;">23.54</td>
-<td style="text-align: right;">26.27</td>
-<td style="text-align: right;">31.11</td>
-<td style="text-align: left;">▁▃▆▇▃</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">sst_deg_c_sd</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.39</td>
-<td style="text-align: right;">0.25</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.21</td>
-<td style="text-align: right;">0.32</td>
-<td style="text-align: right;">0.49</td>
-<td style="text-align: right;">3.37</td>
-<td style="text-align: left;">▇▁▁▁▁</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">sst_deg_c_min</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">22.17</td>
-<td style="text-align: right;">4.23</td>
-<td style="text-align: right;">8.96</td>
-<td style="text-align: right;">19.23</td>
-<td style="text-align: right;">22.83</td>
-<td style="text-align: right;">25.62</td>
-<td style="text-align: right;">30.60</td>
-<td style="text-align: left;">▁▃▆▇▃</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">sst_deg_c_max</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">23.52</td>
-<td style="text-align: right;">4.16</td>
-<td style="text-align: right;">10.57</td>
-<td style="text-align: right;">20.69</td>
-<td style="text-align: right;">24.23</td>
-<td style="text-align: right;">26.91</td>
-<td style="text-align: right;">32.31</td>
-<td style="text-align: left;">▁▃▆▇▃</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">viirs_detections</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.07</td>
-<td style="text-align: right;">2.22</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
-<td style="text-align: right;">675.00</td>
-<td style="text-align: left;">▇▁▁▁▁</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">oceanic_nino_index</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">-0.01</td>
-<td style="text-align: right;">0.85</td>
-<td style="text-align: right;">-1.27</td>
-<td style="text-align: right;">-0.73</td>
-<td style="text-align: right;">-0.11</td>
-<td style="text-align: right;">0.49</td>
-<td style="text-align: right;">2.48</td>
-<td style="text-align: left;">▇▆▆▁▁</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">nearest_eez_distance_m</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">592454.62</td>
-<td style="text-align: right;">442780.54</td>
-<td style="text-align: right;">44.19</td>
-<td style="text-align: right;">215031.75</td>
-<td style="text-align: right;">497222.36</td>
-<td style="text-align: right;">911947.29</td>
-<td style="text-align: right;">1769305.06</td>
-<td style="text-align: left;">▇▅▃▂▁</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<p><strong>Variable type: POSIXct</strong></p>
-</div>
-</div>
-<div class="quarto-layout-row quarto-layout-valign-top">
-<div class="quarto-layout-cell" style="flex-basis: 100.0%;justify-content: center;">
-<table class="table table-sm table-striped small">
-<colgroup>
-<col style="width: 17%">
-<col style="width: 12%">
-<col style="width: 17%">
-<col style="width: 13%">
-<col style="width: 13%">
-<col style="width: 13%">
-<col style="width: 11%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">skim_variable</th>
-<th style="text-align: right;">n_missing</th>
-<th style="text-align: right;">complete_rate</th>
-<th style="text-align: left;">min</th>
-<th style="text-align: left;">max</th>
-<th style="text-align: left;">median</th>
-<th style="text-align: right;">n_unique</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">month</td>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: left;">2016-01-01</td>
-<td style="text-align: left;">2024-08-01</td>
-<td style="text-align: left;">2020-04-16</td>
-<td style="text-align: right;">104</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</section>
 </section>
 </section>
 <section id="geographic-analysis-scope" class="level2" data-number="1.2">
@@ -1181,9 +760,6 @@ div.csl-indent {
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
-<div id="ref-elvidge2015automatic" class="csl-entry" role="listitem">
-Elvidge, CD, M Zhizhin, K Baugh, and FC Hsu. 2015. <span>“Automatic Boat Identification System for VIIRS Low Light Imaging Data, Remote Sens., 7, 3020–3036.”</span>
-</div>
 <div id="ref-huang2021improvements" class="csl-entry" role="listitem">
 Huang, Boyin, Chunying Liu, Viva Banzon, Eric Freeman, Garrett Graham, Bill Hankins, Tom Smith, and Huai-Min Zhang. 2021. <span>“Improvements of the Daily Optimum Interpolation Sea Surface Temperature (DOISST) Version 2.1.”</span> <em>Journal of Climate</em> 34 (8): 2923–39.
 </div>
@@ -1196,14 +772,8 @@ Iturbide, Maialen, Jesús Fernández, José Manuel Gutiérrez, Joaquı́n Bedia,
 <div id="ref-kroodsma2018tracking" class="csl-entry" role="listitem">
 Kroodsma, David A, Juan Mayorga, Timothy Hochberg, Nathan A Miller, Kristina Boerder, Francesco Ferretti, Alex Wilson, et al. 2018. <span>“Tracking the Global Footprint of Fisheries.”</span> <em>Science</em> 359 (6378): 904–8.
 </div>
-<div id="ref-park2020illuminating" class="csl-entry" role="listitem">
-Park, Jaeyoon, Jungsam Lee, Katherine Seto, Timothy Hochberg, Brian A Wong, Nathan A Miller, Kenji Takasaki, et al. 2020. <span>“Illuminating Dark Fishing Fleets in North Korea.”</span> <em>Science Advances</em> 6 (30): eabb1197.
-</div>
 <div id="ref-park2023tracking" class="csl-entry" role="listitem">
 Park, Jaeyoon, Jennifer Van Osdel, Joanna Turner, Courtney M Farthing, Nathan A Miller, Hannah L Linder, Guillermo Ortuño Crespo, Gabrielle Carmine, and David A Kroodsma. 2023. <span>“Tracking Elusive and Shifting Identities of the Global Fishing Fleet.”</span> <em>Science Advances</em> 9 (3): eabp8200.
-</div>
-<div id="ref-seto2023fishing" class="csl-entry" role="listitem">
-Seto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich, Masanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki Oozeki, and Osvaldo Urrutia S. 2023. <span>“Fishing Through the Cracks: The Unregulated Nature of Global Squid Fisheries.”</span> <em>Science Advances</em> 9 (10): eadd8125.
 </div>
 </div>
 </section>
