@@ -319,14 +319,16 @@ list(
   # Join together AIS-based effort, SST, ONI, and EEZ datasets
   tar_target(
     name = joined_dataset_ais,
-    # Get all unique combinations of month, longitude, and latitude, and flag
+    # Get all unique combinations of month, longitude, and latitude, and flags that operate within the study scope
     sst_data_aggregated |>
       dplyr::distinct(month,lon_bin,lat_bin) |>
       # Only select pixels within analysis scope
       dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
                     lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2]) |>
-      
       tidyr::crossing(gridded_time_effort_by_flag |>
+                        # Only select pixels within analysis scope
+                        dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
+                                        lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2]) |>
                         dplyr::distinct(flag)) |>
       # Now add sst data
       dplyr::left_join(sst_data_aggregated,

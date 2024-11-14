@@ -36,15 +36,17 @@ source("r/functions.R")
 
 ## Sea surface temperature (SST)
 
-We can look at a map of SST, using August 2024 as an example (@fig-sst-map).
+We can look at a map of SST, simply looking at the average monthly SST from across the entire January 2016 through August 2024 time series (@fig-sst-map).
 
 ```{r}
 #| label: fig-sst-map
-#| fig-cap: Map of mean sea surface temperature (SST) in August 2024, using 0.5x0.5 degree pixels.
+#| fig-cap: Map of mean sea surface temperature (SST) from across January 2016 through August 2024, using 0.5x0.5 degree pixels.
 
-ggplot() +
-  geom_tile(data = sst_data_aggregated |>
-              collapse::fsubset(month == lubridate::ymd("2024-08-01")),
+fig_sst_map <- ggplot() +
+  geom_tile(data = joined_dataset_ais |>
+  collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+                   by = ~ lon_bin + lat_bin,
+                   cols = "sst_deg_c_mean") ,
             aes(fill = sst_deg_c_mean,
                 x = lon_bin,
                 y = lat_bin)) +
@@ -67,15 +69,17 @@ ggplot() +
                      limits = analysis_scope_lon) +
   scale_y_continuous(expand = c(0, 0),
                      limits = analysis_scope_lat)
+
+fig_sst_map
 ```
 
-Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean global sea surface temperature over time (@fig-sst-time-series). This allows us to see both seasonal trends, and what appears to be a generally increasing trend over time.
+Aggregating across the mean sea surface temperatures of each pixel, we can calculate the mean sea surface temperature over time within our study scope (@fig-sst-time-series). This allows us to see both seasonal trends and larger trends over time.
 
 ```{r}
 #| label: fig-sst-time-series
-#| fig-cap: Time series of global monthly mean sea surface temperature (SST).
+#| fig-cap: Time series of monthly mean sea surface temperature (SST) within our study scope.
 
-sst_data_aggregated |>
+joined_dataset_ais |>
   collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
                    by = ~ month,
                    cols = "sst_deg_c_mean") |>
@@ -83,42 +87,12 @@ sst_data_aggregated |>
   geom_line() +
   theme_plot() +
   labs(x = "",
-       y = "Mean monthly global SST\n(degrees C)")
-```
-
-There is also some discussion about whether we could simply use the mean SST as our main explanatory variable, or if we need to bin the daily estimates which may allow us to capture non-linear and extreme effects that would not be capture by simply using the mean. We will need to have at least one version of the regression which only uses the mean, since we will not be able to use binned data in the predictions under the various climate change scenarios. However, there may be interest in including a binned version of the regression in the analysis.
-
-To see if this could help, we first do some exploratory data analysis to get a sense of how much day-to-day within-month variation there is in SST. For each month and pixel, we can calculate the difference between the maximum and minimum temperatures to show us the range of data (@fig-sst-range-by-pixel-month). Here we see that almost all pixel-months have a range of only 0, 1, or 2 degrees C. Very few pixel-months have a range greater than 5 degrees.
-
-```{r}
-#| label: fig-sst-range-by-pixel-month
-#| fig-cap: Looking across all pixels and months in the dataset, this shows the distribution of the temperature range (difference between the maximum and minimum daily temperatures in each pixel-month).
-
-sst_data_aggregated |>
-  ggplot() +
-  geom_histogram(aes(sst_deg_c_max - sst_deg_c_min)) +
-  theme_plot() +
-  labs(x = "Range (minimum to maximum) across days in each pixel-month (degrees C)",
-       y = "Count of pixel-months across our dataset")
-```
-
-
-For each pixel-month, we calculate the standard deviation in temperature across the days in that month (@fig-sst-sd-by-pixel-month). We can then look at the distributions of this standr deviation metric across all pixel-months. Most standard deviations are less than 1 degree, and almos all are less than 2.5 degrees.
-```{r}
-#| label: fig-sst-sd-by-pixel-month
-#| fig-cap: Looking across all pixels and months in the dataset, this shows the distribution of the temperature standard deviation (calculated across the daily temperatures in each pixel-month).
-
-sst_data_aggregated |>
-  ggplot() +
-  geom_histogram(aes(sst_deg_c_sd)) +
-  theme_plot() +
-  labs(x = "Standard deviation across days in each pixel-month (degrees C)",
-       y = "Count of pixel-months across our dataset")
+       y = "Mean monthly SST\n(degrees C)")
 ```
 
 ## Sea surface temperature (SST) forecasts under climate change
 
-Here we look at a map of mean sea surface temperature (SST) under the four different climate change scenarios, and the three different forecast horizons (@fig-sst-map-cc-scenarios).
+Here we look at a map of mean sea surface temperature (SST) under the four different climate change scenarios, and the three different forecast horizons, and focusing on the area of our analysis scope (@fig-sst-map-cc-scenarios).
 
 ```{r}
 #| label: fig-sst-map-cc-scenarios
@@ -154,13 +128,16 @@ ggplot() +
                      limits = analysis_scope_lat)
 ```
 
-Here we look at time series of climate change forecasts for global monthly average SST for each forecast time horizon and scenario (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time horizon further into the future, and for more extreme climate change scenarios.
+Here we look at time series of climate change forecasts for monthly average SST for each forecast time horizon and scenario, and focusing on our spatial analysis scope (@fig-sst-cc-forecasts-time-series). As expected, projected SST is higher for time horizon further into the future, and for more extreme climate change scenarios.
 
 ```{r}
 #| label: fig-sst-cc-forecasts-time-series
-#| fig-cap: Climate change forecasts for global monthly average SST for each forecast time horizon and scenario.
+#| fig-cap: Climate change forecasts for monthly average SST for each forecast time horizon and scenario, within our spatial analysis scope
 
 sst_cc_forecast_data |>
+  # Only select pixels within analysis scope
+  dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
+                  lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2]) |>
   dplyr::group_by(time_period,scenario,month_number) |>
   dplyr::summarize(sst_deg_c_mean = mean(sst_deg_c_mean)) |>
   dplyr::ungroup() |>
@@ -221,18 +198,23 @@ joined_dataset_ais <- joined_dataset_ais  |>
   dplyr::left_join(top_flags_all_time |>
                      dplyr::select(country,top), by = "country") 
 ```
-Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (@fig-effort-bar-plot). China dominates the fishing effort, with Taiwan a distant second.
+Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (@fig-effort-bar-plot). China dominates the fishing effort with over 97% of all effort, with Taiwan a distant second at barely 1%.
 
 ```{r}
 #| label: fig-effort-bar-plot
-#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope.
+#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes.
 
 joined_dataset_ais|>
   dplyr::group_by(country) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm = TRUE)) |>
   dplyr::ungroup() |>
+  dplyr::mutate(percent_total = scales::percent(fishing_kw_hours/sum(fishing_kw_hours,na.rm = TRUE),
+                                                accuracy = .01)) |>
+  dplyr::filter(fishing_kw_hours > 0) |>
   ggplot(aes(x = fishing_kw_hours, y= reorder(country,fishing_kw_hours))) +
   geom_bar(stat = "identity")+
+  geom_label(aes(label = percent_total,
+                 x = fishing_kw_hours+.2e9)) +
   labs(x = "Total fishing effort from 2016 through August 2024 (kW-hours)",
        y = "")+
   scale_x_continuous(labels = scales::unit_format(unit = "B", scale = 1e-9)) +
@@ -253,7 +235,7 @@ joined_dataset_ais|>
   dplyr::group_by(month,
                   country)  |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
-  dplyr::ungroup() |>
+  dplyr::ungroup()  |>
   ggplot(aes(x = month, y= fishing_kw_hours, fill = country)) +
   geom_line() +
   labs(x = "",
@@ -265,18 +247,51 @@ joined_dataset_ais|>
              scales = "free_y")
 ```
 
+Next we can look at the temporal trend of total fishing effort alongside the temporal trend of SST (@fig-effort-sst-time-series).
+
+```{r}
+#| label: fig-effort-sst-time-series
+#| fig-cap: Monthly trends of of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort. Both time series include data from across the entire January 2016 through August 2024 time period, and from only within our spatial analysis scope.
+
+fig_top <- joined_dataset_ais|>
+  collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
+                   by = ~ month,
+                   cols = "sst_deg_c_mean") |>
+  ggplot(aes(x = month, y= sst_deg_c_mean)) +
+  geom_line() +
+  labs(x = "",
+       y = "Monthly mean SST\n(degrees C)") +
+  theme_plot()
+
+fig_bottom <- joined_dataset_ais|> 
+  dplyr::group_by(month)  |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+  dplyr::ungroup()  |>
+  ggplot(aes(x = month, y= fishing_kw_hours)) +
+  geom_line() +
+  labs(x = "",
+       y = "Monthly total fishing effort\n(kW-hours)")+
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6),
+                     limits = c(0,NA)) +
+  theme_plot()
+
+cowplot::plot_grid(fig_top, fig_bottom, ncol = 1,
+                   labels = c("A","B"))
+```
+
 Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).
 
 ```{r}
 #| label: fig-effort-map
-#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow.
+#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow.
 
-ggplot()  +
+fig_effort_map <- ggplot()  +
   geom_tile(data = joined_dataset_ais |>
               dplyr::group_by(lat_bin,
                               lon_bin) |>
               dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
-              dplyr::ungroup(),
+              dplyr::ungroup()|>
+              dplyr::filter(fishing_kw_hours > 0),
             aes(fill = fishing_kw_hours,
                 x = lon_bin,
                 y = lat_bin)) +
@@ -306,15 +321,31 @@ ggplot()  +
                      limits = analysis_scope_lon) +
   scale_y_continuous(expand = c(0, 0),
                      limits = analysis_scope_lat)
+
+fig_effort_map
 ```
 
-We can also look at these maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown.
+We can also look at this map of total fishing effort alongside a map of mean SST (@fig-effort-sst-map).
+
+```{r}
+#| label: fig-effort-sst-map
+#| fig-cap: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through August 2024 time period, using 0.5x0.5 degree pixels.
+
+
+cowplot::plot_grid(fig_sst_map,
+                   fig_effort_map,
+                   ncol = 2,
+                   labels = c("A","B"))
+```
+
+We can also look at these effort maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown.
 
 ```{r}
 purrr::map(top_flags_all_time$country,
            function(country_tmp){
              ggplot()  +
-               geom_tile(data = joined_dataset_ais |>
+               geom_tile(data = joined_dataset_ais|>
+                           dplyr::filter(fishing_kw_hours > 0)  |>
                            dplyr::filter(country == country_tmp) |>
                            dplyr::group_by(lat_bin,
                                            lon_bin) |>
@@ -353,133 +384,6 @@ purrr::map(top_flags_all_time$country,
            })
 ```
 
-## VIIRS detections
-
-First we look at a time series of monthly VIIRS detections with the analysis scope (@fig-viirs-time-series). These can generally be thought of as representing light-luring squid vessels. Again we can see a clear seasonal pattern.
-
-
-```{r}
-#| label: fig-viirs-time-series
-#| fig-cap: Monthly VIIRS detections within the analysis scope.
-
-joined_dataset_viirs|>
-  dplyr::group_by(month) |>
-  dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
-  dplyr::ungroup() |>
-  ggplot(aes(x = month, y= viirs_detections)) +
-  geom_line() +
-  labs(x = "",
-       y = "Monthly VIIRS detections")+
-  theme_plot() +
-  scale_y_continuous(labels = scales::comma,
-                     limits = c(0,NA))
-```
-
-Next we can look at at a map of these VIIRS detections (@fig-viirs-map), aggregating across time for each pixel across the entire processed time series (January 2017 through December 2021). The general spatial patterns seem to be consistent with those seen using AIS-based fishing effort data (@fig-effort-map).
-
-```{r}
-#| label: fig-viirs-map
-#| fig-cap: Map of VIIRS detections, aggregating across time for each pixel.EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow.
-
-ggplot()  +
-  geom_tile(data = joined_dataset_viirs |>
-              dplyr::group_by(lat_bin,
-                              lon_bin) |>
-              dplyr::summarize(viirs_detections = sum(viirs_detections)) |>
-              dplyr::ungroup(),
-            aes(fill = viirs_detections,
-                x = lon_bin,
-                y = lat_bin)) +
-  geom_sf(data = eez,
-          fill = NA,
-          color = "orange") +
-  geom_sf(data = sprfmo,
-          fill = NA,
-          color = "yellow") +
-  geom_sf(data = land,
-          color = "#374a6d",
-          fill = "#374a6d") +
-  scale_fill_viridis_c("VIIRS detections",
-                       trans = "log10",
-                       option = "mako",
-                       na.value = "black") +
-  labs(x = '',
-       y= '') +
-  theme_map() +
-  guides(fill = guide_colorbar(title.position = "top",
-                               title.hjust = 0.5,
-                               frame.colour = "black",
-                               ticks.colour = "black",
-                               barwidth = unit(12, "cm"),
-                               barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0),
-                     limits = analysis_scope_lon) +
-  scale_y_continuous(expand = c(0, 0),
-                     limits = analysis_scope_lat)
-```
-
-## Comparing AIS-based fishing effort and VIIRS detections
-
-We first compare AIS-based fishing effort and VIIRS detections by looking at a time series of global total effort and detections (and only looking at those months that appear in both datasets) (@fig-ais-viirs-comparison-time-series).The datasets appear to track each other fairly well over time.
-
-```{r}
-#| label: fig-ais-viirs-comparison-time-series
-#| fig-cap: Comparison of monthly time series of AIS-based fishing effort and VIIRS detections.
-
-monthly_ais_global <- joined_dataset_ais|>
-  
-  dplyr::inner_join(joined_dataset_viirs |>
-                      dplyr::distinct(month),
-                    by="month") |>
-  dplyr::group_by(month) |>
-  dplyr::summarize(value = sum(fishing_kw_hours)) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(metric = "AIS-based fishing effort (kW-hours)")
-
-monthly_viirs_global <- joined_dataset_viirs|>
-  dplyr::group_by(month) |>
-  dplyr::summarize(value = sum(viirs_detections)) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(metric = "VIIRS detections")
-
-monthly_ais_global |>
-  dplyr::bind_rows(monthly_viirs_global) |>
-  ggplot(aes(x = month, y= value)) +
-  geom_line() +
-  labs(x = "",
-       y = "")+
-  theme_plot() +
-  scale_y_continuous(labels = scales::comma,
-                     limits = c(0,NA)) +
-  facet_wrap(metric~.,ncol=1,scales="free_y")
-```
-
-We next compare the datasets by aggregating effort and detections across each month and pixel, and filtering to just those pixels within the analysis bounding box. There appears to be a generally strong relationship between the two.
-
-```{r}
-#| label: fig-ais-viirs-comparison
-#| fig-cap: Comparison of AIS-based fishing effort (x-axis) and VIIRS detections (y-axis) for each month and pixel within the analysis bounding box. A linear regression line fit is shown in blue.
-
-gridded_time_effort <- joined_dataset_ais |>
-  dplyr::group_by(month,lon_bin,lat_bin) |>
-  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm=TRUE)) |>
-  dplyr::ungroup()
-
-ais_viirs_comparison_data <- gridded_time_effort |>
-  dplyr::inner_join(joined_dataset_viirs,
-                    by=c("month","lon_bin","lat_bin")) 
-
-ais_viirs_comparison_data |>
-  ggplot(aes(x = fishing_kw_hours,
-             y = viirs_detections)) +
-  geom_point() +
-  theme_plot() +
-  geom_smooth(method = "lm") +
-  labs(x = "AIS-based fishing effort (kW-hours)",
-       y = "VIIRS detections") +
-  scale_x_continuous(labels = scales::comma) +
-  scale_y_continuous(labels = scales::comma)
-```
 # Distance to nearest EEZ
 
 Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. For pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas.
