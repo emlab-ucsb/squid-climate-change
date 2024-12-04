@@ -16,11 +16,8 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
 
 library(ggplot2)
 
-targets::tar_load(c("sst_data_aggregated",
-                    "squid_vessel_list",
+targets::tar_load(c("squid_vessel_list",
                     "joined_dataset_ais",
-                    "joined_dataset_viirs",
-                    "oceanic_nino_index_data",
                     "pixels_eez_with_info",
                     "eez_boundaries_high_seas",
                     "sst_cc_forecast_data",
@@ -277,6 +274,106 @@ fig_bottom <- joined_dataset_ais|>
 
 cowplot::plot_grid(fig_top, fig_bottom, ncol = 1,
                    labels = c("A","B"))
+```
+
+We can also aggregate the effort data by calculating the total effort for each month in each year, allowing us to look at the historic seasonal variation of total effort. We can do so for two regions: the "equatorial" region (latitude -10 to 10) and the "sub-equatorial" region (latitude -40 to -10) (@fig-sst-monthly-trends-by-region-equatorial, @fig-sst-monthly-trends-by-region-subequatorial).
+
+```{r}
+#| label: fig-effort-monthly-trends-by-region-equatorial
+#| fig-cap: Historic seasonal variation of monthly total fishing effort for the equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-width: 7
+#| fig-height: 2.5
+
+historic_monthly_variation_effort_by_region <- joined_dataset_ais |>
+  dplyr::filter(fishing_kw_hours > 0) |>
+  dplyr::mutate(year = lubridate::year(month),
+                month = lubridate::month(month)) |>
+  dplyr::mutate(region = ifelse(lat_bin >= -10, "Equatorial (latitude -10 to 10)",
+                                "Sub-equatorial (latitude -40 to -10)"))  |>
+  dplyr::group_by(year, month, region) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+  dplyr::ungroup() 
+
+historic_monthly_variation_effort_by_region |> 
+  dplyr::filter(region == "Equatorial (latitude -10 to 10)") |>
+  ggplot(aes(x = month, y = fishing_kw_hours, group = month)) +
+  geom_boxplot() +
+  theme_plot() +
+  labs(x = "Month",
+       y = "Fishing\neffort  \n(kW-hours)",
+       title = "Historic seasonal variation of monthly total fishing effort\nin the equatorial region (latitude -10 to 10)") +
+  scale_x_continuous(breaks = 1:12) +
+  theme(panel.grid.minor.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = 0.65)) +
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6))
+```
+
+```{r}
+#| label: fig-effort-monthly-trends-by-region-subequatorial
+#| fig-cap: Historic seasonal variation of monthly total fishing effort for the sub-equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-width: 7
+#| fig-height: 2.5
+historic_monthly_variation_effort_by_region |> 
+  dplyr::filter(region == "Sub-equatorial (latitude -40 to -10)") |>
+  ggplot(aes(x = month, y = fishing_kw_hours, group = month)) +
+  geom_boxplot() +
+  theme_plot() +
+  labs(x = "Month",
+       y = "Fishing\neffort  \n(kW-hours)",
+       title = "Historic seasonal variation of monthly total fishing effort\nin the subequatorial region (latitude -40 to -10)") +
+  scale_x_continuous(breaks = 1:12) +
+  theme(panel.grid.minor.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = 0.65)) +
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6))
+```
+
+We can also aggregate the SST data by calculating the mean SST for each month in each year, allowing us to look at the historic seasonal variation of monthly mean sea surface temperature. We can do so for two regions: the "equatorial" region (latitude -10 to 10) and the "sub-equatorial" region (latitude -40 to -10) (@fig-sst-monthly-trends-by-region-equatorial, @fig-sst-monthly-trends-by-region-subequatorial).
+
+```{r}
+#| label: fig-sst-monthly-trends-by-region-equatorial
+#| fig-cap: Historic seasonal variation of monthly mean sea surface temperature (SST) for the equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-width: 7
+#| fig-height: 2.5
+
+historic_monthly_variation_sst_by_region <- joined_dataset_ais |>
+  dplyr::distinct(month,lon_bin,lat_bin,sst_deg_c_mean) |>
+  dplyr::mutate(region = ifelse(lat_bin >= -10, "Equatorial (latitude -10 to 10)",
+                                "Sub-equatorial (latitude -40 to -10)")) |>
+  dplyr::mutate(year = lubridate::year(month),
+                month = lubridate::month(month)) |>
+  dplyr::group_by(year, month,region) |>
+  dplyr::summarize(sst_deg_c_mean = mean(sst_deg_c_mean)) |>
+  dplyr::ungroup() 
+
+historic_monthly_variation_sst_by_region |> 
+  dplyr::filter(region == "Equatorial (latitude -10 to 10)")|> 
+  ggplot(aes(x = month, y = sst_deg_c_mean, group = month)) +
+  geom_boxplot() +
+  theme_plot() +
+  labs(x = "Month",
+       y = "Mean SST  \n(°C)",
+       title = "Historic seasonal variation of monthly mean SST\nin the equatorial region (latitude -10 to 10)") +
+  scale_x_continuous(breaks = 1:12) +
+  theme(panel.grid.minor.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = 0.5))
+```
+
+```{r}
+#| label: fig-sst-monthly-trends-by-region-subequatorial
+#| fig-cap: Historic seasonal variation of monthly mean sea surface temperature (SST) for the sub-equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-width: 7
+#| fig-height: 2.5
+historic_monthly_variation_sst_by_region |> 
+  dplyr::filter(region == "Sub-equatorial (latitude -40 to -10)")|> 
+  ggplot(aes(x = month, y = sst_deg_c_mean, group = month)) +
+  geom_boxplot() +
+  theme_plot() +
+  labs(x = "Month",
+       y = "Mean SST  \n(°C)",
+       title = "Historic seasonal variation of monthly mean SST\nin the sub-equatorial region (latitude -40 to =10)") +
+  scale_x_continuous(breaks = 1:12) +
+  theme(panel.grid.minor.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = 0.5))
 ```
 
 Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php) are shown in orange (@marineregionsv12).

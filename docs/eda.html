@@ -289,24 +289,66 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>Next we can look at at a map of AIS-based squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.9</span></a>), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
+<p>We can also aggregate the effort data by calculating the total effort for each month in each year, allowing us to look at the historic seasonal variation of total effort. We can do so for two regions: the “equatorial” region (latitude -10 to 10) and the “sub-equatorial” region (latitude -40 to -10) (<a href="#fig-sst-monthly-trends-by-region-equatorial">Figure&nbsp;<span>2.11</span></a>, <a href="#fig-sst-monthly-trends-by-region-subequatorial">Figure&nbsp;<span>2.12</span></a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-monthly-trends-by-region-equatorial" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-effort-monthly-trends-by-region-equatorial-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.9: Historic seasonal variation of monthly total fishing effort for the equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-monthly-trends-by-region-subequatorial" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-effort-monthly-trends-by-region-subequatorial-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.10: Historic seasonal variation of monthly total fishing effort for the sub-equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>We can also aggregate the SST data by calculating the mean SST for each month in each year, allowing us to look at the historic seasonal variation of monthly mean sea surface temperature. We can do so for two regions: the “equatorial” region (latitude -10 to 10) and the “sub-equatorial” region (latitude -40 to -10) (<a href="#fig-sst-monthly-trends-by-region-equatorial">Figure&nbsp;<span>2.11</span></a>, <a href="#fig-sst-monthly-trends-by-region-subequatorial">Figure&nbsp;<span>2.12</span></a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-sst-monthly-trends-by-region-equatorial" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-sst-monthly-trends-by-region-equatorial-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.11: Historic seasonal variation of monthly mean sea surface temperature (SST) for the equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-sst-monthly-trends-by-region-subequatorial" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-sst-monthly-trends-by-region-subequatorial-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.12: Historic seasonal variation of monthly mean sea surface temperature (SST) for the sub-equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Next we can look at at a map of AIS-based squid fishing effort (<a href="#fig-effort-map">Figure&nbsp;<span>2.13</span></a>), aggregating effort across effort and flags and time for each pixel across the entire processed time series. EEZ boundaries from <a href="https://www.marineregions.org/downloads.php">Marine Regions v12</a> are shown in orange (<span class="citation" data-cites="marineregionsv12">Institute (<a href="references.html#ref-marineregionsv12" role="doc-biblioref">2023</a>)</span>).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-effort-map-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.9: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.13: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>We can also look at this map of total fishing effort alongside a map of mean SST (<a href="#fig-effort-sst-map">Figure&nbsp;<span>2.10</span></a>).</p>
+<p>We can also look at this map of total fishing effort alongside a map of mean SST (<a href="#fig-effort-sst-map">Figure&nbsp;<span>2.14</span></a>).</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-sst-map" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-effort-sst-map-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.10: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through August 2024 time period, using 0.5x0.5 degree pixels.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.14: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through August 2024 time period, using 0.5x0.5 degree pixels.</figcaption>
 </figure>
 </div>
 </div>
@@ -317,35 +359,35 @@ div.csl-indent {
 <pre><code>[[1]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[2]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-17-2.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[3]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-17-3.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[4]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-13-4.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-17-4.png" class="img-fluid" width="672"></p>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 [[5]]</code></pre>
 </div>
 <div class="cell-output-display">
-<p><img src="eda_files/figure-html/unnamed-chunk-13-5.png" class="img-fluid" width="672"></p>
+<p><img src="eda_files/figure-html/unnamed-chunk-17-5.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
