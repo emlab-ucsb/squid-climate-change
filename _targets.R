@@ -351,6 +351,10 @@ list(
     name = joined_dataset_viirs,
     sst_data_aggregated |>
       dplyr::distinct(month,lon_bin,lat_bin) |>
+      # Limit this to only those months for which we have VIIRS
+      dplyr::inner_join(gridded_viirs_detections |>
+                          collapse::fmutate(month = lubridate::ymd(month)) |>
+                          dplyr::distinct(month), by = "month") |>
       # Only select pixels within analysis scope
       dplyr::filter(lon_bin >= analysis_scope_lon[1] & lon_bin <= analysis_scope_lon[2] &
                       lat_bin >= analysis_scope_lat[1] & lat_bin <= analysis_scope_lat[2]) |>
