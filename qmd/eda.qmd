@@ -370,7 +370,7 @@ historic_monthly_variation_sst_by_region |>
   theme_plot() +
   labs(x = "Month",
        y = "Mean SST  \n(°C)",
-       title = "Historic seasonal variation of monthly mean SST\nin the sub-equatorial region (latitude -40 to =10)") +
+       title = "Historic seasonal variation of monthly mean SST\nin the sub-equatorial region (latitude -40 to -10)") +
   scale_x_continuous(breaks = 1:12) +
   theme(panel.grid.minor.x = element_blank(),
         axis.title.y = element_text(angle = 0, vjust = 0.5))
