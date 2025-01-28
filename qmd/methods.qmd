@@ -4,7 +4,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-# Methods {#sec-methods}
+# Dataset descriptions {#sec-methods}
 
 ```{r, echo = FALSE, results = FALSE, message = FALSE, warning = FALSE}
 #| label: set-chunk-options
@@ -29,13 +29,11 @@ targets::tar_load(c("ais_date_start",
 source("r/functions.R")
 ```
 
-## Data sources
+## Sea surface temperature (SST)
 
-### Sea surface temperature (SST)
+Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. Keeping the full 0.25x0.25 degree spatial resolution, we temporally aggregate the daily data to monthly resolution by calculating the mean SST for each pixel from across the days in each month.
 
-Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. Keeping the full 0.25x0.25 degree spatial resolution, we temporally aggregate the daily data to monthly resolution by calculating the mean, standard deviation, minimum, and maximum from across the days in each month.
-
-### Sea surface temperature (SST) forecasts under climate change
+## Sea surface temperature (SST) forecasts under climate change
 
 We use SST forecasts under climate change from the [IPCC WGI Interactive Atlas](https://interactive-atlas.ipcc.ch/regional-information#eyJ0eXBlIjoiQVRMQVMiLCJjb21tb25zIjp7ImxhdCI6OTc3MiwibG5nIjo0MDA2OTIsInpvb20iOjQsInByb2oiOiJFUFNHOjU0MDMwIiwibW9kZSI6ImNvbXBsZXRlX2F0bGFzIn0sInByaW1hcnkiOnsic2NlbmFyaW8iOiJzc3A1ODUiLCJwZXJpb2QiOiJmYXIiLCJzZWFzb24iOiJ5ZWFyIiwiZGF0YXNldCI6IkNNSVA2IiwidmFyaWFibGUiOiJ0b3MiLCJ2YWx1ZVR5cGUiOiJWQUxVRSIsImhhdGNoaW5nIjoiU0lNUExFIiwicmVnaW9uU2V0IjoiYXI2IiwiYmFzZWxpbmUiOiJwcmVJbmR1c3RyaWFsIiwicmVnaW9uc1NlbGVjdGVkIjpbXX0sInBsb3QiOnsiYWN0aXZlVGFiIjoicGx1bWUiLCJtYXNrIjoibm9uZSIsInNjYXR0ZXJZTWFnIjpudWxsLCJzY2F0dGVyWVZhciI6bnVsbCwic2hvd2luZyI6ZmFsc2V9fQ==)(@iturbide2021repository). The Atlas provides a platform for accessing ensemble forecasts from CMIP6 (Coupled Model Intercomparison Project Phase 6), which represent the latest global climate forecasts available and served as the basis of the [6th IPCC Assessment Report](https://www.ipcc.ch/assessment-report/ar6/). 
 
@@ -61,7 +59,7 @@ This gives us a total of 12 different forecasts to analyze. The dataset can be l
 * **scenario**: Climate change scenario (character)
 * **month_number**: Month number (numeric)
 
-### Oceanic Niño Index (ONI)
+## Oceanic Niño Index (ONI)
 
 According to [NOAA](https://www.climate.gov/news-features/understanding-climate/climate-variability-oceanic-nino-index):
 
@@ -71,7 +69,7 @@ According to [NOAA](https://www.climate.gov/news-features/understanding-climate/
 
 We downloaded these data from `https://psl.noaa.gov/data/correlation/oni.data` on September 27, 2024.
 
-### AIS-based Fishing effort
+## AIS-based fishing effort
 
 We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (@kroodsma2018tracking). We use the V3 pipeline table `pipe_ais_v3_published.messages`. Variables of interest within this table include the following
 (descriptions are taken directly from the schema for
@@ -90,7 +88,7 @@ and must not have an `overlapping_and_short` boolean). We filter to just those m
 
 We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially (by `r spatial_resolution`x`r spatial_resolution` degree pixels, which are roughly `r spatial_resolution*111`km x `r spatial_resolution*111`km at the equator), temporally by `r stringr::str_to_lower(temporal_resolution)`, and by flag. We currently process data from `r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`.
 
-### Vessel info
+## AIS-based vessel info
 
 Vessel characteristics data processed are by Global Fishing Watch (@park2023tracking). We use the V3 pipeline table `pipe_ais_v3_published.vi_ssvid_v20240601`. Variables of interest within this table include the following
 (descriptions are taken directly from the schema for
@@ -119,15 +117,9 @@ Vessel characteristics data processed are by Global Fishing Watch (@park2023trac
     
 We filter to just those vessels where `best.best_vessel_class = squid_jigger`. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activitiy.active_hours < 24`) or are noisy/spoofing/offsetting vessels (i.e.,  `NOT activity.offsetting OR activity.overlap_hours_multinames > 0.`) They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels for our analysis.
 
-### EEZ information
-
-For each `r spatial_resolution`x`r spatial_resolution` degree pixel, we determine a number of EEZ features. To do so, we leverage the EEZ shapefiles and boundaries from [Marine Regions v12](https://www.marineregions.org/downloads.php)(@marineregionsv12). We first determine whether the centroid of the pixel is on the high seas or within an EEZ (`high_seas`). For pixels that are within an EEZ (`eez_id`), we determine its Marine Regions EEZ ID and its ISO3 sovereign country code (`pixel_sovereign1_iso3`); for pixels that are on the high seas, the EEZ id takes a value of `high_seas` and the country code also takes a value of `high_seas`. We next determine the distance in meters from the centroid of the pixel to the nearest 200nm EEZ/high seas boundary line (`distance_to_nearest_eez_m`); so for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high sea. For high seas pixels, we finally determine the country EEZ ID (`nearest_eez_id`) and ISO3 sovereign country code (`nearest_pixel_sovereign1_iso3`) of this nearest EEZ; for pixels that are within an EEZ, this both take the values of the EEZ the pixel is within. Note that for our analysis, we exclude the Anarctica EEZ and treat it as the high seas; we also exclude any joint claim or disputed EEZs.
-
 ### Joined dataset: SST and AIS-based effort
 
-One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month.  We finally left join the Oceanic Niño Index (ONI) monthly data (by month) and the EEZ information  (by pixel).  Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
-
-Note that the joined dataset includes pixel-month-flags when have SST data but with no AIS-based fishing effort (i.e., the data are *not* conditional on there being some fishing effort for any given pixel-month-flag). These rows get a value of `0` for `fishing_hours` and `fishing_kw_hours`.
+One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month.   Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
 
 The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_ais)`. The dataset has the following colums:
 
@@ -137,19 +129,8 @@ The joined dataset can be loaded in R using the command `targets::tar_load(joine
 * **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  
 * **flag**:  Fishing flag (character)  
 * **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sst_deg_c_sd**: Standard deviation of sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sst_deg_c_min**: Minimum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **sst_deg_c_max**: Maxiumum sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
 * **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
 * **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
-* **oceanic_nino_index**: Oceanic Niño Index (ONI) (numeric) 
-* **eez_id**: Marine regions EEZ ID of the pixel; for high seas pixels, this takes a value of `high_seas` (string)
-* **distance_to_nearest_eez_m**: This is the distance to the nearest 200nm EEZ/high seas boundary (for pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas) (meters) (numeric)
-* **nearest_eez_id**: For high seas pixels, this is the Marine regions EEZ ID of the nearest EEZ pixel; for pixels within an EEZ, this is the Marine regions EEZ ID of the pixel (string)
-* **eez_iso3**: For pixels within an EEZ, this is the ISO3 sovereign country code for the pixel; for high seas pixels, this takes a value of `high_seas` (string)
-* **nearest_eez_iso3**: For high seas pixels, this is the ISO3 sovereign country code for the nearest EEZ pixel; for pixels within an EEZ, this the pixel's ISO3 sovereign country code (string)
-* **high_seas**: This is a logical indicating whether the pixel is within the high seas or not (logical)
-
 Here we summarize these data (@tbl-summary-stats-joined-dataset-ais):
 
 ```{r}

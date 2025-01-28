@@ -12,7 +12,6 @@ book:
     - index.qmd
     - methods.qmd
     - eda.qmd
-    - results.qmd
     - references.qmd
   downloads: [pdf]
 

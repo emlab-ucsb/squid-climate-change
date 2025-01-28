@@ -21,26 +21,7 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -130,19 +111,13 @@ div.csl-indent {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./methods.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Dataset descriptions</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./eda.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Exploratory data analysis</span></span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./results.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -161,12 +136,7 @@ div.csl-indent {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a>
-  <ul class="collapse">
-  <li><a href="#background-and-motivation" id="toc-background-and-motivation" class="nav-link" data-scroll-target="#background-and-motivation">Background and Motivation</a></li>
-  <li><a href="#approach" id="toc-approach" class="nav-link" data-scroll-target="#approach">Approach</a></li>
-  <li><a href="#deliverables" id="toc-deliverables" class="nav-link" data-scroll-target="#deliverables">Deliverables</a></li>
-  </ul></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   </ul>
 </nav>
     </div>
@@ -192,7 +162,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">Last Updated on December 11, 2024</p>
+      <p class="date">Last Updated on January 28, 2025</p>
     </div>
   </div>
   
@@ -204,54 +174,9 @@ div.csl-indent {
 
 <section id="introduction" class="level1 unnumbered">
 <h1 class="unnumbered">Introduction</h1>
-<section id="background-and-motivation" class="level2">
-<h2 class="anchored" data-anchor-id="background-and-motivation">Background and Motivation</h2>
-<p>The Humboldt squid (Dosidicus gigas) is one of the most important deep-water fisheries (DWF) globally, playing a crucial role in both the economy and food security. These extraordinarily large squid are particularly sensitive to environmental changes, including fluctuations in sea surface temperature (SST), driven by the El Niño-Southern Oscillation (“ENSO”), that climate change increasingly intensifies. SST plays a pivotal role in determining where squid populations thrive, influencing their migration patterns and spawning grounds (@yu2018ocean). As these temperatures shift, so do the squid, leading to changes in fishing grounds and market demand (<span class="citation" data-cites="powell2022climate">Powell, Levine, and Ordonez-Gauger (<a href="references.html#ref-powell2022climate" role="doc-biblioref">2022</a>)</span>). Understanding these dynamics is essential for sustainable fisheries management in an era of rapid climate change.</p>
-<p>The urgency of this issue is highlighted by recent trends. From 2017 to 2020, the global squid fleet’s fishing effort increased by 68%, with most activity concentrated beyond a nation’s Exclusive Economic Zone (EEZ) particularly from international vessels (<span class="citation" data-cites="seto2023fishing">Seto et al. (<a href="references.html#ref-seto2023fishing" role="doc-biblioref">2023</a>)</span>). This has led to significant geopolitical and environmental concerns, particularly around South America where the Humboldt squid is abundant (<span class="citation" data-cites="montecalvo2023ocean">Montecalvo et al. (<a href="references.html#ref-montecalvo2023ocean" role="doc-biblioref">2023</a>)</span>). Although some regional fisheries management organizations, such as the South Pacific Regional Fisheries Management Organization (SPRFMO), have attempted to introduce regulations to moderate squid fishing, most squid stocks on the high seas remain largely unregulated. This lack of regulation, coupled with the sensitivity of squid populations to environmental changes, underscores the need for comprehensive research and effective management strategies.</p>
-<p>To address these challenges and seize opportunities for sustainable management, it is crucial to understand how sea surface temperature (SST) changes will affect the Humboldt squid. While some research has begun to explore the impact of sea surface temperature (SST) on the Humboldt squid, few studies have connected these findings to policy implications (<span class="citation" data-cites="yu2018ocean">Yu and Chen (<a href="references.html#ref-yu2018ocean" role="doc-biblioref">2018</a>)</span>). We propose to investigate the sensitivity of this fishery to climate change, with a particular focus on the implications for policy interventions. Our goal is to provide policymakers with the necessary data and insights to make informed, sustainable management decisions. Specifically, we will address the following research questions:</p>
-<ul>
-<li><p>How do fluctuations in sea surface temperature influence the distribution and abundance of Humboldt squid?</p></li>
-<li><p>What are the subsequent shifts in fishing demand and potential conflicts among fisheries?</p></li>
-<li><p>What specific challenges and opportunities for management enhancement exist n light of changing SST?</p></li>
-<li><p>What policy recommendations and fisheries management strategies can be developed to manage Humboldt squid fisheries sustainably in the context of climate change?</p></li>
-<li><p>How the relevant RFMO and DWF fleets or adjacent countries can collectively contribute to the sustainable management of jumbo flying squid in the context of climate change?</p></li>
-</ul>
-</section>
-<section id="approach" class="level2">
-<h2 class="anchored" data-anchor-id="approach">Approach</h2>
-<p>The project will be conducted in three phases:</p>
-<p><strong>Phase One: Literature review</strong></p>
-<p>We will begin with a review of scientific literature and existing studies on biological and ecological characteristics of Humboldt squid, including their life cycles, breeding patterns, and feeding behaviors. We will also compile information on how changes in SST have historically affected squid populations and identify key indicators of climate resilience. In addition, we will review socioeconomic studies that highlight the economic importance of Humboldt squid fisheries, their role in local economies, and the impact of environmental changes on these aspects.</p>
-<p><strong>Phase Two: Structural model development</strong></p>
-<p>In the second phase, we will develop a data-driven fishery model to simulate future SST scenarios and predict Humboldt squid responses. This model will integrate historical and current data from Global Fishing Watch and SPRFMO, as well as bioeconomic parameters in the existing study of this fishery. We will use this model to analyze the migration patterns of these squid in response to changing SST to predict shifts in fishing demand and the potential for conflict among fisheries.</p>
-<p><strong>Phase Three: Policy review and recommendations</strong></p>
-<p>Finally, we will assess various fisheries management strategies specific to individual country and regions, such as voluntary seasonal closures and enforced fishing moratoriums, to identify their effectiveness in addressing the challenges posed by climate change and overfishing. This will help us develop evidence-based policy recommendations aimed at ensuring the future profitability, resiliency, and sustainability of the Humboldt squid fishery.</p>
-</section>
-<section id="deliverables" class="level2">
-<h2 class="anchored" data-anchor-id="deliverables">Deliverables</h2>
-<ul>
-<li><p><strong>Kickoff meeting</strong>: Initial meeting with EDF to align on project priorities.</p></li>
-<li><p><strong>Literature review</strong>: In-depth review of existing knowledge on Humboldt squid ecology, distribution, and response to SST fluctuations.</p></li>
-<li><p><strong>Model development</strong>: A model predicting Humboldt squid responses to various climate change scenarios, integrating empirical data on fishing effort and catch.</p></li>
-<li><p><strong>Draft white paper</strong>: A report on the impact of climate change on Humboldt squid fisheries, including policy recommendations supporting the sustainable management of the sector.</p></li>
-</ul>
+<p>Here we describe the data sources and exploratory data analysis for the project, <strong>Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery</strong>. The project is a collaboration between UCSB’s Environmental Markets Lab (emLab) and Environmental Defense Fund (EDF).</p>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
-<div id="ref-montecalvo2023ocean" class="csl-entry" role="listitem">
-Montecalvo, Isabella, Philippe Le Billon, Chris Arsenault, and Milko Schvartzman. 2023. <span>“Ocean Predators: Squids, Chinese Fleets and the Geopolitics of High Seas Fishing.”</span> <em>Marine Policy</em> 152: 105584.
-</div>
-<div id="ref-powell2022climate" class="csl-entry" role="listitem">
-Powell, Farrah, Arielle Levine, and Lucia Ordonez-Gauger. 2022. <span>“Climate Adaptation in the Market Squid Fishery: Fishermen Responses to Past Variability Associated with El Ni<span>ñ</span>o Southern Oscillation Cycles Inform Our Understanding of Adaptive Capacity in the Face of Future Climate Change.”</span> <em>Climatic Change</em> 173 (1): 1.
-</div>
-<div id="ref-seto2023fishing" class="csl-entry" role="listitem">
-Seto, Katherine L, Nathan A Miller, David Kroodsma, Quentin Hanich, Masanori Miyahara, Rui Saito, Kristina Boerder, Masaki Tsuda, Yoshioki Oozeki, and Osvaldo Urrutia S. 2023. <span>“Fishing Through the Cracks: The Unregulated Nature of Global Squid Fisheries.”</span> <em>Science Advances</em> 9 (10): eadd8125.
-</div>
-<div id="ref-yu2018ocean" class="csl-entry" role="listitem">
-Yu, Wei, and Xinjun Chen. 2018. <span>“Ocean Warming-Induced Range-Shifting of Potential Habitat for Jumbo Flying Squid Dosidicus Gigas in the Southeast Pacific Ocean Off Peru.”</span> <em>Fisheries Research</em> 204: 137–46.
-</div>
-</div>
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -493,7 +418,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   </div>
   <div class="nav-page nav-page-next">
       <a href="./methods.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Dataset descriptions</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

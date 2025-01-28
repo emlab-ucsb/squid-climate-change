@@ -49,7 +49,7 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./results.html" rel="next">
+<link href="./references.html" rel="next">
 <link href="./methods.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -130,19 +130,13 @@ div.csl-indent {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./methods.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Dataset descriptions</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./eda.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Exploratory data analysis</span></span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./results.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -163,9 +157,7 @@ div.csl-indent {
   <ul>
   <li><a href="#sea-surface-temperature-sst" id="toc-sea-surface-temperature-sst" class="nav-link active" data-scroll-target="#sea-surface-temperature-sst"><span class="header-section-number">2.1</span> Sea surface temperature (SST)</a></li>
   <li><a href="#sea-surface-temperature-sst-forecasts-under-climate-change" id="toc-sea-surface-temperature-sst-forecasts-under-climate-change" class="nav-link" data-scroll-target="#sea-surface-temperature-sst-forecasts-under-climate-change"><span class="header-section-number">2.2</span> Sea surface temperature (SST) forecasts under climate change</a></li>
-  <li><a href="#oceanic-niño-index-oni" id="toc-oceanic-niño-index-oni" class="nav-link" data-scroll-target="#oceanic-niño-index-oni"><span class="header-section-number">2.3</span> Oceanic Niño Index (ONI)</a></li>
-  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">2.4</span> AIS-based Fishing effort</a></li>
-  <li><a href="#distance-to-nearest-eez" id="toc-distance-to-nearest-eez" class="nav-link" data-scroll-target="#distance-to-nearest-eez"><span class="header-section-number">3</span> Distance to nearest EEZ</a></li>
+  <li><a href="#ais-based-fishing-effort" id="toc-ais-based-fishing-effort" class="nav-link" data-scroll-target="#ais-based-fishing-effort"><span class="header-section-number">2.3</span> AIS-based Fishing effort</a></li>
   </ul>
 </nav>
     </div>
@@ -240,40 +232,37 @@ div.csl-indent {
 </div>
 </div>
 </section>
-<section id="oceanic-niño-index-oni" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="oceanic-niño-index-oni"><span class="header-section-number">2.3</span> Oceanic Niño Index (ONI)</h2>
-<p>Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (<a href="#fig-oni-time-series">Figure&nbsp;<span>2.5</span></a>):</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-oni-time-series" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="eda_files/figure-html/fig-oni-time-series-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.5: Time series of monthly Oceanic Niño Index (ONI).</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="ais-based-fishing-effort" class="level2" data-number="2.4">
-<h2 data-number="2.4" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">2.4</span> AIS-based Fishing effort</h2>
-<p>Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (<a href="#fig-effort-bar-plot">Figure&nbsp;<span>2.6</span></a>). China dominates the fishing effort with over 97% of all effort, with Taiwan a distant second at barely 1%.</p>
+<section id="ais-based-fishing-effort" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="ais-based-fishing-effort"><span class="header-section-number">2.3</span> AIS-based Fishing effort</h2>
+<p>Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (<a href="#fig-effort-bar-plot">Figure&nbsp;<span>2.5</span></a>). China dominates the fishing effort with over 97% of all effort, with Taiwan a distant second at barely 1%.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-bar-plot" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-effort-bar-plot-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.6: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.5: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes. The top 5 flags are shown individually, with other flags aggregated into ‘Other’.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.7</span></a>). The top top 5 flags are shown.</p>
+<p>Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (<a href="#fig-effort-time-series">Figure&nbsp;<span>2.6</span></a>). The top top 5 flags are shown, with other flags aggregated into ‘Other’.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-effort-time-series" class="quarto-figure quarto-figure-center anchored">
 <figure class="figure">
 <p><img src="eda_files/figure-html/fig-effort-time-series-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;2.7: Monthly fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually.</figcaption>
+<figcaption class="figure-caption">Figure&nbsp;2.6: Monthly fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into ‘Other’.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Next we look at a time series of total annual AIS-based fishing effort by fishing flag over time within the analysis scope (<a href="#fig-effort-time-series-annual">Figure&nbsp;<span>2.7</span></a>). The top top 5 flags are shown, with other flags aggregated into ‘Other’.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-effort-time-series-annual" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="eda_files/figure-html/fig-effort-time-series-annual-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption class="figure-caption">Figure&nbsp;2.7: Annual fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into ‘Other’.</figcaption>
 </figure>
 </div>
 </div>
@@ -388,20 +377,6 @@ div.csl-indent {
 </div>
 <div class="cell-output-display">
 <p><img src="eda_files/figure-html/unnamed-chunk-17-5.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-</section>
-<section id="distance-to-nearest-eez" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Distance to nearest EEZ</h1>
-<p>Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. For pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas.</p>
-<div class="cell">
-<div class="cell-output-display">
-<div id="fig-distance-to-eez-map" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="eda_files/figure-html/fig-distance-to-eez-map-1.png" class="img-fluid figure-img" width="672"></p>
-<figcaption class="figure-caption">Figure&nbsp;3.1: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in black.</figcaption>
-</figure>
-</div>
 </div>
 </div>
 
@@ -650,12 +625,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
       <a href="./methods.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Dataset descriptions</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./results.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./references.html" class="pagination-link">
+        <span class="nav-page-text">References</span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

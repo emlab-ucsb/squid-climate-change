@@ -377,7 +377,15 @@ list(
   # AIS data
   tar_target(
     name = joined_dataset_ais_summary,
-    skimr::skim(joined_dataset_ais)
+    # Only select columns we ended up using
+    skimr::skim(joined_dataset_ais |>
+                  dplyr::select(month,
+                                   lon_bin,
+                                   lat_bin,
+                                   flag,
+                                   sst_deg_c_mean,
+                                   fishing_hours,
+                                   fishing_kw_hours))
   ),
   # VIIRS data
   tar_target(

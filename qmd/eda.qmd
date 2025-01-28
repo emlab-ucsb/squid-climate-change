@@ -151,25 +151,6 @@ sst_cc_forecast_data |>
   labs(x = "Month",
        y = "Forecasted SST (degrees C)")
 ```
-
-## Oceanic Niño Index (ONI)
-
-Here we look at the time series of ONI data, focused on the time period for which we have AIS-based effort data (@fig-oni-time-series):
-
-```{r}
-#| label: fig-oni-time-series
-#| fig-cap: Time series of monthly Oceanic Niño Index (ONI).
-
-joined_dataset_ais |>
-  dplyr::distinct(month, oceanic_nino_index) |>
-  ggplot(aes(x = month, y = oceanic_nino_index)) +
-  geom_line() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  theme_plot() +
-  labs(x = "",
-       y = "Oceanic Niño Index (ONI)")
-```
-
 ## AIS-based Fishing effort
 
 ```{r}
@@ -178,13 +159,12 @@ joined_dataset_ais |>
 joined_dataset_ais <- joined_dataset_ais |>
   dplyr::mutate(country = countrycode::countrycode(flag,
                                                    origin = "iso3c",
-                                                   destination = "country.name")) |>
-  # If country name is missing, call it Unknown
-  dplyr::mutate(country = ifelse(is.na(country), "Unknown",country))
+                                                   destination = "country.name")) 
 
-# Get top fishing flags across all time
+# Get top non-missing fishing flags across all time
 n_flags <- 5
 top_flags_all_time <- joined_dataset_ais |>
+  dplyr::filter(!is.na(country)) |>
   dplyr::group_by(country) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm = TRUE)) |>
   dplyr::ungroup()  |>
@@ -193,14 +173,18 @@ top_flags_all_time <- joined_dataset_ais |>
 
 joined_dataset_ais <- joined_dataset_ais  |>
   dplyr::left_join(top_flags_all_time |>
-                     dplyr::select(country,top), by = "country") 
+                     dplyr::select(country,top), by = "country") |>
+  dplyr::mutate(country = ifelse(!is.na(top),
+                                 country,
+                                 "Other"))
 ```
 Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (@fig-effort-bar-plot). China dominates the fishing effort with over 97% of all effort, with Taiwan a distant second at barely 1%.
 
 ```{r}
 #| label: fig-effort-bar-plot
-#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes.
-
+#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
+#| fig-height: 4
+#| 
 joined_dataset_ais|>
   dplyr::group_by(country) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours,na.rm = TRUE)) |>
@@ -218,15 +202,14 @@ joined_dataset_ais|>
   theme_plot()
 ```
 
-Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series). The top top `r n_flags` flags are shown.
+Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series). The top top `r n_flags` flags are shown, with other flags aggregated into 'Other'.
 
 ```{r}
 #| label: fig-effort-time-series
-#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually.
+#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
 #| fig-height: 7
 
 joined_dataset_ais|> 
-  dplyr::filter(country %in% top_flags_all_time$country) |>
   dplyr::mutate(country = forcats::fct_relevel(country,
                                                top_flags_all_time$country))|>
   dplyr::group_by(month,
@@ -242,6 +225,35 @@ joined_dataset_ais|>
   theme_plot() +
   facet_grid(country~.,
              scales = "free_y")
+```
+
+Next we look at a time series of total annual AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series-annual). The top top `r n_flags` flags are shown, with other flags aggregated into 'Other'.
+
+```{r}
+#| label: fig-effort-time-series-annual
+#| fig-cap: Annual fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
+#| fig-height: 4
+
+joined_dataset_ais|> 
+  dplyr::mutate(country = forcats::fct_relevel(country,
+                                               top_flags_all_time$country))|>
+  dplyr::group_by(year = lubridate::year(month),
+                  country)  |>
+  dplyr::filter(year<2024) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+  dplyr::ungroup()  |>
+  ggplot(aes(x = year, y= fishing_kw_hours, fill = country)) +
+  geom_area() +
+  labs(x = "",
+       y = "Annual fishing effort by flag (kW-hours)")+
+  scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6),
+                     limits = c(0,NA)) +
+  theme_plot() +
+  scale_fill_brewer("Flag",palette = "Dark2") +
+  scale_x_continuous(breaks = seq(2016,2023)) +
+  theme(panel.grid.minor.x = element_blank(),
+        legend.position = "top",
+        legend.direction = "horizontal")
 ```
 
 Next we can look at the temporal trend of total fishing effort alongside the temporal trend of SST (@fig-effort-sst-time-series).
@@ -479,43 +491,4 @@ purrr::map(top_flags_all_time$country,
                scale_y_continuous(expand = c(0, 0),
                                   limits = analysis_scope_lat)
            })
-```
-
-# Distance to nearest EEZ
-
-Here we look at a map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. For pixels on the high seas, this number represents the distance to the nearest EEZ; for pixels inside EEZs, this represents the shortest distance to the high seas.
-
-```{r}
-#| label: fig-distance-to-eez-map
-#| fig-cap: Map showing the distance to the nearest 200nm EEZ/high seas boundary for each 0.25x0.25 degree pixel. 200nm EEZ boundaries from Marine Regions V12 are shown in black.
-
-ggplot()  +
-  geom_tile(data = pixels_eez_with_info,
-            aes(fill = nearest_eez_distance_m/1e3,
-                x = lon_bin,
-                y = lat_bin)) +
-  geom_sf(data = eez_boundaries_high_seas,
-          fill = NA,
-          color = "black") +
-  geom_sf(data = land,
-          color = "#374a6d",
-          fill = "#374a6d") +
-  scale_fill_viridis_c("Distance to nearest 200nm EEZ/high seas boundary (km)",
-                       option = "rocket",
-                       na.value = "black",
-                       labels = scales::comma,
-                       direction = -1) +
-  labs(x = '',
-       y= '') +
-  theme_map() +
-  guides(fill = guide_colorbar(title.position = "top",
-                               title.hjust = 0.5,
-                               frame.colour = "black",
-                               ticks.colour = "black",
-                               barwidth = unit(12, "cm"),
-                               barheight = unit(1, "cm"))) +
-  scale_x_continuous(expand = c(0, 0),
-                     limits = analysis_scope_lon) +
-  scale_y_continuous(expand = c(0, 0),
-                     limits = analysis_scope_lat)
 ```
