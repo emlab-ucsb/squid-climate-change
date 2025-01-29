@@ -10,7 +10,7 @@ book:
   date-format: "[Last Updated on] MMMM DD, YYYY"
   chapters:
     - index.qmd
-    - methods.qmd
+    - data.qmd
     - eda.qmd
     - references.qmd
   downloads: [pdf]
