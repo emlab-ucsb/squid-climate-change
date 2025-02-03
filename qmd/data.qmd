@@ -160,7 +160,7 @@ ggplot()  +
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
-  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+  scale_fill_viridis_c("Fishing effort (kW-hours)",
                        trans = "log10",
                        option = "mako",
                        na.value = "black") +
@@ -203,7 +203,7 @@ ggplot()  +
   geom_sf(data = land,
           color = "#374a6d",
           fill = "#374a6d") +
-  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+  scale_fill_viridis_c("Fishing effort (kW-hours)",
                        trans = "log10",
                        option = "mako",
                        na.value = "black") +
