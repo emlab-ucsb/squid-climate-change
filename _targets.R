@@ -20,7 +20,7 @@ n_cores <-  ifelse(Sys.info()["nodename"] == "quebracho" | Sys.info()["nodename"
                    20,
                    parallelly::availableCores()-1)
 
-project_directory <- glue::glue("{data_directory_base}/projects/current-projects/squid-climate-change")
+project_directory <- glue::glue("{data_directory_base}/projects/archived-projects/squid-climate-change")
 
 # Set targets store to appropriate GRIT/Nextcloud directory
 tar_config_set(store = glue::glue("{project_directory}/data/_targets"))
