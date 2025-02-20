@@ -1,0 +1,281 @@
+---
+title: "Analysis"
+author: "Kaiwen Wang"
+date: "2024-11-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE)
+```
+
+
+```{r, include= FALSE}
+library(tidyverse)
+library(fixest)
+library(modelsummary)
+library(marginaleffects)
+#targets::tar_make(quiet = FALSE)
+```
+
+
+```{r, eval=FALSE}
+# Initialize targets 
+
+targets_data_directory = "C:\\Users\\kevin\\Nextcloud\\emLab\\projects\\current-projects\\squid-climate-change\\data"
+
+targets::tar_config_set(store = glue::glue("{targets_data_directory}/_targets"))
+
+targets::tar_load(c(#"gridded_time_effort_by_flag",
+                    #"sst_data_aggregated",
+                    #"oceanic_nino_index_data",
+                    #"pixels_eez_with_info",
+                    #"analysis_scope_lon",
+                    #"analysis_scope_lat",
+                    "joined_dataset_ais",
+                    "sst_cc_forecast_data"))
+```
+
+```{r, eval=FALSE}
+ais_data = 
+  joined_dataset_ais %>% 
+  mutate(bin = str_c(lon_bin, ",", lat_bin)) %>% 
+  mutate(month_idx = month(month),
+         year = year(month),) %>% 
+  mutate(season = case_when(
+    month_idx %in% c(9,10,11) ~ "spring",
+    month_idx %in% c(12,1,2) ~ "summer",
+    month_idx %in% c(3,4,5) ~ "fall",
+    month_idx %in% c(6,7,8) ~ "winter",),) %>% 
+  mutate(lat_bin_wgi = floor(lat_bin),
+         lon_bin_wgi = floor(lon_bin),
+         bin_wgi = str_c(lon_bin_wgi,",", lat_bin_wgi))
+```
+
+
+# Prepare the ais_data by filtering and computing necessary statistics
+
+```{r}
+# Function to prepare data for modeling based on latitude filter
+prepare_model_data <- function(data, latitude_filter) {
+  data %>%
+    filter(lat_bin >= latitude_filter[1],
+           lat_bin < latitude_filter[2]) %>%
+    group_by(month) %>%
+    mutate(
+      avg_sst_for_month = mean(sst_deg_c_mean),
+      sst_deviation = sst_deg_c_mean - avg_sst_for_month,
+      sst_deviation_squared = sst_deviation^2,
+      sst_squared = sst_deg_c_mean^2,
+      scaled_fishing_effort = fishing_kw_hours / 1000
+    ) %>%
+    ungroup()
+}
+
+```
+
+
+# Fit a OLS model using feols from the fixest package
+
+```{r}
+# Function to fit different models
+fit_model <- function(data, model_type = "feols") {
+  if (model_type == "feols") {
+    feols(scaled_fishing_effort ~ sst_deviation:factor(month_idx) +
+          sst_deviation_squared:factor(month_idx) 
+          | month + bin_wgi,
+          data = data,
+          cluster = ~ bin, nthreads = 20)
+  } else {
+    fepois(scaled_fishing_effort ~ sst_deviation:factor(month_idx) +
+           sst_deviation_squared:factor(month_idx) 
+           | month + bin_wgi,
+           data = data,
+           cluster = ~ bin, nthreads = 20)
+  }
+}
+
+```
+
+# Apply OLS model for latitude condition less than -10
+
+```{r}
+model_data_less_10 <- prepare_model_data(ais_data, c(-Inf,-10))
+OLS_model_less_10 <- fit_model(model_data_less_10, "feols")
+```
+
+
+```{r}
+# Plot model coefficients
+coefplot(OLS_model_less_10)
+```
+
+# Apply model for latitude condition greater than -10
+```{r}
+model_data_greater_10 <- prepare_model_data(ais_data, c(-10,Inf))
+OLS_model_greater_10 <- fit_model(model_data_greater_10, "feols")
+
+```
+
+```{r}
+# Plot model coefficients
+coefplot(OLS_model_greater_10)
+```
+# Save both models
+
+```{r}
+saveRDS(OLS_model_greater_10, "OLS_model_greater_10.rds")
+saveRDS(OLS_model_less_10, "OLS_model_less_10.rds")
+```
+
+
+# Rename columns in the forecast dataset for consistency
+```{r}
+forecast_data_sst = sst_cc_forecast_data %>%
+  rename(lon_bin_wgi = lon_bin,
+         lat_bin_wgi = lat_bin,
+         sst_deg_c_mean_pred = sst_deg_c_mean,
+         month_idx = month_number)
+```
+
+
+# Define a function to handle forecast data manipulation and prediction
+
+```{r}
+prepare_model_used_data = function(fixest_model, obs_orgin){
+  #Identify observations used by the model
+  obsRemoved = fixest_model$obs_selection$obsRemoved
+  if (length(obsRemoved) > 0) {
+    model_used_data <-
+    obs_orgin[obsRemoved, ]
+  } else{
+    model_used_data = obs_orgin
+  }
+  return(model_used_data)
+}
+```
+
+
+
+```{r}
+prepare_scenario_data <- function(model_used_data, prepared_forecast_data, scenario_label, time_label) {
+    ais_data_model_forecast <- 
+    model_used_data %>%
+    left_join(prepared_forecast_data %>%
+                filter(scenario == scenario_label,
+                       time_period == time_label)) %>%
+    #use original month mean
+    #replace predictors with forecasts
+    mutate(original_sst = sst_deg_c_mean, 
+           forecast_sst = sst_deg_c_mean_pred, 
+           sst_deg_c_mean = forecast_sst, 
+           sst_deviation = sst_deg_c_mean - avg_sst_for_month,
+           sst_deviation_squared = sst_deviation^2) %>% 
+  return(ais_data_model_forecast)
+}
+```
+
+# Apply the function for different models
+
+
+```{r}
+# Function to process and combine forecasts for multiple scenarios
+process_and_combine_forecasts <- function(model, model_used_data, prepared_forecast_data, scenarios, time_periods) {
+  # Predictions for the fitted model on the same data
+  fitted_predictions <- predict(model, newdata = model_used_data)
+  
+  # Start the result dataframe with fitted predictions
+  results <- model_used_data %>%
+    mutate(fitted = fitted_predictions,
+           original_sst = sst_deg_c_mean) %>%     
+    select(bin, month, fitted, original_sst, scaled_fishing_effort)
+  
+  # Loop through each scenario to add forecast predictions and SST to the results
+  for (i in seq_along(scenarios)) {
+    scenario <- scenarios[i]
+    time_period <- time_periods[i]
+    
+    # Prepare scenario-specific forecast data
+    forecast_scenario_data <- prepare_scenario_data(model_used_data, prepared_forecast_data, scenario, time_period)
+    
+    # Predict using the model for the current scenario
+    scenario_prediction <- predict(model, newdata = forecast_scenario_data)
+    forecast_sst = forecast_scenario_data$forecast_sst
+    
+    # Add the scenario predictions as a new column to the results dataframe
+    results <- results %>%
+      mutate("{scenario}_prediction" := scenario_prediction,
+             "{scenario}_forecast_sst" := forecast_sst)
+  }
+  
+  return(results)
+}
+
+```
+
+
+
+# Model prediction for OLS_model_greater_than_10
+```{r}
+
+scenarios <- 
+  c("SSP1-2.6", "SSP2-4.5", "SSP3-7.0", "SSP5-8.5")
+time_periods <- 
+  c("Near Term (2021-2040)", "Near Term (2021-2040)", "Near Term (2021-2040)", "Near Term (2021-2040)")
+
+# Identify observations used by the model
+model_used_data_greater_10 =
+  prepare_model_used_data(OLS_model_greater_10,
+                          model_data_greater_10)
+
+combined_results_greater_10 <- 
+  process_and_combine_forecasts(OLS_model_greater_10, model_used_data_greater_10, forecast_data_sst, scenarios, time_periods)
+
+```
+```{r}
+combined_results_greater_10_increase =
+  combined_results_greater_10 %>% 
+  filter(`SSP1-2.6_prediction` > fitted)
+```
+
+# Model prediction for OLS_model_less_than_10
+```{r}
+
+scenarios <- 
+  c("SSP1-2.6", "SSP2-4.5", "SSP3-7.0", "SSP5-8.5")
+time_periods <- 
+  c("Near Term (2021-2040)", "Near Term (2021-2040)", "Near Term (2021-2040)", "Near Term (2021-2040)")
+
+# Identify observations used by the model
+model_used_data_less_10 =
+  prepare_model_used_data(OLS_model_less_10,
+                          model_data_less_10)
+
+combined_results_less_10 <- 
+  process_and_combine_forecasts(OLS_model_less_10, model_used_data_less_10, forecast_data_sst, scenarios, time_periods)
+
+```
+
+```{r}
+combined_results_less_10_increase =
+  combined_results_less_10 %>% 
+  filter(`SSP1-2.6_prediction` > fitted)
+```
+
+
+## Save predicted results
+
+```{r}
+combined_results_OLS = 
+  bind_rows(combined_results_less_10,
+            combined_results_greater_10)
+
+#saveRDS(ais_data,"ais_data.rds")
+
+saveRDS(combined_results_OLS, "combined_results_OLS.rds")
+```
+
+
+
+

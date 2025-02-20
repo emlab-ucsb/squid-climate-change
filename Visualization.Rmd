@@ -1,0 +1,927 @@
+---
+title: "Data_visualization"
+author: "Kaiwen Wang"
+date: "2024-12-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(scico)
+```
+
+
+## Load Data from Targets Pipeline
+```{r, eval=FALSE}
+# Initialize targets 
+
+targets_data_directory = "C:\\Users\\kevin\\Nextcloud\\emLab\\projects\\current-projects\\squid-climate-change\\data"
+
+targets::tar_config_set(store = glue::glue("{targets_data_directory}/_targets"))
+
+
+targets::tar_load(c(#"squid_vessel_list",
+                    #"joined_dataset_ais",
+                    "pixels_eez_with_info",
+                    "eez_boundaries_high_seas",
+                    "sst_cc_forecast_data",
+                    "eez",
+                    "sprfmo",
+                    "land",
+                    "analysis_scope_lon",
+                    "analysis_scope_lat",
+                    "analysis_bounding_box"))
+
+
+source("C:\\documents\\GitHub\\squid-climate-change\\r\\functions.r")
+```
+
+## Load Model Predictions
+
+```{r}
+poisson_prediction = 
+  read_rds("combined_results_poisson.rds")
+
+ols_prediction = 
+  read_rds("combined_results_OLS.rds") %>% 
+  inner_join(ais_data %>% distinct(bin, lat_bin, lon_bin))
+
+
+ols_prediction_SSP1 = 
+  ols_prediction %>% 
+  mutate(fishing_kw_hours = 
+           scaled_fishing_effort + (`SSP2-4.5_prediction` - fitted),
+         fishing_kw_hours = pmax(fishing_kw_hours, 0))
+
+summary(ols_prediction_SSP1$fishing_kw_hours)
+```
+
+## Plot: Predicted Fishing Effort Distribution (SSP5-8.5)
+```{r}
+
+fig_effort_map_poisson_ssp1 <- ggplot()  +
+  geom_tile(data = poisson_prediction |>
+              dplyr::mutate(fishing_kw_hours = 
+                              scaled_fishing_effort + (`SSP5-8.5_prediction` - fitted),
+                            fishing_kw_hours = pmax(fishing_kw_hours, 0),
+                            fishing_kw_hours = fishing_kw_hours * 1000) |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours, na.rm = T)) |>
+              dplyr::ungroup()|>
+              dplyr::filter(fishing_kw_hours > 0),
+            aes(fill = fishing_kw_hours,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
+
+fig_effort_map_poisson_ssp1
+```
+
+## Plot: Change in Fishing Effort (SSP5-8.5)
+```{r}
+
+fig_effort_map_poisson_ssp1_diff <- ggplot()  +
+  geom_tile(data = poisson_prediction |>
+              dplyr::mutate(fishing_kw_hours_diff = 
+                              (`SSP5-8.5_prediction` - fitted),
+                            fishing_kw_hours_diff = fishing_kw_hours_diff * 1000) |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours_diff = sum(fishing_kw_hours_diff, na.rm = T),) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours_diff,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_viridis_c("Change in Fishing effort (kwW-hours)",
+                       #trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+  labs(x = '',
+       y= '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
+
+fig_effort_map_poisson_ssp1_diff
+```
+
+
+
+```{r}
+
+# Update the plot to use scico's diverging color palette
+library(scico)
+# Define a pseudolog10 transformation function
+pseudolog10 <- function(x) {
+  sign(x) * log10(1 + abs(x))
+}
+
+
+mapping_data_sf = 
+  poisson_prediction |>
+              dplyr::mutate(effort_diff = 
+                              (`SSP5-8.5_prediction` - fitted) * 1000 * 12,)|>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(effort_diff = mean(effort_diff, na.rm = TRUE)) |>
+              dplyr::ungroup()
+  
+
+fig_effort_map_poisson_ssp1_diff <- ggplot()  +
+  geom_tile(data = mapping_data_sf,
+            aes(fill = effort_diff,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  labs(x = NULL,
+       y = NULL) +
+  scale_fill_scico(
+    "Change in Annual Fishing effort (kW-hours)",
+    palette = "lisbon",
+    midpoint = 0,         # Center the gradient at zero
+    breaks = c(-1e5 ,-10000, -1000, -100, 0, 100, 1000, 10000),
+    labels = c("-100k", "-10k", "-1k", "-100", "0", "100", "1k", "10k"),
+    trans = scales::trans_new(
+      name = "pseudolog10",
+      transform = pseudolog10,
+      inverse = function(x) sign(x) * (10^(abs(x)) - 1)
+    ),
+    #na.value = "black"    # Color for NA values
+  ) +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(10, "cm"),
+                               barheight = unit(0.5, "cm"))) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
+
+fig_effort_map_poisson_ssp1_diff
+```
+
+
+## annual effort change
+```{r}
+# Ensure required libraries are loaded
+library(ggplot2)
+library(scico)
+library(dplyr)
+
+# Define a pseudolog10 transformation function
+pseudolog10 <- function(x) {
+  sign(x) * log10(1 + abs(x))
+}
+
+# Define the plotting function
+plot_annual_effort_change <- function(data, eez, sprfmo, land, analysis_scope_lon, analysis_scope_lat) {
+  ggplot() +
+    geom_tile(
+      data = data,
+      aes(fill = effort_diff, x = lon_bin, y = lat_bin)
+    ) +
+    geom_sf(data = eez, fill = NA, color = "orange") +
+    geom_sf(data = sprfmo, fill = NA, color = "yellow") +
+    geom_sf(data = land, color = "#374a6d", fill = "#374a6d") +
+    scale_fill_scico(
+      "Change in Annual Fishing effort (kW-hours)",
+      palette = "lisbon",  # Diverging color palette
+      midpoint = 0,        # Center the gradient at zero
+      breaks = c(-1e5, -1e4, -1e3, -1e2, 0, 1e2, 1e3, 1e4),  # Custom breaks
+      labels = c("-100k", "-10k", "-1k", "-100", "0", "100", "1k", "10k"),  # Custom labels
+      trans = scales::trans_new(
+        name = "pseudolog10",
+        transform = pseudolog10,
+        inverse = function(x) sign(x) * (10^(abs(x)) - 1)
+      )
+    ) +
+    labs(x = NULL, y = NULL, title = "Predicted Change in Annual Fishing Effort") +
+    theme_map() +
+    guides(
+      fill = guide_colorbar(
+        title.position = "top",
+        title.hjust = 0.5,
+        frame.colour = "black",
+        ticks.colour = "black",
+        barwidth = unit(6, "cm"),   # Adjust legend width
+        barheight = unit(0.4, "cm") # Adjust legend height
+      )
+    ) +
+    scale_x_continuous(expand = c(0, 0), limits = analysis_scope_lon) +
+    scale_y_continuous(expand = c(0, 0), limits = analysis_scope_lat) +
+    theme(
+      legend.position = "bottom",
+      legend.title = element_text(size = 12, hjust = 0.5),
+      plot.title = element_text(size = 16, hjust = 0.5, face = "bold")
+    )
+}
+
+
+# Prepare data for the annual effort change
+mapping_data_sf <- poisson_prediction |>
+  dplyr::mutate(effort_diff = 
+                  (`SSP5-8.5_prediction` - fitted)) |>
+  dplyr::group_by(lat_bin, lon_bin) |>
+  dplyr::summarize(effort_diff = mean(effort_diff, na.rm = TRUE) * 1000  * 12) |>
+  dplyr::ungroup()
+
+# Generate the plot using the function
+annual_effort_plot <- plot_annual_effort_change(
+  data = mapping_data_sf,
+  eez = eez,
+  sprfmo = sprfmo,
+  land = land,
+  analysis_scope_lon = analysis_scope_lon,
+  analysis_scope_lat = analysis_scope_lat
+)
+
+# Save the plot as PNG
+ggsave(
+  filename = "annual_effort_change.png",
+  plot = annual_effort_plot,
+  width = 10,      # Adjust width for larger map
+  height = 7,      # Adjust height for better proportions
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+
+
+# Display the plot (optional for R environment)
+annual_effort_plot
+
+```
+
+
+## absolute fishing effort change
+```{r}
+# Ensure required libraries are loaded
+library(ggplot2)
+library(scico)
+library(dplyr)
+
+# Define the plotting function for absolute fishing effort
+plot_absolute_effort <- function(data, eez, sprfmo, land, analysis_scope_lon, analysis_scope_lat) {
+  ggplot() +
+    geom_tile(
+      data = data,
+      aes(fill = effort_diff, x = lon_bin, y = lat_bin)
+    ) +
+    geom_sf(data = eez, fill = NA, color = "orange") +
+    geom_sf(data = sprfmo, fill = NA, color = "yellow") +
+    geom_sf(data = land, color = "#374a6d", fill = "#374a6d") +
+  scale_fill_viridis_c("Fishing effort (kwW-hours)",
+                       trans = "log10",
+                       option = "mako",
+                       na.value = "black") +
+    labs(x = NULL, y = NULL, title = "Absolute Predicted Fishing Effort (kW-hours)") +
+    theme_map() +
+    guides(
+      fill = guide_colorbar(
+        title.position = "top",
+        title.hjust = 0.5,
+        frame.colour = "black",
+        ticks.colour = "black",
+        barwidth = unit(6, "cm"),   # Adjust legend width
+        barheight = unit(0.4, "cm") # Adjust legend height
+      )
+    ) +
+    scale_x_continuous(expand = c(0, 0), limits = analysis_scope_lon) +
+    scale_y_continuous(expand = c(0, 0), limits = analysis_scope_lat) +
+    theme(
+      legend.position = "bottom",
+      legend.title = element_text(size = 12, hjust = 0.5),
+      plot.title = element_text(size = 16, hjust = 0.5, face = "bold")
+    )
+}
+
+# Prepare data for absolute predicted fishing effort
+mapping_data_sf <- poisson_prediction |>
+  dplyr::mutate(effort_diff = 
+                  (`SSP5-8.5_prediction` - fitted) + scaled_fishing_effort,) |>
+  dplyr::group_by(lat_bin, lon_bin) |>
+  dplyr::summarize(effort_diff = mean(effort_diff, na.rm = TRUE) * 12) |>
+  dplyr::mutate(effort_diff = pmax(effort_diff, 0) * 1000) |>
+  dplyr::ungroup()
+
+# Generate the plot using the function
+absolute_effort_plot <- plot_absolute_effort(
+  data = mapping_data_sf,
+  eez = eez,
+  sprfmo = sprfmo,
+  land = land,
+  analysis_scope_lon = analysis_scope_lon,
+  analysis_scope_lat = analysis_scope_lat
+)
+
+# Save the plot as PNG
+ggsave(
+  filename = "absolute_fishing_effort.png",
+  plot = absolute_effort_plot,
+  width = 10,      # Adjust width for larger map
+  height = 7,      # Adjust height for better proportions
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+
+# Display the plot (optional for R environment)
+absolute_effort_plot
+
+```
+
+## relative effort change in percent
+```{r}
+# Ensure required libraries are loaded
+library(ggplot2)
+library(scico)
+library(dplyr)
+
+# Define the plotting function for percentage change
+plot_relative_effort_change <- function(data, eez, sprfmo, land, analysis_scope_lon, analysis_scope_lat) {
+  ggplot() +
+    geom_tile(
+      data = data,
+      aes(fill = effort_diff, x = lon_bin, y = lat_bin)
+    ) +
+    geom_sf(data = eez, fill = NA, color = "orange") +
+    geom_sf(data = sprfmo, fill = NA, color = "yellow") +
+    geom_sf(data = land, color = "#374a6d", fill = "#374a6d") +
+    scale_fill_scico(
+      "Relative Change in Annual Fishing Effort (%)",
+      palette = "lisbon",  # Diverging color palette
+      midpoint = 0,     # Center the gradient at zero
+      labels = scales::percent  # Format labels as percentages
+    ) +
+    labs(x = NULL, y = NULL, title = "Relative Percentage Change in Annual Fishing Effort") +
+    theme_map() +
+    guides(
+      fill = guide_colorbar(
+        title.position = "top",
+        title.hjust = 0.5,
+        frame.colour = "black",
+        ticks.colour = "black",
+        barwidth = unit(6, "cm"),   # Adjust legend width
+        barheight = unit(0.4, "cm") # Adjust legend height
+      )
+    ) +
+    scale_x_continuous(expand = c(0, 0), limits = analysis_scope_lon) +
+    scale_y_continuous(expand = c(0, 0), limits = analysis_scope_lat) +
+    theme(
+      legend.position = "bottom",
+      legend.title = element_text(size = 12, hjust = 0.5),
+      plot.title = element_text(size = 16, hjust = 0.5, face = "bold")
+    )
+}
+
+# Prepare data for relative percentage change
+mapping_data_sf <- poisson_prediction |>
+  dplyr::mutate(effort_diff = 
+                  (`SSP5-8.5_prediction` - fitted),
+                lat_bin = floor(lat_bin),
+                lon_bin = floor(lon_bin)) |>
+  dplyr::group_by(lat_bin, lon_bin) |>
+  dplyr::summarize(effort_diff = sum(effort_diff, na.rm = TRUE) / sum(scaled_fishing_effort, na.rm = TRUE)) |>
+  dplyr::ungroup()
+
+# Generate the plot using the function
+relative_effort_plot <- plot_relative_effort_change(
+  data = mapping_data_sf,
+  eez = eez,
+  sprfmo = sprfmo,
+  land = land,
+  analysis_scope_lon = analysis_scope_lon,
+  analysis_scope_lat = analysis_scope_lat
+)
+# Save the plot as PNG
+ggsave(
+  filename = "relative_effort_change_percent.png",
+  plot = relative_effort_plot,
+  width = 10,      # Adjust width for larger map
+  height = 7,      # Adjust height for better proportions
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+
+# Display the plot (optional for R environment)
+relative_effort_plot
+
+```
+
+```{r}
+ggpubr::ggarrange(annual_effort_plot, ncol = 1,relative_effort_plot,
+                  legend = "bottom")
+```
+
+
+## Seasonal SST Change (SSP5-8.5)
+```{r}
+
+# Ensure the required libraries are loaded
+library(ggplot2)
+library(scico)
+library(patchwork)
+
+# Prepare data for January–June and July–December
+mapping_data_sf_jan_jun <- ols_prediction |>
+  filter(month(month) <= 6) |> 
+  dplyr::mutate(sst_diff = (`SSP5-8.5_forecast_sst` - original_sst)) |>
+  dplyr::group_by(lat_bin, lon_bin) |>
+  dplyr::summarize(sst_diff = mean(sst_diff, na.rm = TRUE)) |>
+  dplyr::ungroup()
+
+mapping_data_sf_jul_dec <- ols_prediction |>
+  filter(month(month) > 6) |> 
+  dplyr::mutate(sst_diff = (`SSP5-8.5_forecast_sst` - original_sst)) |>
+  dplyr::group_by(lat_bin, lon_bin) |>
+  dplyr::summarize(sst_diff = mean(sst_diff, na.rm = TRUE)) |>
+  dplyr::ungroup()
+
+# Define the plotting function
+plot_sst_change <- function(data, eez, sprfmo, land, analysis_scope_lon, analysis_scope_lat, title) {
+  ggplot() +
+    geom_tile(
+      data = data,
+      aes(fill = sst_diff, x = lon_bin, y = lat_bin)
+    ) +
+    # Add isotherms using geom_contour
+    geom_contour(
+      data = data,
+      aes(x = lon_bin, y = lat_bin, z = sst_diff),
+      color = "black",  # Color of the contour lines
+      size = 0.3,
+      breaks = 0,
+      linetype = "dotted",
+      position = "jitter"# Line width
+      
+    ) +
+    geom_sf(data = eez, fill = NA, color = "orange") +
+    geom_sf(data = sprfmo, fill = NA, color = "yellow") +
+    geom_sf(data = land, color = "#374a6d", fill = "#374a6d") +
+    scale_fill_scico(
+      "Change in monthly SST mean (deg C)",
+      palette = "vik",  # Diverging palette
+      midpoint = 0         # Center the color gradient at zero
+    ) +
+    labs(x = NULL, y = NULL, title = title) +
+    theme_map() +
+    guides(
+      fill = guide_colorbar(
+        title.position = "top",
+        title.hjust = 0.5,
+        frame.colour = "black",
+        ticks.colour = "black",
+        barwidth = unit(10, "cm"),
+        barheight = unit(0.5, "cm")
+      )
+    ) +
+    scale_x_continuous(expand = c(0, 0), limits = analysis_scope_lon) +
+    scale_y_continuous(expand = c(0, 0), limits = analysis_scope_lat) +
+    theme(
+      legend.position = "bottom",
+      legend.title = element_text(size = 12, hjust = 0.5),
+      plot.title = element_text(size = 14, hjust = 0.5)
+    )
+}
+
+# Generate plots using the function
+plot_jan_jun <- plot_sst_change(
+  data = mapping_data_sf_jan_jun,
+  eez = eez,
+  sprfmo = sprfmo,
+  land = land,
+  analysis_scope_lon = analysis_scope_lon,
+  analysis_scope_lat = analysis_scope_lat,
+  title = "SST Change: January - June"
+)
+
+plot_jul_dec <- plot_sst_change(
+  data = mapping_data_sf_jul_dec,
+  eez = eez,
+  sprfmo = sprfmo,
+  land = land,
+  analysis_scope_lon = analysis_scope_lon,
+  analysis_scope_lat = analysis_scope_lat,
+  title = "SST Change: July - December"
+)
+
+# Combine the plots side by side with a shared legend
+combined_plot <- ggpubr::ggarrange(plot_jan_jun, plot_jul_dec,
+                                   common.legend = T, legend = "bottom")
+
+# Display the combined plot
+combined_plot
+
+# Save the combined plot as PNG
+ggsave(
+  filename = "sst_change_combined.png",
+  plot = combined_plot,
+  width = 12,      # Width of the image in inches
+  height = 6,      # Height of the image in inches
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+```
+
+
+## Annual Catch of Jumbo Flying Squid by Country
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+# Read the data
+squid_data <- read_csv("capture_quantity.csv")
+
+# Tidy the data: Convert from wide to long format, keeping only year columns
+squid_long <- squid_data %>%
+  pivot_longer(
+    cols = matches("^\\d{4}$"),   # Select columns that are numeric years (e.g., "2022")
+    names_to = "Year",            # Name for the new "Year" column
+    values_to = "Catch"           # Name for the catch quantity values
+  ) %>%
+  filter(!is.na(Catch))           # Remove rows with NA values
+
+# Convert Year to numeric for proper plotting
+squid_long$Year <- as.numeric(squid_long$Year)
+
+# Calculate total catch by country and reorder Country Name En
+squid_long <- squid_long %>%
+  group_by(`Country Name En`) %>%
+  mutate(TotalCatch = sum(Catch, na.rm = TRUE)) %>%
+  ungroup()
+
+squid_long <- squid_long %>%
+  mutate(`Country Name En` = if_else(TotalCatch > 10, `Country Name En`, "Others")) %>%
+  group_by(`Country Name En`, Year) %>%
+  mutate(TotalCatch = sum(Catch, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(`Country Name En` = reorder(`Country Name En`, TotalCatch,
+                                     decreasing = T))
+
+# Create the stacked area chart with reordered legend and integer x-axis labels
+ggplot(squid_long, aes(x = Year, y = Catch, fill = `Country Name En`)) +
+  geom_area(alpha = 0.8, size = 0.5, colour = "white") +
+  scale_fill_brewer(palette = "Set3") +
+  scale_x_continuous(
+    breaks = seq(min(squid_long$Year), max(squid_long$Year), by = 1) # Ensure integer breaks
+  ) +
+  labs(
+    title = "Annual Catch of Jumbo Flying Squid by Country",
+    x = "Year",
+    y = "Catch Quantity (Tonnes)",
+    fill = "Country"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top") ->squid_plot # Place legend at the bottom
+
+
+# Save the plot to a file
+ggsave("squid_catch_trend.png", squid_plot, width = 10, height = 6, dpi = 300)
+```
+
+
+
+
+
+```{r}
+# Prepare `mapping_data_sf` for month 7-12
+mapping_data_sf <- ols_prediction |>
+  filter(month(month) <= 6) %>%
+  dplyr::mutate(
+    sst_diff = (`SSP5-8.5_forecast_sst` - original_sst)
+  ) |>
+  dplyr::group_by(lat_bin, lon_bin) |>
+  dplyr::summarize(sst_diff = mean(sst_diff, na.rm = TRUE)) |>
+  dplyr::ungroup()
+
+# Call the function
+fig_sst_map_ssp1_diff <- plot_sst_change(
+  data = mapping_data_sf,
+  eez = eez,
+  sprfmo = sprfmo,
+  land = land,
+  analysis_scope_lon = analysis_scope_lon,
+  analysis_scope_lat = analysis_scope_lat
+)
+
+# Display the plot
+fig_sst_map_ssp1_diff
+```
+
+
+
+
+```{r}
+
+fig_effort_map_ols_ssp1_diff <- ggplot()  +
+  geom_tile(data = ols_prediction |>
+              dplyr::mutate(fishing_kw_hours_diff = 
+                              (`SSP5-8.5_prediction` - fitted),
+                            fishing_kw_hours_diff = fishing_kw_hours_diff * 1000) |>
+              dplyr::group_by(lat_bin,
+                              lon_bin) |>
+              dplyr::summarize(fishing_kw_hours_diff = mean(fishing_kw_hours_diff, na.rm = T)) |>
+              dplyr::ungroup(),
+            aes(fill = fishing_kw_hours_diff,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  scale_fill_scico(
+    "Change in Annual Fishing effort (kW-hours)",
+    palette = "broc",   # Diverging palette: "vik" highlights positive and negative changes
+    midpoint = 0,      # Center the color gradient at zero
+    na.value = "black" # Black for missing values
+  ) +
+  labs(x = '',
+       y = '') +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(12, "cm"),
+                               barheight = unit(1, "cm"))) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat)
+
+fig_effort_map_ols_ssp1_diff
+```
+
+
+## seasonal effort change.
+
+
+```{r}
+
+# Update the plot to use scico's diverging color palette
+library(scico)
+# Define a pseudolog10 transformation function
+pseudolog10 <- function(x) {
+  sign(x) * log10(1 + abs(x))
+}
+
+season_effort_diff =
+  function(season_str){
+mapping_data_sf = 
+  poisson_prediction |>
+    mutate(month_idx = month(month),
+         year = year(month),) %>% 
+    mutate(season = case_when(
+    month_idx %in% c(9,10,11) ~ "spring",
+    month_idx %in% c(12,1,2) ~ "summer",
+    month_idx %in% c(3,4,5) ~ "fall",
+    month_idx %in% c(6,7,8) ~ "winter",),) |> 
+    filter(season == season_str) |> 
+              dplyr::mutate(effort_diff = 
+                              (`SSP5-8.5_prediction` - fitted) * 1000 * 3,)|>
+              dplyr::group_by(lat_bin,
+                              lon_bin,
+                              season) |>
+              dplyr::summarize(effort_diff = mean(effort_diff, na.rm = TRUE)) |>
+              dplyr::ungroup()
+  
+
+fig_effort_map_poisson_ssp1_diff <- ggplot()  +
+  geom_tile(data = mapping_data_sf,
+            aes(fill = effort_diff,
+                x = lon_bin,
+                y = lat_bin)) +
+  geom_sf(data = eez,
+          fill = NA,
+          color = "orange") +
+  geom_sf(data = sprfmo,
+          fill = NA,
+          color = "yellow") +
+  geom_sf(data = land,
+          color = "#374a6d",
+          fill = "#374a6d") +
+  labs(x = NULL,
+       y = NULL) +
+  scale_fill_scico(
+    "Change in Annual Fishing effort (kW-hours)",
+    palette = "lisbon",
+    midpoint = 0,         # Center the gradient at zero
+    breaks = c(-1e5 ,-10000, -1000, -100, 0, 100, 1000, 10000),
+    labels = c("-100k", "-10k", "-1k", "-100", "0", "100", "1k", "10k"),
+    trans = scales::trans_new(
+      name = "pseudolog10",
+      transform = pseudolog10,
+      inverse = function(x) sign(x) * (10^(abs(x)) - 1)
+    ),
+    #na.value = "black"    # Color for NA values
+  ) +
+  theme_map() +
+  guides(fill = guide_colorbar(title.position = "top",
+                               title.hjust = 0.5,
+                               frame.colour = "black",
+                               ticks.colour = "black",
+                               barwidth = unit(10, "cm"),
+                               barheight = unit(0.5, "cm"))) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lon) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = analysis_scope_lat) +
+  ggtitle(season_str)
+return(fig_effort_map_poisson_ssp1_diff)
+}
+
+spring_plot = season_effort_diff("spring")
+summer_plot = season_effort_diff("summer")
+fall_plot = season_effort_diff("fall")
+winter_plot = season_effort_diff("winter")
+
+combined_plot_season <- ggpubr::ggarrange(spring_plot, summer_plot,fall_plot,winter_plot,
+                                   common.legend = T, legend = "bottom")
+
+combined_plot_season
+# Save the plot as PNG
+ggsave(
+  filename = "seasonal_effort_change.png",
+  plot = combined_plot_season,
+  width = 8,      # Width of the image in inches
+  height = 8,      # Height of the image in inches
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+
+```
+
+
+
+```{r}
+monthly_diff = 
+  poisson_prediction |>
+    mutate(month_idx = month(month),
+           year = year(month),
+           area = if_else(lat_bin <= -10, "Off Chile&Peru",
+                          "Equatorial SP")) |> 
+    dplyr::mutate(effort_diff = 
+                    (`SSP5-8.5_prediction` - fitted) * 1000,)|>
+    dplyr::group_by(area,
+                    month_idx) |>
+    dplyr::summarize(effort_diff = mean(effort_diff, na.rm = TRUE)) |>
+    dplyr::ungroup() 
+
+monthly_diff |> 
+  mutate(effort_diff = replace_na(effort_diff, 0)) |> 
+  ggplot(aes(x = month_idx, y = effort_diff, group = area, color = area)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Total Fishing Effort by Month and Region",
+    x = "Month",
+    y = "Forecasted Change in Fishing Effort",
+    color = "Region"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    legend.position = "top"
+  )+
+  scale_x_continuous(breaks = 1:12)
+
+ggsave(
+  filename = "monthly_effort_change.png",
+  #width = 7,      # Width of the image in inches
+  #height = 4,      # Height of the image in inches
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+```
+
+
+## Plotting seasonal SST change
+
+```{r}
+
+# Update the plot to use scico's diverging color palette
+library(scico)
+# Define a pseudolog10 transformation function
+pseudolog10 <- function(x) {
+  sign(x) * log10(1 + abs(x))
+}
+
+season_SST_diff =
+  function(season_str){
+  mapping_data_sf = 
+    ols_prediction |>
+      mutate(month_idx = month(month),
+           year = year(month),) %>% 
+      mutate(season = case_when(
+      month_idx %in% c(9,10,11) ~ "spring",
+      month_idx %in% c(12,1,2) ~ "summer",
+      month_idx %in% c(3,4,5) ~ "fall",
+      month_idx %in% c(6,7,8) ~ "winter",),) |> 
+      filter(season == season_str) |> 
+      dplyr::mutate(sst_diff = (`SSP5-8.5_forecast_sst` - original_sst)) |>
+      dplyr::group_by(lat_bin, lon_bin) |>
+      dplyr::summarize(sst_diff = mean(sst_diff, na.rm = TRUE)) |>
+      dplyr::ungroup()
+  
+
+  # Generate plots using the function
+  plot_season_SST <- plot_sst_change(
+    data = mapping_data_sf,
+    eez = eez,
+    sprfmo = sprfmo,
+    land = land,
+    analysis_scope_lon = analysis_scope_lon,
+    analysis_scope_lat = analysis_scope_lat,
+    title = season_str
+  )
+  return(plot_season_SST)
+}
+
+spring_plot = season_SST_diff("spring")
+summer_plot = season_SST_diff("summer")
+fall_plot = season_SST_diff("fall")
+winter_plot = season_SST_diff("winter")
+
+combined_plot_season <- ggpubr::ggarrange(spring_plot, summer_plot,fall_plot,winter_plot,
+                                   common.legend = T, legend = "bottom")
+
+combined_plot_season
+# Save the plot as PNG
+ggsave(
+  filename = "seasonal_SST_change.png",
+  plot = combined_plot_season,
+  width = 8,      # Width of the image in inches
+  height = 8,      # Height of the image in inches
+  dpi = 300,       # High resolution for presentations
+  units = "in"     # Units for width and height
+)
+
+```
+
+
+
+
+
