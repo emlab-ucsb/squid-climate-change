@@ -7,9 +7,11 @@ WITH
   SELECT
   *
   FROM
-  `emlab-gcp.squid_climate_change.squid_vessel_list`
+  `{squid_vessel_list_table}`
   ),
-  -- Get all AIS message data
+  -- Get all AIS message data from GFW's pipeline 5 (V5) messages table
+  -- 0.25 is a power of two, so FLOAT64 binning is exact here (no need for the
+  -- NUMERIC binning megafauna-and-fronts uses for 0.01 degree pixels)
   daily_gridded_ais_data AS (
   SELECT
     ssvid,
@@ -20,7 +22,7 @@ WITH
     SUM(hours) fishing_hours,
     SUM(hours * engine_power_kw) fishing_kw_hours
   FROM
-    `world-fishing-827.pipe_ais_v3_published.messages`
+    `{gfw_messages_table}`
   JOIN
     vessel_data
   USING
@@ -30,6 +32,7 @@ WITH
     AND {ais_date_end}
     AND clean_segs
     # Squid fishing heuristic for whether or not its fishing - it's very simple
+    # In V5, night_loitering is an INT64 of 0 or 1
     AND night_loitering > 0.5
   GROUP BY
     ssvid,
