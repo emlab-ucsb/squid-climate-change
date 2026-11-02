@@ -48,6 +48,18 @@ list(
     name = ais_date_end,
     "'2024-08-31'"
   ),
+  # GFW pipeline 5 (V5) vessel identity table, one row per vessel (ssvid)
+  # summarizing its whole AIS record. Gear, the fishing vessel call, and engine
+  # power come from the pipeline 5 random forest (random_forest_info)
+  tar_target(
+    name = gfw_vessel_info_table,
+    "global-fishing-watch.pipe_ais_identity_v5_partners_published.vi_ssvid"
+  ),
+  # GFW pipeline 5 (V5) AIS positions, one row per message
+  tar_target(
+    name = gfw_messages_table,
+    "global-fishing-watch.pipe_ais_v5_published.messages"
+  ),
   # Set spatial pixel size resolution in degrees lat/lon
   tar_target(
     name = spatial_resolution,
@@ -64,7 +76,10 @@ list(
   tar_file_read(
     name = squid_vessel_list_bq,
     "sql/squid_vessel_list.sql",
-    run_gfw_query_and_save_table(sql = readr::read_file(!!.x),
+    run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
+                                   stringr::str_glue(
+                                     gfw_vessel_info_table = gfw_vessel_info_table
+                                   ),
                                  bq_table_name = "squid_vessel_list",
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,
@@ -86,7 +101,8 @@ list(
     run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
                                    stringr::str_glue(ais_date_start = ais_date_start,
                                                      ais_date_end = ais_date_end,
-                                                     spatial_resolution = spatial_resolution),
+                                                     spatial_resolution = spatial_resolution,
+                                                     gfw_messages_table = gfw_messages_table),
                                  bq_table_name = "gridded_daily_effort_by_vessel",
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,

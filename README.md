@@ -28,3 +28,7 @@ squid-climate-change
   |__ renv
   |__ sql
 ```
+
+# Data sources
+
+AIS-based squid jigger fishing effort and vessel info come from the [V5 version](https://docs.google.com/document/d/1wFtKu_6ixCGCfmTk3j6UPbKBgFrQdJ_BtrGiooC0yDQ/edit?tab=t.0) of the Global Fishing Watch AIS data processing pipeline. See `qmd/data.qmd` for details.

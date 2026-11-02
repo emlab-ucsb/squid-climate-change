@@ -61,9 +61,9 @@ This gives us a total of 12 different forecasts to analyze. The dataset can be l
 
 ## AIS-based fishing effort
 
-We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (@kroodsma2018tracking). We use the V3 pipeline table `pipe_ais_v3_published.messages`. Variables of interest within this table include the following
+We use satellite-based individual vessel monitoring AIS data processed by Global Fishing Watch (@kroodsma2018tracking). We use the V5 pipeline table `global-fishing-watch.pipe_ais_v5_published.messages`. Variables of interest within this table include the following
 (descriptions are taken directly from the schema for
-`pipe_ais_v3_published.messages`):
+`pipe_ais_v5_published.messages`):
 
 -   `ssvid`: source specific vessel id; MMSI for AIS
 -   `hours`: time since the previous position in the segment
@@ -80,18 +80,16 @@ We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially
 
 ## AIS-based vessel info
 
-Vessel characteristics data processed are by Global Fishing Watch (@park2023tracking). We use the V3 pipeline table `pipe_ais_v3_published.vi_ssvid_v20240601`. Variables of interest within this table include the following
-(descriptions are taken directly from the schema for
-`pipe_ais_v3_published.vi_ssvid_v20240301`):
+Vessel characteristics data processed are by Global Fishing Watch (@park2023tracking). We use the V5 pipeline table `global-fishing-watch.pipe_ais_identity_v5_partners_published.vi_ssvid`, which has one row per vessel summarizing its whole AIS record. In V5, vessel class, whether a vessel is a fishing vessel, and engine power come from GFW's random forest vessel classification model (`random_forest_info`), which replaces the V3 fields `best.best_vessel_class` and `on_fishing_list_best` (GFW Pipe5 Release Notes for Research Partners, September 2026). Variables of interest within this table include the following (descriptions of the `random_forest_info` fields are from the release notes, since the schema does not describe them; the others are taken directly from the schema):
 
 -   `ssvid`: source specific vessel id; MMSI for AIS
--   `best.flag`: best flag state (ISO3) for the vessel
--   `best.best_vessel_class`: best vessel class for the vessel (using
-    official registry information where available, or the GFW
-    vessel characteristics algorithm where not available)
--   `best.best_engine_power_kw `: best engine power (kilowatts) for
+-   `best.best_flag`: best flag state (ISO3) for the vessel
+-   `random_forest_info.on_fishing_list_best`: whether the vessel is a fishing vessel, from the random forest model, overridden by official registry information where available
+-   `random_forest_info.best_vessel_class`: best vessel class for the vessel from the random forest model. The model only names a specific gear when it scores that gear at least 0.35; otherwise it rolls the vessel up to a broader class, such as the generic `fishing`
+-   `random_forest_info.atomic_class`: the random forest model's finest-level vessel class prediction
+-   `random_forest_info.best_engine_power_kw`: best engine power (kilowatts) for
     the vessel (using official registry information where available, or
-    the GFW characteristics algorithm where not
+    the random forest model's estimate where not
     available)
 -   `activity.active_hours`: hours the vessel was broadcasting AIS and moving more than 0.1 knots
 -   `activity.offsetting`: true if this vessel has been seen with an offset postition at some point between 2012 and 2019
@@ -105,7 +103,7 @@ Vessel characteristics data processed are by Global Fishing Watch (@park2023trac
     if it is \> 0, it can be used as a filter to remove potentially
     erroneous/noisy vessels)
     
-We filter to just those vessels where `best.best_vessel_class = squid_jigger`. Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activitiy.active_hours < 24`) or are noisy/spoofing/offsetting vessels (i.e.,  `NOT activity.offsetting OR activity.overlap_hours_multinames > 0.`) They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels for our analysis.
+We filter to just those vessels the random forest model calls fishing vessels (`random_forest_info.on_fishing_list_best`) and squid jiggers. A vessel is a squid jigger when `random_forest_info.best_vessel_class = squid_jigger`, or when the model rolls the vessel up to the generic `fishing` class but its finest-level prediction is `random_forest_info.atomic_class = squid_jigger` (GFW says this finest-level prediction is reliable for squid jiggers). Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activity.active_hours < 24`) or are noisy vessels, using GFW's definition of a noisy vessel (i.e., `activity.offsetting` or `activity.overlap_hours_multinames >= 24`). They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels for our analysis.
 
 ### Joined dataset: SST and AIS-based effort
 
