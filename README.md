@@ -31,4 +31,4 @@ squid-climate-change
 
 # Data sources
 
-AIS-based squid jigger fishing effort and vessel info come from the [V5 version](https://docs.google.com/document/d/1wFtKu_6ixCGCfmTk3j6UPbKBgFrQdJ_BtrGiooC0yDQ/edit?tab=t.0) of the Global Fishing Watch AIS data processing pipeline. See `qmd/data.qmd` for details.
+AIS-based squid jigger fishing effort and vessel info come from the [V5 version](https://docs.google.com/document/d/1wFtKu_6ixCGCfmTk3j6UPbKBgFrQdJ_BtrGiooC0yDQ/edit?tab=t.0) of the Global Fishing Watch AIS data processing pipeline. AIS, SST, and Oceanic Niño Index (ONI) data all run from 2016 through 2025 (`analysis_date_start` and `analysis_date_end` in `_targets.R`). See `qmd/data.qmd` for details.

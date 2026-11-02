@@ -31,7 +31,7 @@ source("r/functions.R")
 
 ## Sea surface temperature (SST)
 
-Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. Keeping the full 0.25x0.25 degree spatial resolution, we temporally aggregate the daily data to monthly resolution by calculating the mean SST for each pixel from across the days in each month.
+Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. Keeping the full 0.25x0.25 degree spatial resolution, we temporally aggregate the daily data to monthly resolution by calculating the mean SST for each pixel from across the days in each month. A few days are missing from the ERDDAP dataset (e.g., 2025-06-22); for those months, the mean uses the days that are available.
 
 ## Sea surface temperature (SST) forecasts under climate change
 
@@ -134,7 +134,7 @@ Our proposed geographic scope encompasses a bounding box with a longitude range 
 
 ```{r}
 #| label: fig-effort-map-with-scope
-#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
+#| fig-cap: Map of squid jigger fishing effort from 2016 through December 2025, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
 
 ggplot()  +
   geom_tile(data = joined_dataset_ais |>
@@ -177,7 +177,7 @@ ggplot()  +
 
 ```{r}
 #| label: fig-effort-map-with-scope-zoom
-#| fig-cap: Zoomed in map of squid jigger fishing effort from 2016 through August 2024 to the proposed analysis scope, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
+#| fig-cap: Zoomed in map of squid jigger fishing effort from 2016 through December 2025 to the proposed analysis scope, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
 
 ggplot()  +
   geom_tile(data = joined_dataset_ais |>

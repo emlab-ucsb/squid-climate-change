@@ -33,11 +33,11 @@ source("r/functions.R")
 
 ## Sea surface temperature (SST)
 
-We can look at a map of SST, simply looking at the average monthly SST from across the entire January 2016 through August 2024 time series (@fig-sst-map).
+We can look at a map of SST, simply looking at the average monthly SST from across the entire January 2016 through December 2025 time series (@fig-sst-map).
 
 ```{r}
 #| label: fig-sst-map
-#| fig-cap: Map of mean sea surface temperature (SST) from across January 2016 through August 2024, using 0.5x0.5 degree pixels.
+#| fig-cap: Map of mean sea surface temperature (SST) from across January 2016 through December 2025, using 0.5x0.5 degree pixels.
 
 fig_sst_map <- ggplot() +
   geom_tile(data = joined_dataset_ais |>
@@ -177,12 +177,20 @@ joined_dataset_ais <- joined_dataset_ais  |>
   dplyr::mutate(country = ifelse(!is.na(top),
                                  country,
                                  "Other"))
+
+# Each top flag's share of total effort, for the text below
+flag_shares <- joined_dataset_ais |>
+  dplyr::filter(country != "Other") |>
+  dplyr::group_by(country) |>
+  dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
+  dplyr::mutate(share = fishing_kw_hours / sum(joined_dataset_ais$fishing_kw_hours)) |>
+  dplyr::arrange(dplyr::desc(share))
 ```
-Here we look at total fishing effort from 2016 through August 2024 within the analysis scope, by flag (@fig-effort-bar-plot). China dominates the fishing effort with over 97% of all effort, with Taiwan a distant second at barely 1%.
+Here we look at total fishing effort from 2016 through December 2025 within the analysis scope, by flag (@fig-effort-bar-plot). `r flag_shares$country[1]` has the most fishing effort, with `r scales::percent(flag_shares$share[1], accuracy = 0.1)` of all effort, followed by `r flag_shares$country[2]` with `r scales::percent(flag_shares$share[2], accuracy = 0.1)`.
 
 ```{r}
 #| label: fig-effort-bar-plot
-#| fig-cap: Total fishing effort, by flag, from 2016 through August 2024 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
+#| fig-cap: Total fishing effort, by flag, from 2016 through December 2025 within the analysis scope. The label shows the percentage of total fishing effort that each flag contributes. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
 #| fig-height: 4
 #| 
 joined_dataset_ais|>
@@ -196,7 +204,7 @@ joined_dataset_ais|>
   geom_bar(stat = "identity")+
   geom_label(aes(label = percent_total,
                  x = fishing_kw_hours+.2e9)) +
-  labs(x = "Total fishing effort from 2016 through August 2024 (kW-hours)",
+  labs(x = "Total fishing effort from 2016 through December 2025 (kW-hours)",
        y = "")+
   scale_x_continuous(labels = scales::unit_format(unit = "B", scale = 1e-9)) +
   theme_plot()
@@ -206,7 +214,7 @@ Next we look at a time series of total monthly AIS-based fishing effort by fishi
 
 ```{r}
 #| label: fig-effort-time-series
-#| fig-cap: Monthly fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
+#| fig-cap: Monthly fishing effort by flag from 2016 through December 2025 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
 #| fig-height: 7
 
 joined_dataset_ais|> 
@@ -231,15 +239,22 @@ Next we look at a time series of total annual AIS-based fishing effort by fishin
 
 ```{r}
 #| label: fig-effort-time-series-annual
-#| fig-cap: Annual fishing effort by flag from 2016 through August 2024 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
+#| fig-cap: Annual fishing effort by flag from 2016 through December 2025 within the analysis scope. The top 5 flags are shown individually, with other flags aggregated into 'Other'.
 #| fig-height: 4
 
-joined_dataset_ais|> 
+# Only plot complete years, i.e., through the last year with December data
+last_full_year <- joined_dataset_ais |>
+  dplyr::filter(lubridate::month(month) == 12) |>
+  dplyr::pull(month) |>
+  max() |>
+  lubridate::year()
+
+joined_dataset_ais|>
   dplyr::mutate(country = forcats::fct_relevel(country,
                                                top_flags_all_time$country))|>
   dplyr::group_by(year = lubridate::year(month),
                   country)  |>
-  dplyr::filter(year<2024) |>
+  dplyr::filter(year <= last_full_year) |>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
   dplyr::ungroup()  |>
   ggplot(aes(x = year, y= fishing_kw_hours, fill = country)) +
@@ -260,7 +275,7 @@ Next we can look at the temporal trend of total fishing effort alongside the tem
 
 ```{r}
 #| label: fig-effort-sst-time-series
-#| fig-cap: Monthly trends of of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort. Both time series include data from across the entire January 2016 through August 2024 time period, and from only within our spatial analysis scope.
+#| fig-cap: Monthly trends of of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort. Both time series include data from across the entire January 2016 through December 2025 time period, and from only within our spatial analysis scope.
 
 fig_top <- joined_dataset_ais|>
   collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean),
@@ -292,7 +307,7 @@ We can also aggregate the effort data by calculating the total effort for each m
 
 ```{r}
 #| label: fig-effort-monthly-trends-by-region-equatorial
-#| fig-cap: Historic seasonal variation of monthly total fishing effort for the equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-cap: Historic seasonal variation of monthly total fishing effort for the equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through December 2025) and within our spatial analysis scope.
 #| fig-width: 7
 #| fig-height: 2.5
 
@@ -322,7 +337,7 @@ historic_monthly_variation_effort_by_region |>
 
 ```{r}
 #| label: fig-effort-monthly-trends-by-region-subequatorial
-#| fig-cap: Historic seasonal variation of monthly total fishing effort for the sub-equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-cap: Historic seasonal variation of monthly total fishing effort for the sub-equatorial region. The distribution for each month shows the spread of total fishing effort from each year in our historic dataset (January 2016 through December 2025) and within our spatial analysis scope.
 #| fig-width: 7
 #| fig-height: 2.5
 historic_monthly_variation_effort_by_region |> 
@@ -343,7 +358,7 @@ We can also aggregate the SST data by calculating the mean SST for each month in
 
 ```{r}
 #| label: fig-sst-monthly-trends-by-region-equatorial
-#| fig-cap: Historic seasonal variation of monthly mean sea surface temperature (SST) for the equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-cap: Historic seasonal variation of monthly mean sea surface temperature (SST) for the equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through December 2025) and within our spatial analysis scope.
 #| fig-width: 7
 #| fig-height: 2.5
 
@@ -372,7 +387,7 @@ historic_monthly_variation_sst_by_region |>
 
 ```{r}
 #| label: fig-sst-monthly-trends-by-region-subequatorial
-#| fig-cap: Historic seasonal variation of monthly mean sea surface temperature (SST) for the sub-equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through August 2024) and within our spatial analysis scope.
+#| fig-cap: Historic seasonal variation of monthly mean sea surface temperature (SST) for the sub-equatorial region. The distribution for each month shows the spread of mean SST from each year in our historic dataset (January 2016 through December 2025) and within our spatial analysis scope.
 #| fig-width: 7
 #| fig-height: 2.5
 historic_monthly_variation_sst_by_region |> 
@@ -392,7 +407,7 @@ Next we can look at at a map of AIS-based squid fishing effort (@fig-effort-map)
 
 ```{r}
 #| label: fig-effort-map
-#| fig-cap: Map of squid jigger fishing effort from 2016 through August 2024, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow.
+#| fig-cap: Map of squid jigger fishing effort from 2016 through December 2025, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow.
 
 fig_effort_map <- ggplot()  +
   geom_tile(data = joined_dataset_ais |>
@@ -438,7 +453,7 @@ We can also look at this map of total fishing effort alongside a map of mean SST
 
 ```{r}
 #| label: fig-effort-sst-map
-#| fig-cap: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through August 2024 time period, using 0.5x0.5 degree pixels.
+#| fig-cap: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through December 2025 time period, using 0.5x0.5 degree pixels.
 
 
 cowplot::plot_grid(fig_sst_map,
@@ -447,7 +462,7 @@ cowplot::plot_grid(fig_sst_map,
                    labels = c("A","B"))
 ```
 
-We can also look at these effort maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through August 2024, aggregating effort across time for each pixel. The top `r n_flags` flags are shown.
+We can also look at these effort maps, broken apart by flag, and still aggregating squid jigger fishing effort from 2016 through December 2025, aggregating effort across time for each pixel. The top `r n_flags` flags are shown.
 
 ```{r}
 purrr::map(top_flags_all_time$country,

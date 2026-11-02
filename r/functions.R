@@ -130,7 +130,21 @@ download_erddap_wrapper <- function(dataset_name,
     # So we need to manually fix it
     if(data_date=="2023-02-01") data_tibble <- data_tibble |>
       collapse::fmutate(time = lubridate::ymd_hms("2023-02-01 12:00:00"))
-    
+
+    # When a date is missing from the dataset, ERDDAP returns the nearest date
+    # it has instead (on 2026-11-02, 2025-06-22 returned 2025-06-23). Don't
+    # save another day's data under this date, or that day would count twice
+    # in its monthly mean. Monthly means use the days ERDDAP has.
+    returned_date <- as.character(data_tibble$time[1]) |>
+      stringr::str_sub(1, 10)
+    if(returned_date != data_date){
+      print(glue::glue("{data_date} not on ERDDAP, skipping"))
+      return(tibble::tibble(data_date = data_date,
+                            download_path = "not_on_server",
+                            download_timestamp = Sys.time(),
+                            error = glue::glue("No data for this date on ERDDAP; nearest date returned was {returned_date}")))
+    }
+
     data.table::fwrite(data_tibble,
                        download_path)
     
@@ -142,6 +156,44 @@ download_erddap_wrapper <- function(dataset_name,
                           error = NA))
     
   })
+}
+
+#' List the daily SST files to aggregate
+#'
+#' @description Builds the list of daily SST files from what
+#'   download_erddap_wrapper() returned, so it covers exactly the analysis
+#'   dates, and re-runs whenever the download does. Other projects save files
+#'   to the same shared folder, so listing the folder could pick up dates
+#'   outside the analysis period. Stops if any download failed, so a monthly
+#'   mean never quietly misses days. Dates ERDDAP has no data for are left out.
+#' @param sst_data_download Tibble returned by download_erddap_wrapper().
+#' @return Tibble with one row per daily file: file_name, date, and month.
+list_sst_files <- function(sst_data_download) {
+  failed <- sst_data_download |>
+    dplyr::filter(download_path == "download_failed")
+  if (nrow(failed) > 0) {
+    stop(
+      "SST download failed for ", nrow(failed), " dates (",
+      paste(failed$data_date, collapse = ", "), "). Run ",
+      "targets::tar_invalidate(sst_data_download) and tar_make() to retry."
+    )
+  }
+  not_on_server <- sst_data_download |>
+    dplyr::filter(download_path == "not_on_server")
+  if (nrow(not_on_server) > 0) {
+    message(
+      "No SST data on ERDDAP for ",
+      paste(not_on_server$data_date, collapse = ", "),
+      "; their monthly means use the other days"
+    )
+  }
+  sst_data_download |>
+    dplyr::filter(download_path != "not_on_server") |>
+    dplyr::transmute(
+      file_name = as.character(download_path),
+      date = lubridate::ymd(data_date),
+      month = lubridate::floor_date(date, unit = "month")
+    )
 }
 
 spatio_temporal_aggregate <- function(file_list,
@@ -168,17 +220,36 @@ spatio_temporal_aggregate <- function(file_list,
     dplyr::rename_with(~stringr::str_remove_all(.,".sst"), .cols = everything())
 }
 
-# Pull NOAA Oceanic Nino Index (ONI) data
-pull_oni_data <- function(){
-  read.table(url("https://psl.noaa.gov/data/correlation/oni.data"),skip=1,nrows=75) |>
+#' Pull NOAA Oceanic Nino Index (ONI) data
+#'
+#' @description Reads monthly ONI values from NOAA PSL, through date_end.
+#' @param date_end Last date of the analysis, as "YYYY-MM-DD". Months after
+#'   it are dropped.
+#' @return Tibble with columns month (first day of the month) and
+#'   oceanic_nino_index.
+pull_oni_data <- function(date_end){
+  oni_lines <- readLines(url("https://psl.noaa.gov/data/correlation/oni.data"))
+  # The first line gives the first and last years in the file, followed by one
+  # row per year. Footer lines after those rows are notes, not data
+  file_years <- scan(text = oni_lines[1], quiet = TRUE)
+  n_years <- file_years[2] - file_years[1] + 1
+  oni_data <- read.table(text = oni_lines[2:(n_years + 1)]) |>
     tibble::as_tibble() |>
     dplyr::rename(year = V1) |>
     tidyr::pivot_longer(-year) |>
     dplyr::mutate(month = stringr::str_remove_all(name,"V") |>
                     as.numeric() - 1,
                   month = lubridate::ymd(glue::glue("{year}-{month}-1"))) |>
-    dplyr::filter(month <= lubridate::ymd("2024-08-01")) |>
+    dplyr::filter(month <= lubridate::ymd(date_end)) |>
     dplyr::select(month,oceanic_nino_index = value)
+  # -99.9 marks months NOAA hasn't published yet
+  missing_months <- oni_data |>
+    dplyr::filter(oceanic_nino_index == -99.9)
+  if (nrow(missing_months) > 0) {
+    stop("ONI not yet available for ",
+         paste(missing_months$month, collapse = ", "))
+  }
+  oni_data
 }
 
 # Load all cliamte change SST forecast data, process into tidy tibble

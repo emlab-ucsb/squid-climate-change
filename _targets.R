@@ -38,15 +38,24 @@ options(scipen = 20)
 
 list(
   # Specify analysis parameters ----
-  # Set the date to start pulling AIS data
+  # First and last dates of the analysis, for the AIS, SST, and ONI data
+  tar_target(
+    name = analysis_date_start,
+    "2016-01-01"
+  ),
+  tar_target(
+    name = analysis_date_end,
+    "2025-12-31"
+  ),
+  # Set the date to start pulling AIS data, quoted for SQL
   tar_target(
     name = ais_date_start,
-    "'2016-01-01'"
+    paste0("'", analysis_date_start, "'")
   ),
-  # Set the date to end pulling AIS data
+  # Set the date to end pulling AIS data, quoted for SQL
   tar_target(
     name = ais_date_end,
-    "'2024-08-31'"
+    paste0("'", analysis_date_end, "'")
   ),
   # GFW pipeline 5 (V5) vessel identity table, one row per vessel (ssvid)
   # summarizing its whole AIS record. Gear, the fishing vessel call, and engine
@@ -191,18 +200,15 @@ list(
   tar_target(
     name = sst_data_download,
     download_erddap_wrapper(dataset_name = "ncdcOisst21Agg_LonPM180",
-                            date_start = "2016-01-01",
-                            date_end = "2024-08-31",
+                            date_start = analysis_date_start,
+                            date_end = analysis_date_end,
                             download_path_base = glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1/"))
   ),
+  # List the files sst_data_download saved, so this re-runs when the download
+  # does and only covers the analysis dates
   tar_target(
     name = sst_data_file_tibble,
-    tibble::tibble(file_name = list.files(glue::glue("{data_directory_base}/data/sst-noaa-daily-optimum-interpolation-v2-1"),
-                                          full.names = TRUE)) |>
-      dplyr::mutate(date = stringr::str_sub(file_name,start = -14, end = -5) |>
-                      stringr::str_replace_all("_","-") |>
-                      lubridate::ymd(),
-                    month = lubridate::floor_date(date, unit = "month"))
+    list_sst_files(sst_data_download)
   ),
   # Aggregate data temporally/spatially one month at a time, to avoid
   # load all files at once. Then bind them all together once they're aggregated
@@ -224,7 +230,7 @@ list(
   # Pull Oceanic Nino Index data from NOAA
   tar_target(
     name = oceanic_nino_index_data,
-    pull_oni_data()
+    pull_oni_data(date_end = analysis_date_end)
   ),
   # Process climate change SST forecast data
   tar_target(
