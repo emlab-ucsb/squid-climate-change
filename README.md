@@ -39,3 +39,7 @@ The AIS tables the pipeline writes to BigQuery (`emlab-gcp.squid_climate_change`
 |---|---|---|---|
 | no suffix | V3 | 2016 through August 2024 | Superseded. Squid jiggers from `best.best_vessel_class`, with noisy vessels dropped at any name overlap |
 | `v20261102` | V5 | 2016–2025 | Current version. Squid jiggers from the pipeline 5 random forest, with GFW's noisy vessel definition |
+
+# Use of generative AI
+
+Claude (Anthropic), model Opus 5.5, was used as a coding assistant through Claude Code in November 2026 to move the AIS data pull from GFW's V3 to V5 pipeline, extend the AIS, SST, and ONI data through 2025, and version the AIS tables in BigQuery. It drafted the SQL, `_targets.R`, and `r/functions.R` changes and the matching text in `qmd/data.qmd` and `qmd/eda.qmd`. Gavin McDonald reviewed the changes. Commits made with AI assistance carry a `Co-Authored-By: Claude` trailer.
