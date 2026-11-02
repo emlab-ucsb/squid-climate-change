@@ -6,7 +6,7 @@ SELECT
   SUM(fishing_hours) fishing_hours,
   SUM(fishing_kw_hours) fishing_kw_hours
 FROM
-  `emlab-gcp.squid_climate_change.gridded_daily_effort_by_vessel`
+  `{gridded_daily_effort_by_vessel_table}`
   WHERE
 fishing_kw_hours > 0
 GROUP BY

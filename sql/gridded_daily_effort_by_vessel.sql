@@ -7,7 +7,7 @@ WITH
   SELECT
   *
   FROM
-  `emlab-gcp.squid_climate_change.squid_vessel_list`
+  `{squid_vessel_list_table}`
   ),
   -- Get all AIS message data from GFW's pipeline 5 (V5) messages table
   -- 0.25 is a power of two, so FLOAT64 binning is exact here (no need for the

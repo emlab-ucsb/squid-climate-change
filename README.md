@@ -32,3 +32,10 @@ squid-climate-change
 # Data sources
 
 AIS-based squid jigger fishing effort and vessel info come from the [V5 version](https://docs.google.com/document/d/1wFtKu_6ixCGCfmTk3j6UPbKBgFrQdJ_BtrGiooC0yDQ/edit?tab=t.0) of the Global Fishing Watch AIS data processing pipeline. AIS, SST, and Oceanic Niño Index (ONI) data all run from 2016 through 2025 (`analysis_date_start` and `analysis_date_end` in `_targets.R`). See `qmd/data.qmd` for details.
+
+The AIS tables the pipeline writes to BigQuery (`emlab-gcp.squid_climate_change`) carry a version suffix (`ais_table_version` in `_targets.R`), so a rebuild writes new tables next to the old ones instead of overwriting them:
+
+| Version | GFW pipeline | Years | Notes |
+|---|---|---|---|
+| no suffix | V3 | 2016 through August 2024 | Superseded. Squid jiggers from `best.best_vessel_class`, with noisy vessels dropped at any name overlap |
+| `v20261102` | V5 | 2016–2025 | Current version. Squid jiggers from the pipeline 5 random forest, with GFW's noisy vessel definition |

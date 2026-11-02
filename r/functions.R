@@ -38,6 +38,18 @@ run_gfw_query_and_save_table <- function(sql,
   bigrquery::bq_table_meta(bq_table)
 }
 
+#' Full name of a BigQuery table
+#'
+#' @description Turns the table metadata returned by
+#'   run_gfw_query_and_save_table() into a "project.dataset.table" name, so
+#'   downstream queries read the table the upstream target actually built.
+#' @param table_meta Table metadata from bigrquery::bq_table_meta().
+#' @return Character string, "project.dataset.table".
+bq_table_full_name <- function(table_meta) {
+  ref <- table_meta$tableReference
+  paste(ref$projectId, ref$datasetId, ref$tableId, sep = ".")
+}
+
 # This function pulls GFW data locally using an arbitrary SQL command
 pull_gfw_data_locally_arbitrary <- function(sql, billing_project, ...){
   bigrquery::bq_project_query(billing_project, 

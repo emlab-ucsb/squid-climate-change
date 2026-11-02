@@ -57,6 +57,13 @@ list(
     name = ais_date_end,
     paste0("'", analysis_date_end, "'")
   ),
+  # Version suffix for the AIS tables written to BigQuery, so a rebuild writes
+  # new tables next to the old ones instead of overwriting them. Bump it for a
+  # from-scratch rebuild. v20261102: GFW pipeline 5 (V5), 2016-2025
+  tar_target(
+    name = ais_table_version,
+    "v20261102"
+  ),
   # GFW pipeline 5 (V5) vessel identity table, one row per vessel (ssvid)
   # summarizing its whole AIS record. Gear, the fishing vessel call, and engine
   # power come from the pipeline 5 random forest (random_forest_info)
@@ -89,7 +96,7 @@ list(
                                    stringr::str_glue(
                                      gfw_vessel_info_table = gfw_vessel_info_table
                                    ),
-                                 bq_table_name = "squid_vessel_list",
+                                 bq_table_name = paste0("squid_vessel_list_", ais_table_version),
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,
                                  bq_project = bq_project,
@@ -98,10 +105,10 @@ list(
   # Pull squid vessel list locally
   tar_target(
     name = squid_vessel_list,
-    pull_gfw_data_locally_arbitrary(sql = "SELECT * FROM `emlab-gcp.squid_climate_change.squid_vessel_list`",
-                                    billing_project = billing_project,
-                                    # Re-run this target if squid_vessel_list_bq changes
-                                    squid_vessel_list_bq)
+    # Build the name outside the SQL string, so targets sees the dependency on
+    # squid_vessel_list_bq (it can't see inside glue strings)
+    pull_gfw_data_locally_arbitrary(sql = paste0("SELECT * FROM `", bq_table_full_name(squid_vessel_list_bq), "`"),
+                                    billing_project = billing_project)
   ),
   # Get daily spatially gridded effort data, by vessel, for all vessels on squid vessel list
   tar_file_read(
@@ -111,36 +118,34 @@ list(
                                    stringr::str_glue(ais_date_start = ais_date_start,
                                                      ais_date_end = ais_date_end,
                                                      spatial_resolution = spatial_resolution,
-                                                     gfw_messages_table = gfw_messages_table),
-                                 bq_table_name = "gridded_daily_effort_by_vessel",
+                                                     gfw_messages_table = gfw_messages_table,
+                                                     squid_vessel_list_table = bq_table_full_name(squid_vessel_list_bq)),
+                                 bq_table_name = paste0("gridded_daily_effort_by_vessel_", ais_table_version),
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,
                                  bq_project = bq_project,
-                                 write_disposition = 'WRITE_TRUNCATE',
-                                 # Re-run this target if squid_vessel_list_bq changes
-                                 squid_vessel_list_bq)
+                                 write_disposition = 'WRITE_TRUNCATE')
   ),
   # Get spatially gridded effort data, at appropriate temporal resolution, by flag
   tar_file_read(
     name = gridded_time_effort_by_flag_bq,
     "sql/gridded_time_effort_by_flag.sql",
     run_gfw_query_and_save_table(sql = readr::read_file(!!.x) |>
-                                   stringr::str_glue(temporal_resolution = temporal_resolution),
-                                 bq_table_name = "gridded_time_effort_by_flag",
+                                   stringr::str_glue(temporal_resolution = temporal_resolution,
+                                                     gridded_daily_effort_by_vessel_table = bq_table_full_name(gridded_daily_effort_by_vessel_bq)),
+                                 bq_table_name = paste0("gridded_time_effort_by_flag_", ais_table_version),
                                  bq_dataset = bq_dataset,
                                  billing_project = billing_project,
                                  bq_project = bq_project,
-                                 write_disposition = 'WRITE_TRUNCATE',
-                                 # Re-run this target if gridded_daily_effort_by_vessel_bq changes
-                                 gridded_daily_effort_by_vessel_bq)
+                                 write_disposition = 'WRITE_TRUNCATE')
   ),
   # Pull gridded_time_effort_by_flag data locally
   tar_target(
     name = gridded_time_effort_by_flag,
-    pull_gfw_data_locally_arbitrary(sql = "SELECT * FROM `emlab-gcp.squid_climate_change.gridded_time_effort_by_flag`",
-                                    billing_project = billing_project,
-                                    # Re-run this target if gridded_time_effort_by_flag_bq changes
-                                    gridded_time_effort_by_flag_bq)
+    # Build the name outside the SQL string, so targets sees the dependency on
+    # gridded_time_effort_by_flag_bq
+    pull_gfw_data_locally_arbitrary(sql = paste0("SELECT * FROM `", bq_table_full_name(gridded_time_effort_by_flag_bq), "`"),
+                                    billing_project = billing_project)
   ),
   ## VIIRS data ----
   # Recreate this query: https://github.com/GlobalFishingWatch/paper-global-squid/blob/main/queries/VIIRS/get_viirs_without_noise.sql
