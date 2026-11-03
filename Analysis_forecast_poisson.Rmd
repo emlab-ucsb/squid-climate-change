@@ -5,6 +5,29 @@ date: "2024-11-12"
 output: html_document
 ---
 
+<!--
+Notes from a code review on 2026-11-02, for Kaiwen. The review, these notes,
+and the data loading change were done with Claude (Anthropic, Claude Opus
+5.5) through Claude Code. Only the data loading
+chunk below changed (it now reads the analysis targets project); the model
+code is as it was.
+
+1. Forecast SST: prepare_scenario_data() swaps observed SST for absolute
+   CMIP6 multi-model mean SST, then takes the deviation from the observed
+   monthly mean. CMIP6 models are biased warm in the Humboldt upwelling, so
+   part of the predicted change is model bias rather than warming. Worth
+   considering the delta method: forecast SST = observed SST + (CMIP6 future
+   - CMIP6 historical baseline), for the same 1 degree cell and month.
+2. The CMIP6 files used before November 2026 were downloaded by hand from the
+   Interactive Atlas, and 63 of the 144 were copies of a different scenario or
+   period (and Near Term had no February). The pipeline now reads CMIP6 from
+   the IPCC AR6 Interactive Atlas Dataset and checks it, so forecasts will
+   change.
+3. fit_model() uses nthreads = 20, so run this in a Slurm job with at least 20
+   cores.
+-->
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       warning = FALSE)
@@ -20,24 +43,23 @@ library(marginaleffects)
 ```
 
 
-```{r, eval=FALSE}
-# Initialize targets 
-
-targets_data_directory = "C:\\Users\\kevin\\Nextcloud\\emLab\\projects\\current-projects\\squid-climate-change\\data"
-
-targets::tar_config_set(store = glue::glue("{targets_data_directory}/_targets"))
+```{r}
+# Load data from the analysis targets project (see README.md). Paths and
+# analysis parameters come from r/config.R. Passing store = reads that project
+# without changing _targets.yaml. Run from the repo root
+source("r/config.R")
+analysis_store <- file.path(project_directory, "data", "_targets_analysis")
 
 targets::tar_load(c(#"gridded_time_effort_by_flag",
                     #"sst_data_aggregated",
                     #"oceanic_nino_index_data",
                     #"pixels_eez_with_info",
-                    #"analysis_scope_lon",
-                    #"analysis_scope_lat",
                     "joined_dataset_ais",
-                    "sst_cc_forecast_data"))
+                    "sst_cc_forecast_data"),
+                  store = analysis_store)
 ```
 
-```{r, eval=FALSE}
+```{r}
 ais_data = 
   joined_dataset_ais %>% 
   mutate(bin = str_c(lon_bin, ",", lat_bin)) %>% 
@@ -123,8 +145,8 @@ coefplot(poisson_model_greater_10)
 # Save both models
 
 ```{r}
-#saveRDS(poisson_model_greater_10, "poisson_model_greater_10.rds")
-#saveRDS(poisson_model_less_10, "poisson_model_less_10.rds")
+saveRDS(poisson_model_greater_10, "poisson_model_greater_10.rds")
+saveRDS(poisson_model_less_10, "poisson_model_less_10.rds")
 ```
 
 
@@ -216,7 +238,10 @@ process_and_combine_forecasts <- function(model, model_used_data, prepared_forec
 
 ## Load saved local data and model
 
-```{r}
+Optional: the models are fit above. Run this chunk by hand to reload saved
+models instead of refitting them (and save ais_data with saveRDS() first).
+
+```{r, eval=FALSE}
 ais_data = read_rds("ais_data.rds")
 poisson_model_greater_10 = read_rds("poisson_model_greater_10.rds")
 poisson_model_less_10 = read_rds("poisson_model_less_10.rds")

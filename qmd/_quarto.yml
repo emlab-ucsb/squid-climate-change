@@ -12,6 +12,7 @@ book:
     - index.qmd
     - data.qmd
     - eda.qmd
+    - changelog.qmd
     - references.qmd
   downloads: [pdf]
 
