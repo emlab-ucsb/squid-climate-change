@@ -5,6 +5,32 @@ date: "2024-12-10"
 output: html_document
 ---
 
+<!--
+Notes from a code review on 2026-11-02, for Kaiwen. The review, these notes,
+and the data loading change were done with Claude (Anthropic, Claude Opus
+5.5) through Claude Code. Only the data loading
+chunk below changed (it now reads the analysis targets project); the rest of
+the code is as it was. Things to fix:
+
+1. The effort change maps understate effort about 7 times. Rows are pixel x
+   month x flag, and the models have no flag term, so every flag row in a
+   pixel-month gets the same prediction. Grouping by pixel, taking mean(), and
+   multiplying by 12 (or 3) gives a per-flag number. Sum over flags within each
+   pixel-month first, then average over months.
+2. ols_prediction_SSP1 is built from `SSP2-4.5_prediction`, and the maps named
+   ..._ssp1 use SSP5-8.5.
+3. February: the CMIP6 files downloaded by hand had no Near Term February, so
+   February predictions were NA. mean(na.rm = TRUE) and replace_na(0) show it
+   as no change, and in the relative change, sum(na.rm = TRUE) drops NA rows
+   from the numerator but not the denominator. The pipeline now has every
+   month, but NA predictions should stop the script rather than be dropped.
+4. monthly_diff splits the regions at lat_bin <= -10; the models split at
+   lat_bin < -10.
+5. capture_quantity.csv isn't in the repo or the project data folder, so the
+   catch chunk is skipped when the file is missing.
+-->
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -16,28 +42,31 @@ library(scico)
 
 
 ## Load Data from Targets Pipeline
-```{r, eval=FALSE}
-# Initialize targets 
-
-targets_data_directory = "C:\\Users\\kevin\\Nextcloud\\emLab\\projects\\current-projects\\squid-climate-change\\data"
-
-targets::tar_config_set(store = glue::glue("{targets_data_directory}/_targets"))
-
+```{r}
+# Load data from the analysis targets project (see README.md). Paths and
+# analysis parameters (including analysis_scope_lon and analysis_scope_lat)
+# come from r/config.R. Passing store = reads that project without changing
+# _targets.yaml. Run from the repo root
+source("r/config.R")
+analysis_store <- file.path(project_directory, "data", "_targets_analysis")
 
 targets::tar_load(c(#"squid_vessel_list",
-                    #"joined_dataset_ais",
+                    "joined_dataset_ais",
                     "pixels_eez_with_info",
                     "eez_boundaries_high_seas",
                     "sst_cc_forecast_data",
                     "eez",
                     "sprfmo",
                     "land",
-                    "analysis_scope_lon",
-                    "analysis_scope_lat",
-                    "analysis_bounding_box"))
+                    "analysis_bounding_box"),
+                  store = analysis_store)
 
+# Pixel identifiers, as built in the Analysis_forecast_*.Rmd files
+ais_data <- joined_dataset_ais |>
+  dplyr::distinct(lon_bin, lat_bin) |>
+  dplyr::mutate(bin = stringr::str_c(lon_bin, ",", lat_bin))
 
-source("C:\\documents\\GitHub\\squid-climate-change\\r\\functions.r")
+source("r/functions.R")
 ```
 
 ## Load Model Predictions
@@ -581,7 +610,7 @@ ggsave(
 
 
 ## Annual Catch of Jumbo Flying Squid by Country
-```{r}
+```{r, eval = file.exists("capture_quantity.csv")}
 # Load necessary libraries
 library(ggplot2)
 library(dplyr)
