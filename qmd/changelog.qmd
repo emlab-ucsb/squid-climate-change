@@ -1,0 +1,46 @@
+# Change log {.unnumbered}
+
+## 2026-11-02
+
+### What changed
+
+**AIS data.** Squid jigger effort and vessel info now come from Global Fishing Watch's V5 pipeline instead of V3, and run from January 2016 through December 2025 (V3 ran through August 2024). The BigQuery tables are versioned (`_v20261102`), so the V3 tables are still there, unchanged. For 2016-2023, V5 has 13.4% more fishing hours and 9.6% more fishing kW-hours than V3 within the analysis scope; the difference is similar every year (9-17% more hours). The squid vessel list has 4,212 vessels.
+
+**Pipeline structure.** The single `targets` pipeline is now three projects, run in order with `Rscript run.R`:
+
+- `gfw` builds the AIS tables in BigQuery and exports them, and the VIIRS detections, to parquet files. It needs GFW BigQuery access.
+- `sst` downloads daily SST, saves a dated copy of the ONI, and reads the CMIP6 forecasts. It needs internet.
+- `analysis` joins everything and renders this book. It only reads files, so it can be rerun without GFW credentials or internet.
+
+The README describes the safeguards: BigQuery tables are never overwritten, each query has a cost cap, the VIIRS tables are frozen, and downloads and joined datasets are checked before they're used.
+
+**SST.** Daily SST now comes from NOAA's NCEI archive instead of the CoastWatch ERDDAP server. The values are identical for days both have, but ERDDAP was missing some days, and when a day was missing, it returned the nearest day instead. Four of the old daily files held the previous day's data (2021-03-23, 2021-09-07, 2022-10-19, and 2024-03-31), so those months counted one day twice. With NCEI, every day from 2016-01-01 through 2025-12-31 is included. Monthly SST is now only computed for pixels in the analysis scope.
+
+**ONI.** The pipeline now uses a copy of NOAA's ONI file saved on 2026-11-02, and won't re-download it. NOAA revises past ONI values (it moved to ERSST v6 in September 2026): compared to the previous pull, values for 2017-2021 changed by up to 0.26°C, and 59 of those 60 months changed.
+
+**CMIP6 forecasts.** The SST forecasts now come from the IPCC AR6 Interactive Atlas Dataset, the data behind the Interactive Atlas, instead of files downloaded by hand from the Atlas website. Of the 144 old files, 63 were copies of a different scenario or time horizon (e.g., Near Term SSP1-2.6 and SSP2-4.5 were identical for five months), the Near Term files had no February, and the Long Term files had two Februaries. The new forecasts follow the Atlas's own code for averaging across years and models, and reproduce the Atlas values to within 0.02°C. The pipeline also saves a 1995-2014 baseline from the historical runs, for each scenario's models (`sst_cc_baseline_data`), for computing projected changes.
+
+**EEZs.** `nearest_eez_id` is now the Marine Regions sovereign ID for every pixel. Before, pixels in an EEZ had the EEZ's ID and high seas pixels had the sovereign's ID, so one country could have several IDs (e.g., Chile had four). The ISO3 columns didn't change.
+
+**Book.** New ONI section; updated SST, CMIP6, and joined dataset descriptions; the scope maps in @sec-methods now show effort outside the analysis scope; the annual effort figure is now a stacked bar chart through 2025; map captions now say 0.25x0.25 degree pixels; and figure cross-references are fixed.
+
+**Software.** R 4.5.1, with packages updated to their latest versions (`renv.lock`), and Quarto 1.11.9.
+
+### Things to flag for Kaiwen
+
+These are in Kaiwen's analysis files (`Analysis_forecast_ols.Rmd`, `Analysis_forecast_poisson.Rmd`, and `Visualization.Rmd`), which aren't part of the pipeline. Notes at the top of each file describe them. Only the data loading in those files changed: they now read the `analysis` project's store.
+
+1. **Forecasts will change.** The CMIP6 files the forecasts used were mislabelled (see above), so the models' forecasts need to be rerun with the new `sst_cc_forecast_data`.
+2. **CMIP6 is biased warm here.** The forecasts swap observed SST for absolute CMIP6 SST. Within the analysis scope, Near Term (2021-2040) CMIP6 SST averages 0.76°C warmer than observed SST for 2016-2025 (SSP1-2.6; 5-95% range of -0.48 to 2.67°C across 1x1 degree cells and months), and the 1995-2014 CMIP6 baseline is already 0.29°C warmer than observed 2016-2025 SST. So part of the predicted change is model bias rather than warming. The delta method (observed SST plus the CMIP6 change from the baseline, for the same cell and month) would avoid this; the baseline is now in the pipeline.
+3. **Effort change maps understate effort about 7 times.** Rows are pixel x month x flag, and the models have no flag term, so every flag in a pixel-month gets the same prediction. Taking the mean by pixel and multiplying by 12 gives a per-flag number; there are 7 flags in scope.
+4. **Wrong scenario.** In `Visualization.Rmd`, `ols_prediction_SSP1` is built from the SSP2-4.5 predictions, and the maps named `_ssp1` use SSP5-8.5.
+5. **February and NAs.** With no Near Term February in the old files, February predictions were NA, and `mean(na.rm = TRUE)` and `replace_na(0)` showed February as no change. NA predictions should stop the script rather than be dropped.
+6. **Region split.** `monthly_diff` splits the regions at `lat_bin <= -10`, but the models split at `lat_bin < -10`.
+7. **Missing file.** `capture_quantity.csv` isn't in the repo or the project data folder.
+8. **Threads.** The models use `nthreads = 20`, so run them in a Slurm job with at least 20 cores.
+
+9. **`Visualization.Rmd` stops partway through.** A call to `plot_sst_change()` (the SST change map for January-June) leaves out the required `title` argument, so the script stops there; the chunk after it then can't find the plot. This was already in the code. Every other chunk ran.
+
+### Running Kaiwen's analysis files with the new data
+
+On 2026-11-02, we ran the three files in order on sequoia (20 cores), with the new pipeline data. `Analysis_forecast_ols.Rmd` ran in 24 minutes and `Analysis_forecast_poisson.Rmd` in 19 minutes, both without errors. `Visualization.Rmd` stopped at the missing `title` argument (item 9); run with errors allowed, the rest of it ran. The forecasts in those runs still have the issues in items 2-6, so they aren't results yet.

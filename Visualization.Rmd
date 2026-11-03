@@ -28,6 +28,9 @@ the code is as it was. Things to fix:
    lat_bin < -10.
 5. capture_quantity.csv isn't in the repo or the project data folder, so the
    catch chunk is skipped when the file is missing.
+6. The call to plot_sst_change() that makes fig_sst_map_ssp1_diff leaves out
+   the required title argument, so the script stops there (this was already
+   in the code before 2026-11-02).
 -->
 
 
