@@ -1,60 +1,93 @@
 ## ---------------------------
 ## Script name: r/functions.R
 ## Author: Gavin McDonald, emLab, UC Santa Barbara
-## Date: 2024-079-05
+## Date: 2024-09-05
 ## Purpose:
-## All functions that will be used in the targets pipeline
-## ---------------------------
-## Notes:
-##   
+## Functions for pipelines/analysis.R and the Quarto book. GFW functions are in
+## r/gfw.R, and SST and ONI functions are in r/sst.R.
 ## ---------------------------
 
-# This function pulls the necessary GFW data and stores it into a destination table
-# This requires special permissions, and is also very expensive to run, so will not be done often
-run_gfw_query_and_save_table <- function(sql, 
-                                         bq_table_name, 
-                                         bq_dataset, 
-                                         billing_project, 
-                                         bq_project,
-                                         # By default:  If the table already exists, BigQuery overwrites the table data
-                                         # With "WRITE_APPEND": If the table already exists, BigQuery appends the data to the table.
-                                         write_disposition = 'WRITE_TRUNCATE',
-                                         ...){
-  
-  # Specify table where query results will be saved
-  bq_table <- bigrquery::bq_table(project = bq_project,
-                                  table = bq_table_name,
-                                  dataset = bq_dataset)
-  
-  # Run query and save on BQ. We don't pull this locally yet.
-  bigrquery::bq_project_query(billing_project,
-                              sql,
-                              destination_table = bq_table,
-                              use_legacy_sql = FALSE,
-                              allowLargeResults = TRUE,
-                              write_disposition = write_disposition)
-  
-  # Return table metadata, for targets to know if something changed
-  bigrquery::bq_table_meta(bq_table)
-}
-
-#' Full name of a BigQuery table
+#' Check a file from another targets project exists
 #'
-#' @description Turns the table metadata returned by
-#'   run_gfw_query_and_save_table() into a "project.dataset.table" name, so
-#'   downstream queries read the table the upstream target actually built.
-#' @param table_meta Table metadata from bigrquery::bq_table_meta().
-#' @return Character string, "project.dataset.table".
-bq_table_full_name <- function(table_meta) {
-  ref <- table_meta$tableReference
-  paste(ref$projectId, ref$datasetId, ref$tableId, sep = ".")
+#' @description The analysis project reads files the gfw and sst projects
+#'   write (handoff_files in r/config.R). Gives a clear error if one is
+#'   missing.
+#' @param path Path of the file.
+#' @param project Project that writes the file.
+#' @return path, for format = "file" targets.
+handoff_file <- function(path, project) {
+  if (!file.exists(path)) {
+    stop(path, " not found. Run the ", project, " project first: Rscript run.R ", project)
+  }
+  path
 }
 
-# This function pulls GFW data locally using an arbitrary SQL command
-pull_gfw_data_locally_arbitrary <- function(sql, billing_project, ...){
-  bigrquery::bq_project_query(billing_project, 
-                              sql) |>
-    bigrquery::bq_table_download(n_max = Inf)
+#' Write a parquet file without leaving a partial file behind
+#'
+#' @description Writes to a temporary file in the same directory, then renames
+#'   it into place, so an interrupted write never leaves a truncated file at
+#'   path.
+#' @param x Data frame to write.
+#' @param path Destination path.
+#' @return path, for format = "file" targets.
+write_parquet_atomic <- function(x, path) {
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  tmp <- paste0(path, ".tmp-", Sys.getpid())
+  on.exit(unlink(tmp), add = TRUE)
+  nanoparquet::write_parquet(x, tmp)
+  if (!file.rename(tmp, path)) stop("Could not move ", tmp, " to ", path)
+  path
+}
+
+#' Write a CSV file without leaving a partial file behind
+#'
+#' @description Like write_parquet_atomic(), for small files people may want
+#'   to read directly.
+#' @param x Data frame to write.
+#' @param path Destination path.
+#' @return path, for format = "file" targets.
+write_csv_atomic <- function(x, path) {
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  tmp <- paste0(path, ".tmp-", Sys.getpid())
+  on.exit(unlink(tmp), add = TRUE)
+  data.table::fwrite(x, tmp)
+  if (!file.rename(tmp, path)) stop("Could not move ", tmp, " to ", path)
+  path
+}
+
+#' Number of parallel workers to use
+#'
+#' @description One less than the cores available to this session (e.g., a
+#'   Slurm job's allocation), at least 1. A function rather than a value, so
+#'   running on a machine with a different number of cores doesn't make
+#'   targets rerun the steps that use it.
+#' @return Integer.
+n_workers <- function() {
+  max(1L, parallelly::availableCores() - 1L)
+}
+
+#' Check a joined dataset before the analysis uses it
+#'
+#' @param data Joined dataset.
+#' @param keys Columns that should uniquely identify a row.
+#' @param no_na Columns that should have no NA values.
+#' @param months Months the dataset should cover, exactly.
+#' @return data, unchanged.
+check_joined_dataset <- function(data, keys, no_na, months) {
+  if (anyDuplicated(data[keys])) {
+    stop("Joined dataset is not unique on ", paste(keys, collapse = ", "))
+  }
+  has_na <- no_na[vapply(no_na, function(column) anyNA(data[[column]]), logical(1))]
+  if (length(has_na) > 0) {
+    stop("Joined dataset has NA values in ", paste(has_na, collapse = ", "))
+  }
+  data_months <- sort(unique(as.Date(data$month)))
+  if (!identical(data_months, sort(as.Date(months)))) {
+    stop("Joined dataset covers months ", min(data_months), " to ", max(data_months),
+         " (", length(data_months), " months), not the expected ",
+         min(months), " to ", max(months), " (", length(months), " months)")
+  }
+  data
 }
 
 # Set consistent theme for maps
@@ -88,225 +121,6 @@ theme_plot <- function(){
                                       face = "bold"),
           strip.text.y = ggplot2::element_text(angle = 0,
                                       face = "bold"))} 
-
-# Wrapper for downloading and saving ERDDAP data from NOAA
-download_erddap_wrapper <- function(dataset_name,
-                                    date_start,
-                                    date_end,
-                                    download_path_base){
-  
-  date_range <- seq(as.Date(date_start),as.Date(date_end), "days") |>
-    as.character()
-  
-  purrr::map_df(date_range,function(data_date){
-    # If file has already been downloaded, can skip download
-    download_path <- glue::glue("{download_path_base}/{dataset_name}_{stringr::str_replace_all(data_date,'-','_')}.csv")
-    
-    if(file.exists(download_path)){
-      print(glue::glue("{data_date} already exists, skipping download"))
-      return(tibble::tibble(data_date = data_date,
-                            download_path = download_path,
-                            download_timestamp =Sys.time(),
-                            error = NA))
-    }
-    
-    # Keep trying til it works: https://stackoverflow.com/a/63341321
-    ntry <- 0
-    max_tries <- 10
-    repeat{
-      fl <- tryCatch(
-        downloaded_data <- rerddap::griddap(dataset_name, 
-                                            time = c(data_date, data_date)),
-        error = function(e) e
-      )
-      not.yet <- inherits(fl, "error")
-      if(not.yet){
-        print(glue::glue("{data_date} download re-trying"))
-        Sys.sleep(5)}
-      else break
-      ntry <- ntry + 1
-      if(ntry > max_tries) {
-        print(glue::glue("{data_date} download failed after {max_tries} tries"))
-        return(tibble::tibble(data_date = data_date,
-                              download_path = "download_failed",
-                              download_timestamp =NA,
-                              error = fl$message))
-      }
-    }
-    
-    data_tibble <- downloaded_data$data |>
-      dplyr::select(-zlev) |>
-      tibble::as_tibble()
-    
-    # We noticed there is an error in the 2023-02-01 file - it incorrectly gives the data as 2023-01-31
-    # So we need to manually fix it
-    if(data_date=="2023-02-01") data_tibble <- data_tibble |>
-      collapse::fmutate(time = lubridate::ymd_hms("2023-02-01 12:00:00"))
-
-    # When a date is missing from the dataset, ERDDAP returns the nearest date
-    # it has instead (on 2026-11-02, 2025-06-22 returned 2025-06-23). Don't
-    # save another day's data under this date, or that day would count twice
-    # in its monthly mean. Monthly means use the days ERDDAP has.
-    returned_date <- as.character(data_tibble$time[1]) |>
-      stringr::str_sub(1, 10)
-    if(returned_date != data_date){
-      print(glue::glue("{data_date} not on ERDDAP, skipping"))
-      return(tibble::tibble(data_date = data_date,
-                            download_path = "not_on_server",
-                            download_timestamp = Sys.time(),
-                            error = glue::glue("No data for this date on ERDDAP; nearest date returned was {returned_date}")))
-    }
-
-    data.table::fwrite(data_tibble,
-                       download_path)
-    
-    print(glue::glue("{data_date} download complete"))
-    
-    return(tibble::tibble(data_date = data_date,
-                          download_path = download_path,
-                          download_timestamp =Sys.time(),
-                          error = NA))
-    
-  })
-}
-
-#' List the daily SST files to aggregate
-#'
-#' @description Builds the list of daily SST files from what
-#'   download_erddap_wrapper() returned, so it covers exactly the analysis
-#'   dates, and re-runs whenever the download does. Other projects save files
-#'   to the same shared folder, so listing the folder could pick up dates
-#'   outside the analysis period. Stops if any download failed, so a monthly
-#'   mean never quietly misses days. Dates ERDDAP has no data for are left out.
-#' @param sst_data_download Tibble returned by download_erddap_wrapper().
-#' @return Tibble with one row per daily file: file_name, date, and month.
-list_sst_files <- function(sst_data_download) {
-  failed <- sst_data_download |>
-    dplyr::filter(download_path == "download_failed")
-  if (nrow(failed) > 0) {
-    stop(
-      "SST download failed for ", nrow(failed), " dates (",
-      paste(failed$data_date, collapse = ", "), "). Run ",
-      "targets::tar_invalidate(sst_data_download) and tar_make() to retry."
-    )
-  }
-  not_on_server <- sst_data_download |>
-    dplyr::filter(download_path == "not_on_server")
-  if (nrow(not_on_server) > 0) {
-    message(
-      "No SST data on ERDDAP for ",
-      paste(not_on_server$data_date, collapse = ", "),
-      "; their monthly means use the other days"
-    )
-  }
-  sst_data_download |>
-    dplyr::filter(download_path != "not_on_server") |>
-    dplyr::transmute(
-      file_name = as.character(download_path),
-      date = lubridate::ymd(data_date),
-      month = lubridate::floor_date(date, unit = "month")
-    )
-}
-
-spatio_temporal_aggregate <- function(file_list,
-                                      spatial_resolution,
-                                      temporal_resolution){
-  
-  temporal_resolution_lower <- stringr::str_to_lower(temporal_resolution)
-  
-  file_list |>
-    purrr::map(function(data_file){
-      data_file |>
-        data.table::fread(select = c("time","longitude","latitude","sst"))  |>
-        collapse::fsubset(!is.na(sst)) |>
-        collapse::fmutate(month = lubridate::floor_date(time, temporal_resolution_lower),
-                          lon_bin = floor(longitude / spatial_resolution) * spatial_resolution,
-                          lat_bin = floor(latitude / spatial_resolution) * spatial_resolution)}) |>
-    data.table::rbindlist() |>
-    collapse::collap(FUN = list(sst_deg_c_mean = collapse::fmean,
-      sst_deg_c_sd = collapse::fsd,
-    sst_deg_c_min = collapse::fmin,
-  sst_deg_c_max = collapse::fmax),
-                     by = ~ month + lon_bin + lat_bin,
-                     cols = "sst")|> 
-    dplyr::rename_with(~stringr::str_remove_all(.,".sst"), .cols = everything())
-}
-
-#' Pull NOAA Oceanic Nino Index (ONI) data
-#'
-#' @description Reads monthly ONI values from NOAA PSL, through date_end.
-#' @param date_end Last date of the analysis, as "YYYY-MM-DD". Months after
-#'   it are dropped.
-#' @return Tibble with columns month (first day of the month) and
-#'   oceanic_nino_index.
-pull_oni_data <- function(date_end){
-  oni_lines <- readLines(url("https://psl.noaa.gov/data/correlation/oni.data"))
-  # The first line gives the first and last years in the file, followed by one
-  # row per year. Footer lines after those rows are notes, not data
-  file_years <- scan(text = oni_lines[1], quiet = TRUE)
-  n_years <- file_years[2] - file_years[1] + 1
-  oni_data <- read.table(text = oni_lines[2:(n_years + 1)]) |>
-    tibble::as_tibble() |>
-    dplyr::rename(year = V1) |>
-    tidyr::pivot_longer(-year) |>
-    dplyr::mutate(month = stringr::str_remove_all(name,"V") |>
-                    as.numeric() - 1,
-                  month = lubridate::ymd(glue::glue("{year}-{month}-1"))) |>
-    dplyr::filter(month <= lubridate::ymd(date_end)) |>
-    dplyr::select(month,oceanic_nino_index = value)
-  # -99.9 marks months NOAA hasn't published yet
-  missing_months <- oni_data |>
-    dplyr::filter(oceanic_nino_index == -99.9)
-  if (nrow(missing_months) > 0) {
-    stop("ONI not yet available for ",
-         paste(missing_months$month, collapse = ", "))
-  }
-  oni_data
-}
-
-# Load all cliamte change SST forecast data, process into tidy tibble
-process_sst_cc_forecast_data <- function(project_directory){
-  list.files(glue::glue("{project_directory}/data/raw/ipcc_wgi_climate_forecasts"), full.names = TRUE) |>
-  purrr::map_df(function(file_name){
-    
-    
-    file_info_tibble <- tibble::tibble(file_name = file_name) |>
-      dplyr::mutate(time_period = dplyr::case_when(stringr::str_detect(file_name,"Long Term") ~ "Long Term (2081-2100)",
-                                                   stringr::str_detect(file_name,"Medium Term") ~ "Medium Term (2041-2060)",
-                                                   stringr::str_detect(file_name,"Near Term") ~ "Near Term (2021-2040)")) |>
-      dplyr::mutate(scenario = dplyr::case_when(stringr::str_detect(file_name,"SSP1-2.6") ~ "SSP1-2.6",
-                                                stringr::str_detect(file_name,"SSP2-4.5") ~ "SSP2-4.5",
-                                                stringr::str_detect(file_name,"SSP3-7.0") ~ "SSP3-7.0",
-                                                stringr::str_detect(file_name,"SSP5-8.5 ") ~ "SSP5-8.5")) |>
-      dplyr::mutate(month = dplyr::case_when(stringr::str_detect(file_name,"January") ~ "January",
-                                             stringr::str_detect(file_name,"February") ~ "February",
-                                             stringr::str_detect(file_name,"March") ~ "March",
-                                             stringr::str_detect(file_name,"April") ~ "April",
-                                             stringr::str_detect(file_name,"May") ~ "May",
-                                             stringr::str_detect(file_name,"June") ~ "June",
-                                             stringr::str_detect(file_name,"July") ~ "July",
-                                             stringr::str_detect(file_name,"August") ~ "August",
-                                             stringr::str_detect(file_name,"September") ~ "September",
-                                             stringr::str_detect(file_name,"October") ~ "October",
-                                             stringr::str_detect(file_name,"November") ~ "November",
-                                             stringr::str_detect(file_name,"December") ~ "December")) |>
-      dplyr::select(-file_name)
-    
-    file_name |>
-      terra::rast() |>
-      tidyterra::as_tibble(xy = TRUE) |>
-      dplyr::select(lon_bin = x,
-                    lat_bin = y,
-                    sst_deg_c_mean = tos) |>
-      dplyr::filter(!is.na(sst_deg_c_mean)) |>
-      tidyr::crossing(file_info_tibble)|>
-      dplyr::mutate(month_number = match(month, month.name))  |>
-      # Don't need month name column now
-      dplyr::select(-month) |>
-      # Data is at 1x1 degree resolution. Make lon/lat bin at lower left corner instead of centroid, for easy joining
-      dplyr::mutate(lon_bin = floor(lon_bin),
-                    lat_bin = floor(lat_bin))
-  })}
 
 make_bounding_box <- function(analysis_scope_lon,
                               analysis_scope_lat){
