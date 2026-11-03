@@ -1,3 +1,7 @@
 # Introduction {.unnumbered}
 
 Here we describe the data sources and exploratory data analysis for the project, **Toward sustainable and resilient fisheries management for the Humboldt squid deep-water fishery**. The project is a collaboration between UCSB's Environmental Markets Lab (emLab) and Environmental Defense Fund (EDF).
+
+## Use of generative AI {.unnumbered}
+
+Claude (Anthropic), model Opus 5.5, was used as a coding assistant through Claude Code in November 2026. It helped move the AIS data to Global Fishing Watch's V5 pipeline, extend the data through 2025, split the data pipeline into separate projects for the GFW, SST, and analysis steps, switch the SST download to NOAA's NCEI archive, read the CMIP6 forecasts from the IPCC Atlas dataset, and revise the text and figures in this book.

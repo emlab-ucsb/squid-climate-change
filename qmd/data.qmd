@@ -12,49 +12,50 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE, echo = FALSE)
 library(skimr)
 library(ggplot2)
 
-targets::tar_load(c("ais_date_start",
-                    "ais_date_end",
-                    "spatial_resolution",
-                    "temporal_resolution",
-                    "squid_vessel_list",
+targets::tar_load(c("squid_vessel_list",
+                    "gridded_time_effort_by_flag",
                     "joined_dataset_ais_summary",
                     "eez",
                     "sprfmo",
                     "land",
                     "joined_dataset_ais",
-                    "analysis_scope_lon",
-                    "analysis_scope_lat",
                     "analysis_bounding_box"))
 
+# Analysis parameters (dates, resolution, scope, versions)
+source("r/config.R")
 source("r/functions.R")
 ```
 
 ## Sea surface temperature (SST)
 
-Sea surface temperature (SST) data come from [NOAA's Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg.html) (@huang2021improvements), which were downloaded from their Coast Watch ERDDAP server. The raw data are provided globally at 0.25x0.25 degree daily resolution. Keeping the full 0.25x0.25 degree spatial resolution, we temporally aggregate the daily data to monthly resolution by calculating the mean SST for each pixel from across the days in each month. A few days are missing from the ERDDAP dataset (e.g., 2025-06-22); for those months, the mean uses the days that are available.
+Sea surface temperature (SST) data come from [NOAA's daily Optimum Interpolation Sea Surface Temperature (OISST) version 2.1](https://www.ncei.noaa.gov/products/optimum-interpolation-sst) (@huang2021improvements). We download the final (not preliminary) daily files from [NOAA's National Centers for Environmental Information (NCEI) archive](https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/), and check that each file holds the expected date before using it. The raw data are provided globally at 0.25x0.25 degree daily resolution. We keep the pixels within the geographic analysis scope (see below), and temporally aggregate the daily data to monthly resolution by calculating the mean (and standard deviation, minimum, and maximum) SST for each pixel from across the days in each month. Every day from `r analysis_date_start` through `r analysis_date_end` is included.
+
+## Oceanic Niño Index (ONI)
+
+Monthly Oceanic Niño Index (ONI) values come from [NOAA's Physical Sciences Laboratory](https://psl.noaa.gov/data/correlation/oni.data). The ONI is NOAA's primary index of the El Niño-Southern Oscillation (ENSO): the 3-month running mean of sea surface temperature anomalies in the Niño 3.4 region (5°N-5°S, 120°-170°W), from NOAA's Extended Reconstructed SST (ERSST) dataset. Values of +0.5°C or higher indicate El Niño conditions, and -0.5°C or lower indicate La Niña conditions. NOAA revises past ONI values when it updates ERSST or the index's base periods, so values for earlier months can shift slightly between data pulls. To keep the analysis reproducible, we use a copy of the ONI file saved on `r oni_snapshot_date`, and use the ONI for each month from `r analysis_date_start` through `r analysis_date_end`.
 
 ## Sea surface temperature (SST) forecasts under climate change
 
 We use SST forecasts under climate change from the [IPCC WGI Interactive Atlas](https://interactive-atlas.ipcc.ch/regional-information#eyJ0eXBlIjoiQVRMQVMiLCJjb21tb25zIjp7ImxhdCI6OTc3MiwibG5nIjo0MDA2OTIsInpvb20iOjQsInByb2oiOiJFUFNHOjU0MDMwIiwibW9kZSI6ImNvbXBsZXRlX2F0bGFzIn0sInByaW1hcnkiOnsic2NlbmFyaW8iOiJzc3A1ODUiLCJwZXJpb2QiOiJmYXIiLCJzZWFzb24iOiJ5ZWFyIiwiZGF0YXNldCI6IkNNSVA2IiwidmFyaWFibGUiOiJ0b3MiLCJ2YWx1ZVR5cGUiOiJWQUxVRSIsImhhdGNoaW5nIjoiU0lNUExFIiwicmVnaW9uU2V0IjoiYXI2IiwiYmFzZWxpbmUiOiJwcmVJbmR1c3RyaWFsIiwicmVnaW9uc1NlbGVjdGVkIjpbXX0sInBsb3QiOnsiYWN0aXZlVGFiIjoicGx1bWUiLCJtYXNrIjoibm9uZSIsInNjYXR0ZXJZTWFnIjpudWxsLCJzY2F0dGVyWVZhciI6bnVsbCwic2hvd2luZyI6ZmFsc2V9fQ==)(@iturbide2021repository). The Atlas provides a platform for accessing ensemble forecasts from CMIP6 (Coupled Model Intercomparison Project Phase 6), which represent the latest global climate forecasts available and served as the basis of the [6th IPCC Assessment Report](https://www.ipcc.ch/assessment-report/ar6/). 
 
-We pull 1x1 degree monthly mean SST data for three time horizons:
+We use the data underlying the Atlas, the [IPCC-WGI AR6 Interactive Atlas Dataset](https://digital.csic.es/handle/10261/280324) (Instituto de Física de Cantabria, Version 2 final), which has monthly SST from each CMIP6 model interpolated to a common 1x1 degree grid. We read it from the dataset's [THREDDS server](https://data.meteo.unican.es/thredds/catalog/IPCC/AR6/catalog.html), for the 1x1 degree cells within the geographic analysis scope. For each scenario and time horizon, we calculate each model's mean SST for each calendar month across the years of the time horizon it has data for, then average across the models with SST in each cell. This follows the Atlas's own code (`datasets-interactive-atlas/04_map_figures.R` in @iturbide2021repository), and reproduces the values on the Interactive Atlas to within 0.02°C. A few model runs don't cover every year (e.g., the CAMS-CSM1-0 and IITM-ESM runs end before 2100, and EC-Earth3-Veg-LR is listed for SSP5-8.5 but has no SST data, so SSP5-8.5 means use 26 models); the models and years used are listed in `cmip6_models_used.csv` in the pipeline outputs. We use three time horizons:
 
 1. Near Term (2021-2040) 
 2. Medium Term (2041-2060)
 3. Long Term (2081-2100)
 
-And for each time horizon, we pull data from four climate change scenarios (more information on the scenarios can be found [here](https://climate-scenarios.canada.ca/?page=cmip6-overview-notes):
+And for each time horizon, four climate change scenarios (more information on the scenarios can be found [here](https://climate-scenarios.canada.ca/?page=cmip6-overview-notes)), each with the models the Atlas uses for it:
 
-1. SSP1-2.6
-2. SSP2-4.5
-3. SSP3-7.0
-4. SSP5-8.5
+1. SSP1-2.6 (`r cmip6_experiments$n_models[1]` models)
+2. SSP2-4.5 (`r cmip6_experiments$n_models[2]` models)
+3. SSP3-7.0 (`r cmip6_experiments$n_models[3]` models)
+4. SSP5-8.5 (`r cmip6_experiments$n_models[4]` models)
 
-This gives us a total of 12 different forecasts to analyze. The dataset can be loaded in targets using `targets::tar_load(sst_cc_forecast_data)`, and it has the following columns:
+This gives us a total of 12 different forecasts to analyze. The pipeline checks that each has all 12 months, and that no two are identical. (Until November 2026, we downloaded these forecasts by hand from the Interactive Atlas website. Some of those files turned out to be copies of a different scenario or time horizon, and the Near Term files had no February.) The dataset can be loaded in targets using `targets::tar_load(sst_cc_forecast_data)`, and it has the following columns:
 
-* **lon_bin**:  1x1 degree longitude bin (degrees) (numeric)  
-* **lat_bin**:  1x1 degree latitude bin (degrees) (numeric)  
-* **sst_deg_c_mean**: Mean sea surface temperature from across the ensemble of CMIP6 models (degrees C) (numeric)
+* **lon_bin**:  1x1 degree longitude bin, lower-left corner (degrees) (numeric)  
+* **lat_bin**:  1x1 degree latitude bin, lower-left corner (degrees) (numeric)  
+* **sst_deg_c_mean**: Multi-model mean sea surface temperature for the calendar month (degrees C) (numeric)
 * **time_period**: Future time horizon forecast time period (character)
 * **scenario**: Climate change scenario (character)
 * **month_number**: Month number (numeric)
@@ -76,7 +77,7 @@ In order to minimize noisy data, we only include AIS messages that have
 a `clean_segs` boolean (i.e., all messages must have `good_seg` boolean
 and must not have an `overlapping_and_short` boolean). We filter to just those messages where `night_loitering = 1`. For squid jigging vessels, GFW uses the heuristic of night loitering to identify when they are fishing. Therefore, any `hours` where `night_loitering = 1` can be classified as `fishing_hours`
 
-We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially (by `r spatial_resolution`x`r spatial_resolution` degree pixels, which are roughly `r spatial_resolution*111`km x `r spatial_resolution*111`km at the equator), temporally by `r stringr::str_to_lower(temporal_resolution)`, and by flag. We currently process data from `r stringr::str_remove_all(ais_date_start,'\'')` through `r stringr::str_remove_all(ais_date_end,'\'')`.
+We take the raw high-resolution AIS data and aggregate `fishing_hours` spatially (by `r spatial_resolution`x`r spatial_resolution` degree pixels, which are roughly `r spatial_resolution*111`km x `r spatial_resolution*111`km at the equator), temporally by `r stringr::str_to_lower(temporal_resolution)`, and by flag. We currently process data from `r analysis_date_start` through `r analysis_date_end`.
 
 ## AIS-based vessel info
 
@@ -103,22 +104,25 @@ Vessel characteristics data processed are by Global Fishing Watch (@park2023trac
     if it is \> 0, it can be used as a filter to remove potentially
     erroneous/noisy vessels)
     
-We filter to just those vessels the random forest model calls fishing vessels (`random_forest_info.on_fishing_list_best`) and squid jiggers. A vessel is a squid jigger when `random_forest_info.best_vessel_class = squid_jigger`, or when the model rolls the vessel up to the generic `fishing` class but its finest-level prediction is `random_forest_info.atomic_class = squid_jigger` (GFW says this finest-level prediction is reliable for squid jiggers). Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activity.active_hours < 24`) or are noisy vessels, using GFW's definition of a noisy vessel (i.e., `activity.offsetting` or `activity.overlap_hours_multinames >= 24`). They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels for our analysis.
+We filter to just those vessels the random forest model calls fishing vessels (`random_forest_info.on_fishing_list_best`) and squid jiggers. A vessel is a squid jigger when `random_forest_info.best_vessel_class = squid_jigger`, or when the model rolls the vessel up to the generic `fishing` class but its finest-level prediction is `random_forest_info.atomic_class = squid_jigger` (GFW says this finest-level prediction is reliable for squid jiggers). Additionally, to reduce noise, we filter out vessels that broadcast exceedingly infrequently (i.e., `activity.active_hours < 24`) or are noisy vessels, using GFW's definition of a noisy vessel (i.e., `activity.offsetting` or `activity.overlap_hours_multinames >= 24`). They are simply not reliable and will not provide good effort estimates. This leaves us with `r prettyNum(nrow(squid_vessel_list), big.mark = ",")` squid vessels globally.
 
 ### Joined dataset: SST and AIS-based effort
 
-One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We inner join the AIS-based effort and SST datasets by `r spatial_resolution`x`r spatial_resolution` degree pixel and month.   Since the AIS-based effort dataset is disaggregated by flag, each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month.
+One version of the final dataset we use for our analysis is a combination of the gridded AIS-based fishing effort data and gridded SST data. We start from every `r spatial_resolution`x`r spatial_resolution` degree pixel and month with SST data within the analysis scope, crossed with every flag that has fishing effort in the analysis scope. We then left join the AIS-based effort onto that grid by pixel, month, and flag, so pixel-months with no effort for a flag have zero effort. Each row in the joined dataset represents flag-level effort in a given pixel and month, with the corresponding SST for that pixel and month, the ONI for that month, and the pixel's EEZ information.
 
-The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_ais)`. The dataset has the following colums:
+The joined dataset can be loaded in R using the command `targets::tar_load(joined_dataset_ais)`. The dataset has the following columns:
 
-* **month**: Month (first day of month) (date)  
-* **flag** : Fishing vessel flag (character)
-* **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)  
-* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)  
-* **flag**:  Fishing flag (character)  
-* **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric) 
-* **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)  
-* **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)  
+* **month**: Month (first day of month) (date)
+* **lon_bin**:  `r spatial_resolution` degree longitude bin (degrees) (numeric)
+* **lat_bin**:  `r spatial_resolution` degree latitude bin (degrees) (numeric)
+* **flag**:  Fishing vessel flag (ISO3) (character)
+* **sst_deg_c_mean**: Mean sea surface temperature, aggregated from the raw daily 0.25x0.25 degree data (degrees C) (numeric). The dataset also has the standard deviation, minimum, and maximum (`sst_deg_c_sd`, `sst_deg_c_min`, `sst_deg_c_max`)
+* **fishing_hours**:  Total fishing effort across vessels (hours) (numeric)
+* **fishing_kw_hours**:  Total fishing effort across vessels (kW-hours) (numeric)
+* **oceanic_nino_index**: Oceanic Niño Index for the month (degrees C) (numeric)
+* **eez_id**, **eez_iso3**, **high_seas**: The Marine Regions v12 EEZ (MRGID) the pixel's centroid falls in, and its sovereign (ISO3), or `high_seas` (@marineregionsv12). Joint regimes and disputed areas are not counted as EEZs, so pixels in them are `high_seas`
+* **nearest_eez_id**, **nearest_eez_iso3**, **nearest_eez_distance_m**: The sovereign (Marine Regions sovereign MRGID and ISO3) of the pixel's EEZ, or for high seas pixels, of the nearest EEZ, and the distance (meters) from the pixel's centroid to the nearest 200 nautical mile boundary between an EEZ and the high seas
+
 Here we summarize these data (@tbl-summary-stats-joined-dataset-ais):
 
 ```{r}
@@ -137,7 +141,7 @@ Our proposed geographic scope encompasses a bounding box with a longitude range 
 #| fig-cap: Map of squid jigger fishing effort from 2016 through December 2025, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
 
 ggplot()  +
-  geom_tile(data = joined_dataset_ais |>
+  geom_tile(data = gridded_time_effort_by_flag |>
               dplyr::group_by(lat_bin,
                               lon_bin) |>
               dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
@@ -180,7 +184,7 @@ ggplot()  +
 #| fig-cap: Zoomed in map of squid jigger fishing effort from 2016 through December 2025 to the proposed analysis scope, aggregating effort across effort, flags, and time for each pixel. EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFRMO boundary is shown in yellow; the currently proposed analysis scope bounding box is shown as a red outline.
 
 ggplot()  +
-  geom_tile(data = joined_dataset_ais |>
+  geom_tile(data = gridded_time_effort_by_flag |>
               dplyr::group_by(lat_bin,
                               lon_bin) |>
               dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>

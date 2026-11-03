@@ -24,10 +24,10 @@ targets::tar_load(c("squid_vessel_list",
                     "eez",
                     "sprfmo",
                     "land",
-                    "analysis_scope_lon",
-                    "analysis_scope_lat",
                     "analysis_bounding_box"))
 
+# Analysis parameters (dates, resolution, scope, versions)
+source("r/config.R")
 source("r/functions.R")
 ```
 
@@ -37,7 +37,7 @@ We can look at a map of SST, simply looking at the average monthly SST from acro
 
 ```{r}
 #| label: fig-sst-map
-#| fig-cap: Map of mean sea surface temperature (SST) from across January 2016 through December 2025, using 0.5x0.5 degree pixels.
+#| fig-cap: Map of mean sea surface temperature (SST) from across January 2016 through December 2025, using 0.25x0.25 degree pixels.
 
 fig_sst_map <- ggplot() +
   geom_tile(data = joined_dataset_ais |>
@@ -210,7 +210,7 @@ joined_dataset_ais|>
   theme_plot()
 ```
 
-Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series). The top top `r n_flags` flags are shown, with other flags aggregated into 'Other'.
+Next we look at a time series of total monthly AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series). The top `r n_flags` flags are shown, with other flags aggregated into 'Other'.
 
 ```{r}
 #| label: fig-effort-time-series
@@ -235,7 +235,7 @@ joined_dataset_ais|>
              scales = "free_y")
 ```
 
-Next we look at a time series of total annual AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series-annual). The top top `r n_flags` flags are shown, with other flags aggregated into 'Other'.
+Next we look at a time series of total annual AIS-based fishing effort by fishing flag over time within the analysis scope (@fig-effort-time-series-annual). The top `r n_flags` flags are shown, with other flags aggregated into 'Other'.
 
 ```{r}
 #| label: fig-effort-time-series-annual
@@ -258,14 +258,14 @@ joined_dataset_ais|>
   dplyr::summarize(fishing_kw_hours = sum(fishing_kw_hours)) |>
   dplyr::ungroup()  |>
   ggplot(aes(x = year, y= fishing_kw_hours, fill = country)) +
-  geom_area() +
+  geom_col() +
   labs(x = "",
        y = "Annual fishing effort by flag (kW-hours)")+
   scale_y_continuous(labels = scales::unit_format(unit = "M", scale = 1e-6),
                      limits = c(0,NA)) +
   theme_plot() +
   scale_fill_brewer("Flag",palette = "Dark2") +
-  scale_x_continuous(breaks = seq(2016,2023)) +
+  scale_x_continuous(breaks = seq(2016, last_full_year)) +
   theme(panel.grid.minor.x = element_blank(),
         legend.position = "top",
         legend.direction = "horizontal")
@@ -303,7 +303,7 @@ cowplot::plot_grid(fig_top, fig_bottom, ncol = 1,
                    labels = c("A","B"))
 ```
 
-We can also aggregate the effort data by calculating the total effort for each month in each year, allowing us to look at the historic seasonal variation of total effort. We can do so for two regions: the "equatorial" region (latitude -10 to 10) and the "sub-equatorial" region (latitude -40 to -10) (@fig-sst-monthly-trends-by-region-equatorial, @fig-sst-monthly-trends-by-region-subequatorial).
+We can also aggregate the effort data by calculating the total effort for each month in each year, allowing us to look at the historic seasonal variation of total effort. We can do so for two regions: the "equatorial" region (latitude -10 to 10) and the "sub-equatorial" region (latitude -40 to -10) (@fig-effort-monthly-trends-by-region-equatorial, @fig-effort-monthly-trends-by-region-subequatorial).
 
 ```{r}
 #| label: fig-effort-monthly-trends-by-region-equatorial
@@ -453,7 +453,7 @@ We can also look at this map of total fishing effort alongside a map of mean SST
 
 ```{r}
 #| label: fig-effort-sst-map
-#| fig-cap: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through December 2025 time period, using 0.5x0.5 degree pixels.
+#| fig-cap: Maps of a) mean sea surface temperature (SST); and b) total squid jigger fishing effort (EEZ boundaries from Marine Regions V12 are shown in orange; the SPRFMO boundary is shown in yellow). Both maps include data from across the entire January 2016 through December 2025 time period, using 0.25x0.25 degree pixels.
 
 
 cowplot::plot_grid(fig_sst_map,
